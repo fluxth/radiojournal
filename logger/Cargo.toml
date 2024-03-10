@@ -1,0 +1,23 @@
+[package]
+name = "radiojournal-logger"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+radiojournal = { path = "../lib" }
+anyhow = "1.0.80"
+aws-config = "1.1.7"
+aws-sdk-dynamodb = "1.16.1"
+chrono = { version = "0.4.35", features = ["serde", "now"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_dynamo = { version = "4.2.13", features = ["aws-sdk-dynamodb+1"] }
+tokio = { version = "1.36.0", features = ["full"] }
+ulid = { version = "1.1.2", features = ["serde"] }
+reqwest = { version = "0.11.25", features = ["json"] }
+async-trait = "0.1.77"
+lambda_runtime = "0.10.0"
+serde_json = "1.0.114"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["json"] }

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "radiojournal-scripts"
+version = "0.1.0"
+description = "Scripts for radiojournal"
+authors = ["Thitat Auareesuksakul <flux@thitat.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+boto3 = "^1.34.59"
+ulid-py = "^1.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
