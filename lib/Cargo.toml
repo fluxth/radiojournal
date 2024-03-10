@@ -1,0 +1,14 @@
+[package]
+name = "radiojournal"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.80"
+aws-sdk-dynamodb = "1.16.1"
+chrono = { version = "0.4.35", features = ["serde"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_dynamo = { version = "4.2.13", features = ["aws-sdk-dynamodb+1"] }
+ulid = { version = "1.1.2", features = ["serde"] }

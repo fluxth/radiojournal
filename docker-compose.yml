@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:3.2.0@sha256:167eb023e07eef65f1e490d7a77cf45124e7a24395e4736dd2582e8ea0618ecb
+    environment:
+      - EAGER_SERVICE_LOADING=1
+      - SERVICES=dynamodb
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=${DEBUG-}
+    ports:
+      - 4566:4566
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:4.6.1@sha256:eee516012b3b1081b3147e6440187f2e82bacef4ba04de490bbb006231e5b382
+    environment:
+      - AWS_REGION=ap-southeast-1
+      - DYNAMO_ENDPOINT=http://localstack:4566
+    ports:
+      - 8001:8001
