@@ -24,8 +24,6 @@ fn use_localstack() -> bool {
     std::env::var("LOCALSTACK").unwrap_or_default() == "true"
 }
 
-const TABLE_NAME: &str = "radiojournal-local";
-
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // If you use API Gateway stages, the Rust Runtime will include the stage name
@@ -36,11 +34,15 @@ async fn main() -> Result<(), Error> {
     // i.e with: `GET /test-stage/todo/id/123` without: `GET /todo/id/123`
     std::env::set_var("AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH", "true");
 
-    // required to enable CloudWatch error logging by the runtime
-    tracing_subscriber::fmt()
-        .without_time()
-        .with_max_level(tracing::Level::INFO)
-        .init();
+    if use_localstack() {
+        tracing_subscriber::fmt().compact().init();
+    } else {
+        tracing_subscriber::fmt()
+            .json()
+            .without_time()
+            .with_max_level(tracing::Level::INFO)
+            .init();
+    }
 
     let region_provider = RegionProviderChain::default_provider().or_else("ap-southeast-1");
 
@@ -52,7 +54,9 @@ async fn main() -> Result<(), Error> {
     let config = config.load().await;
     let db_client = Client::new(&config);
 
-    let crud_station = CRUDStation::new(db_client, TABLE_NAME);
+    let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
+
+    let crud_station = CRUDStation::new(db_client, &table_name);
 
     let api = Router::new()
         .route("/stations", get(list_stations))

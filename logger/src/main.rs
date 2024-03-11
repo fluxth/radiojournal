@@ -26,12 +26,17 @@ fn use_localstack() -> bool {
     std::env::var("LOCALSTACK").unwrap_or_default() == "true"
 }
 
-const TABLE_NAME: &str = "radiojournal-local";
-
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let subscriber = tracing_subscriber::FmtSubscriber::new();
-    tracing::subscriber::set_global_default(subscriber)?;
+    if use_localstack() {
+        tracing_subscriber::fmt().compact().init();
+    } else {
+        tracing_subscriber::fmt()
+            .json()
+            .without_time()
+            .with_max_level(tracing::Level::INFO)
+            .init();
+    }
 
     info!(
         "Initializing {} v{}...",
@@ -49,7 +54,9 @@ async fn main() -> Result<(), Error> {
     let config = config.load().await;
     let db_client = Client::new(&config);
 
-    let crud_station = Arc::new(CRUDStation::new(db_client, TABLE_NAME));
+    let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
+
+    let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
 
     let func = service_fn(|event| invoke(event, crud_station.clone()));
     info!("Initialization complete, now listening for events");
