@@ -2,9 +2,42 @@ pub(crate) mod play;
 pub(crate) mod station;
 pub(crate) mod track;
 
-use axum::{routing::get, Router};
-use radiojournal::crud::station::CRUDStation;
 use std::sync::Arc;
+
+use axum::{routing::get, Router};
+use utoipa::{openapi::Server, Modify, OpenApi};
+
+use crate::errors::{APIErrorDetail, APIErrorResponse};
+use crate::models::{Play, Station, Track, TrackMinimal};
+use radiojournal::crud::station::CRUDStation;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        station::list_stations,
+        track::get_track,
+        play::list_plays,
+    ),
+    components(
+        schemas(
+            Station,
+            Play,
+            Track,
+            TrackMinimal,
+            APIErrorDetail,
+            APIErrorResponse
+        ),
+    ),
+    modifiers(&ServerAddon),
+)]
+pub(crate) struct APIDoc;
+
+struct ServerAddon;
+impl Modify for ServerAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        openapi.servers = Some(vec![Server::new("/v1")])
+    }
+}
 
 pub(crate) fn get_router() -> Router<Arc<CRUDStation>> {
     Router::new()

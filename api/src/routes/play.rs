@@ -4,11 +4,22 @@ use std::{
 };
 
 use axum::extract::{Path, State};
-use radiojournal::crud::station::CRUDStation;
 use ulid::Ulid;
 
 use crate::models::{APIJson, Play, TrackMinimal};
+use radiojournal::crud::station::CRUDStation;
 
+#[utoipa::path(
+    get,
+    path = "/station/{station_id}/plays",
+    params(
+        ("station_id" = Ulid, Path, description = "ID of station")
+    ),
+    responses(
+        (status = 200, description = "Plays listed successfully", body = Vec<Play>),
+        (status = 404, description = "Station not found", body = APIErrorResponse),
+    )
+)]
 pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
     State(crud_station): State<Arc<CRUDStation>>,

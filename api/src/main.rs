@@ -10,6 +10,10 @@ use axum::{response::IntoResponse, Router};
 use errors::APIError;
 use lambda_http::{run, Error};
 use radiojournal::crud::station::CRUDStation;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
+
+use routes::APIDoc;
 
 const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
 
@@ -54,6 +58,7 @@ async fn main() -> Result<(), Error> {
 
     let app = Router::new()
         .nest("/v1", routes::get_router().with_state(crud_station))
+        .merge(SwaggerUi::new("/apidocs").url("/openapi/v1.json", APIDoc::openapi()))
         .fallback(handle_404);
 
     run(app).await

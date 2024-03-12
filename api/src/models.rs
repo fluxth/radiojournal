@@ -7,6 +7,7 @@ use chrono::{DateTime, Utc};
 use radiojournal::models::{StationInDB, TrackInDB, TrackMinimalInDB};
 use serde::Serialize;
 use ulid::Ulid;
+use utoipa::ToSchema;
 
 use crate::errors::APIError;
 
@@ -23,7 +24,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub(crate) struct Station {
     id: Ulid,
     name: String,
@@ -42,7 +43,7 @@ impl From<StationInDB> for Station {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub(crate) struct Track {
     id: Ulid,
     title: String,
@@ -65,7 +66,7 @@ impl From<TrackInDB> for Track {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub(crate) struct TrackMinimal {
     id: Ulid,
     title: String,
@@ -84,7 +85,7 @@ impl From<TrackMinimalInDB> for TrackMinimal {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub(crate) struct Play {
     pub(crate) id: Ulid,
     pub(crate) played_at: DateTime<Utc>,

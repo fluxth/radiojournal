@@ -6,6 +6,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::models::APIJson;
 
@@ -14,12 +15,12 @@ pub(crate) enum APIError {
     JsonRejection(JsonRejection),
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct APIErrorResponse {
     error: APIErrorDetail,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct APIErrorDetail {
     code: &'static str,
     message: Cow<'static, str>,
