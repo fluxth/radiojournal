@@ -3,19 +3,16 @@ use std::{
     sync::Arc,
 };
 
-use axum::{
-    extract::{Path, State},
-    Json,
-};
+use axum::extract::{Path, State};
 use radiojournal::crud::station::CRUDStation;
 use ulid::Ulid;
 
-use crate::models::v1::{Play, TrackMinimal};
+use crate::models::{APIJson, Play, TrackMinimal};
 
 pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
     State(crud_station): State<Arc<CRUDStation>>,
-) -> Json<Vec<Play>> {
+) -> APIJson<Vec<Play>> {
     let plays = crud_station.list_plays(station_id).await.unwrap();
 
     let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
@@ -28,7 +25,7 @@ pub(crate) async fn list_plays(
             .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal))),
     );
 
-    Json(
+    APIJson(
         plays
             .into_iter()
             .map(|play_internal| {

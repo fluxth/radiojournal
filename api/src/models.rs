@@ -1,7 +1,27 @@
+use axum::{
+    extract::FromRequest,
+    response::{IntoResponse, Response},
+    Json,
+};
 use chrono::{DateTime, Utc};
 use radiojournal::models::{StationInDB, TrackInDB, TrackMinimalInDB};
 use serde::Serialize;
 use ulid::Ulid;
+
+use crate::errors::APIError;
+
+#[derive(FromRequest)]
+#[from_request(via(axum::Json), rejection(APIError))]
+pub(crate) struct APIJson<T>(pub(crate) T);
+
+impl<T> IntoResponse for APIJson<T>
+where
+    Json<T>: IntoResponse,
+{
+    fn into_response(self) -> Response {
+        Json(self.0).into_response()
+    }
+}
 
 #[derive(Debug, Serialize)]
 pub(crate) struct Station {

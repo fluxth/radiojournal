@@ -1,3 +1,4 @@
+mod errors;
 mod models;
 mod routes;
 
@@ -5,7 +6,8 @@ use std::sync::Arc;
 
 use aws_config::{meta::region::RegionProviderChain, BehaviorVersion};
 use aws_sdk_dynamodb::Client;
-use axum::Router;
+use axum::{response::IntoResponse, Router};
+use errors::APIError;
 use lambda_http::{run, Error};
 use radiojournal::crud::station::CRUDStation;
 
@@ -50,7 +52,13 @@ async fn main() -> Result<(), Error> {
 
     let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
 
-    let app = Router::new().nest("/v1", routes::v1::get_router().with_state(crud_station));
+    let app = Router::new()
+        .nest("/v1", routes::get_router().with_state(crud_station))
+        .fallback(handle_404);
 
     run(app).await
+}
+
+async fn handle_404() -> impl IntoResponse {
+    APIError::NotFound
 }
