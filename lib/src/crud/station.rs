@@ -43,7 +43,6 @@ pub struct AddPlayMetadata {
     artist: String,
 }
 
-#[derive(Clone)]
 pub struct CRUDStation {
     db_client: Client,
     db_table: String,

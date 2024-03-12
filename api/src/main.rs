@@ -1,20 +1,13 @@
-use std::collections::{HashMap, HashSet};
+mod models;
+mod routes;
+
+use std::sync::Arc;
 
 use aws_config::{meta::region::RegionProviderChain, BehaviorVersion};
 use aws_sdk_dynamodb::Client;
-use axum::{
-    extract::{Path, State},
-    routing::get,
-    Json, Router,
-};
-use chrono::{DateTime, Utc};
+use axum::Router;
 use lambda_http::{run, Error};
-use radiojournal::{
-    crud::station::CRUDStation,
-    models::{StationInDB, TrackInDB, TrackMinimalInDB},
-};
-use serde::Serialize;
-use ulid::Ulid;
+use radiojournal::crud::station::CRUDStation;
 
 const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
 
@@ -53,137 +46,11 @@ async fn main() -> Result<(), Error> {
 
     let config = config.load().await;
     let db_client = Client::new(&config);
-
     let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
 
-    let crud_station = CRUDStation::new(db_client, &table_name);
+    let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
 
-    let api = Router::new()
-        .route("/stations", get(list_stations))
-        .route("/station/:station_id/plays", get(list_plays))
-        .route("/station/:station_id/track/:track_id", get(get_track))
-        .with_state(crud_station);
-
-    let app = Router::new().nest("/v1", api);
+    let app = Router::new().nest("/v1", routes::v1::get_router().with_state(crud_station));
 
     run(app).await
-}
-
-#[derive(Debug, Serialize)]
-struct Station {
-    id: Ulid,
-    name: String,
-}
-
-impl From<StationInDB> for Station {
-    fn from(station: StationInDB) -> Self {
-        Self {
-            id: station.id,
-            name: station.name,
-        }
-    }
-}
-
-async fn list_stations(State(crud_station): State<CRUDStation>) -> Json<Vec<Station>> {
-    let stations = crud_station.list().await.unwrap();
-
-    Json(
-        stations
-            .into_iter()
-            .map(|station_internal| Station::from(station_internal))
-            .collect(),
-    )
-}
-
-#[derive(Debug, Serialize)]
-struct Track {
-    id: Ulid,
-    title: String,
-    artist: String,
-    is_song: bool,
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
-}
-
-impl From<TrackInDB> for Track {
-    fn from(track: TrackInDB) -> Self {
-        Self {
-            id: track.id,
-            title: track.title,
-            artist: track.artist,
-            is_song: track.is_song,
-            created_at: track.created_ts,
-            updated_at: track.updated_ts,
-        }
-    }
-}
-
-async fn get_track(
-    Path((station_id, track_id)): Path<(Ulid, Ulid)>,
-    State(crud_station): State<CRUDStation>,
-) -> Json<Option<Track>> {
-    let maybe_track_internal = crud_station.get_track(station_id, track_id).await.unwrap();
-
-    Json(maybe_track_internal.map(|track_internal| Track::from(track_internal)))
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct TrackMinimal {
-    id: Ulid,
-    title: String,
-    artist: String,
-    is_song: bool,
-}
-
-impl From<TrackMinimalInDB> for TrackMinimal {
-    fn from(track: TrackMinimalInDB) -> Self {
-        Self {
-            id: track.id,
-            title: track.title,
-            artist: track.artist,
-            is_song: track.is_song,
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
-struct Play {
-    id: Ulid,
-    played_at: DateTime<Utc>,
-    track: TrackMinimal,
-}
-
-async fn list_plays(
-    Path(station_id): Path<Ulid>,
-    State(crud_station): State<CRUDStation>,
-) -> Json<Vec<Play>> {
-    let plays = crud_station.list_plays(station_id).await.unwrap();
-
-    let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
-    let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(
-        crud_station
-            .batch_get_tracks(station_id, track_ids.iter())
-            .await
-            .unwrap()
-            .into_iter()
-            .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal))),
-    );
-
-    Json(
-        plays
-            .into_iter()
-            .map(|play_internal| {
-                let track = tracks
-                    .get(&play_internal.track_id)
-                    .expect("track key to exist")
-                    .clone();
-
-                Play {
-                    id: play_internal.id,
-                    played_at: play_internal.created_ts,
-                    track,
-                }
-            })
-            .collect(),
-    )
 }

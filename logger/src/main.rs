@@ -53,7 +53,6 @@ async fn main() -> Result<(), Error> {
 
     let config = config.load().await;
     let db_client = Client::new(&config);
-
     let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
 
     let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
