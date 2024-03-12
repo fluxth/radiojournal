@@ -358,11 +358,11 @@ impl CRUDStation {
     }
 
     // todo: traverse play partitions
-    pub async fn list_plays(&self, station_id: Ulid) -> Result<Vec<PlayInDB>> {
+    pub async fn list_plays(&self, station_id: Ulid, limit: Option<i32>) -> Result<Vec<PlayInDB>> {
         let play_datetime = Utc::now();
         let play_partition = play_datetime.format("%Y-%m-%d");
 
-        let resp = self
+        let mut query = self
             .db_client
             .query()
             .table_name(&self.db_table)
@@ -373,9 +373,13 @@ impl CRUDStation {
             )
             .expression_attribute_values(":sk", AttributeValue::S("PLAY#".to_owned()))
             .scan_index_forward(false)
-            .select(Select::AllAttributes)
-            .send()
-            .await?;
+            .select(Select::AllAttributes);
+
+        if let Some(limit) = limit {
+            query = query.limit(limit);
+        }
+
+        let resp = query.send().await?;
 
         if let Some(items) = resp.items {
             Ok(serde_dynamo::from_items(items.to_vec())?)

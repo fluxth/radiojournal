@@ -13,7 +13,7 @@ pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
     State(crud_station): State<Arc<CRUDStation>>,
 ) -> APIJson<Vec<Play>> {
-    let plays = crud_station.list_plays(station_id).await.unwrap();
+    let plays = crud_station.list_plays(station_id, Some(50)).await.unwrap();
 
     let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
     let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(
