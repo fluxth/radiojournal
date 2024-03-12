@@ -369,9 +369,9 @@ impl CRUDStation {
             .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
             .expression_attribute_values(
                 ":pk",
-                AttributeValue::S(format!("STATION#{}#PLAYS#{}", station_id, play_partition)),
+                AttributeValue::S(PlayInDB::get_pk(station_id, &play_partition.to_string())),
             )
-            .expression_attribute_values(":sk", AttributeValue::S("PLAY#".to_owned()))
+            .expression_attribute_values(":sk", AttributeValue::S(PlayInDB::get_sk_prefix()))
             .scan_index_forward(false)
             .select(Select::AllAttributes);
 

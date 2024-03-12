@@ -85,10 +85,10 @@ impl TrackInDB {
         let artist = artist.into();
 
         Self {
-            pk: format!("STATION#{}#TRACKS", station_id),
-            sk: format!("TRACK#{}", track_id),
-            gsi1pk: format!("STATION#{}#ARTIST#{}", station_id, &artist),
-            gsi1sk: format!("TITLE#{}", &title),
+            pk: Self::get_pk(station_id),
+            sk: Self::get_sk(track_id),
+            gsi1pk: Self::get_gsi1pk(station_id, &artist),
+            gsi1sk: Self::get_gsi1sk(&title),
             id: track_id,
             title,
             artist,
@@ -129,19 +129,27 @@ impl PlayInDB {
         format!("PLAY#{}", play_id)
     }
 
+    pub(crate) fn get_sk_prefix() -> String {
+        "PLAY#".to_owned()
+    }
+
+    pub(crate) fn get_gsi1pk(station_id: Ulid, track_id: Ulid) -> String {
+        format!("STATION#{}#TRACK#{}", station_id, track_id)
+    }
+
+    pub(crate) fn get_gsi1sk(play_id: Ulid) -> String {
+        format!("PLAY#{}", play_id)
+    }
+
     pub fn new(station_id: Ulid, track_id: Ulid) -> Self {
         let now = Utc::now();
         let play_id = Ulid::new();
 
         PlayInDB {
-            pk: format!(
-                "STATION#{}#PLAYS#{}",
-                station_id,
-                now.format("%Y-%m-%d").to_string()
-            ),
-            sk: format!("PLAY#{}", play_id),
-            gsi1pk: format!("STATION#{}#TRACK#{}", station_id, track_id),
-            gsi1sk: format!("PLAY#{}", play_id),
+            pk: Self::get_pk(station_id, &now.format("%Y-%m-%d").to_string()),
+            sk: Self::get_sk(play_id),
+            gsi1pk: Self::get_gsi1pk(station_id, track_id),
+            gsi1sk: Self::get_gsi1sk(play_id),
             id: play_id,
             track_id,
             created_ts: now,
