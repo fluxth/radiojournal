@@ -10,8 +10,8 @@ use radiojournal::crud::station::CRUDStation;
     get,
     path = "/station/{station_id}/track/{track_id}",
     params(
-        ("station_id" = Ulid, Path, example = "01ARZ3NDEKTSV4RRFFQ69G5FAV"),
-        ("track_id" = Ulid, Path, example = "01ARZ3NDEKTSV4RRFFQ69G5FAV"),
+        ("station_id" = Ulid, Path, deprecated = false),
+        ("track_id" = Ulid, Path, deprecated = false),
     ),
     responses(
         (status = 200, description = "Track returned successfully", body = Track),
@@ -31,7 +31,7 @@ pub(crate) async fn get_track(
     get,
     path = "/station/{station_id}/tracks",
     params(
-        ("station_id" = Ulid, Path, example = "01ARZ3NDEKTSV4RRFFQ69G5FAV"),
+        ("station_id" = Ulid, Path, deprecated = false),
     ),
     responses(
         (status = 200, description = "Tracks listed successfully", body = Vec<Track>),

@@ -13,7 +13,7 @@ use radiojournal::crud::station::CRUDStation;
     get,
     path = "/station/{station_id}/plays",
     params(
-        ("station_id" = Ulid, Path, example = "01ARZ3NDEKTSV4RRFFQ69G5FAV")
+        ("station_id" = Ulid, Path, deprecated = false)
     ),
     responses(
         (status = 200, description = "Plays listed successfully", body = Vec<Play>),
