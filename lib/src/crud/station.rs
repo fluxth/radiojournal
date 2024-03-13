@@ -23,9 +23,9 @@ pub trait Play {
 #[derive(Debug, Serialize)]
 pub struct AddPlayResult {
     #[serde(flatten)]
-    add_type: AddPlayType,
-    play_id: Ulid,
-    track_id: Ulid,
+    pub add_type: AddPlayType,
+    pub play_id: Ulid,
+    pub track_id: Ulid,
     metadata: AddPlayMetadata,
 }
 

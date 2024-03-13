@@ -1,22 +1,22 @@
 mod fetchers;
-use std::sync::Arc;
-
 use fetchers::Fetcher;
+use serde_json::Value;
 
-use radiojournal::{
-    crud::station::{AddPlayResult, CRUDStation},
-    models::{FetcherConfig, StationInDB},
-};
+use std::sync::Arc;
 
 use aws_config::meta::region::RegionProviderChain;
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::Client;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use serde::Serialize;
-use serde_json::Value;
 use tokio::task::JoinSet;
-use tracing::{debug, info};
+use tracing::info;
 use ulid::Ulid;
+
+use radiojournal::{
+    crud::station::{AddPlayResult, CRUDStation},
+    models::{FetcherConfig, StationInDB},
+};
 
 const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
 
@@ -109,7 +109,7 @@ fn get_fetcher(station: &StationInDB) -> Option<impl fetchers::Fetcher + std::fm
     }
 }
 
-#[tracing::instrument(skip_all, fields(station.id = station.id.to_string()))]
+#[tracing::instrument(skip_all, fields(station.id = station.id.to_string(), station.name = station.name))]
 async fn process_station(
     crud_station: Arc<CRUDStation>,
     station: StationInDB,
@@ -122,20 +122,26 @@ async fn process_station(
         );
 
         let play = fetcher.fetch_play().await.unwrap();
-        debug!(title = play.title, artist = play.artist, "Fetched play");
+        info!(title = play.title, artist = play.artist, "Fetched play");
 
-        Some(crud_station.add_play(&station, play).await?)
+        let result = crud_station.add_play(&station, play).await?;
+        info!(
+            add_type = ?result.add_type,
+            track_id = result.track_id.to_string(),
+            play_id = result.play_id.to_string(),
+            "Play added with type {:?}", result.add_type
+        );
+
+        Some(result)
     } else {
+        info!("Fetcher not found, skipping station");
+
         None
     };
 
-    let result = StationResult {
+    Ok(StationResult {
         id: station.id,
         name: station.name,
         logger_result,
-    };
-
-    info!(result = ?result, "Processed station");
-
-    Ok(result)
+    })
 }
