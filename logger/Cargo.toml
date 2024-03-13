@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 radiojournal = { path = "../lib" }
-anyhow = "=1.0.80"
+anyhow = "=1.0.81"
 aws-config = "=1.1.7"
 aws-sdk-dynamodb = "=1.16.1"
 chrono = { version = "=0.4.35", features = ["serde", "now"] }
