@@ -15,8 +15,9 @@ use radiojournal::crud::station::CRUDStation;
 #[openapi(
     paths(
         station::list_stations,
-        track::get_track,
         play::list_plays,
+        track::get_track,
+        track::list_tracks,
     ),
     components(
         schemas(
@@ -47,4 +48,5 @@ pub(crate) fn get_router() -> Router<Arc<CRUDStation>> {
             "/station/:station_id/track/:track_id",
             get(track::get_track),
         )
+        .route("/station/:station_id/tracks", get(track::list_tracks))
 }

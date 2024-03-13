@@ -13,7 +13,7 @@ use radiojournal::crud::station::CRUDStation;
     get,
     path = "/station/{station_id}/plays",
     params(
-        ("station_id" = Ulid, Path, description = "ID of station")
+        ("station_id" = Ulid, Path, example = "01ARZ3NDEKTSV4RRFFQ69G5FAV")
     ),
     responses(
         (status = 200, description = "Plays listed successfully", body = Vec<Play>),
@@ -24,7 +24,7 @@ pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
     State(crud_station): State<Arc<CRUDStation>>,
 ) -> APIJson<Vec<Play>> {
-    let plays = crud_station.list_plays(station_id, Some(50)).await.unwrap();
+    let plays = crud_station.list_plays(station_id, 50).await.unwrap();
 
     let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
     let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(

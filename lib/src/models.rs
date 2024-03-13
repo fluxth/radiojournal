@@ -63,6 +63,10 @@ impl TrackInDB {
         format!("TRACK#{}", track_id)
     }
 
+    pub(crate) fn get_sk_prefix() -> String {
+        "TRACK#".to_owned()
+    }
+
     pub(crate) fn get_gsi1pk(station_id: Ulid, artist: &str) -> String {
         format!("STATION#{}#ARTIST#{}", station_id, artist)
     }

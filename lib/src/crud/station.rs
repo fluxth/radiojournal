@@ -282,6 +282,23 @@ impl CRUDStation {
         Ok(AddPlayType::NewTrack)
     }
 
+    pub async fn list_tracks(&self, station_id: Ulid, limit: i32) -> Result<Vec<TrackInDB>> {
+        let resp = self
+            .db_client
+            .query()
+            .table_name(&self.db_table)
+            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
+            .expression_attribute_values(":pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
+            .expression_attribute_values(":sk", AttributeValue::S(TrackInDB::get_sk_prefix()))
+            .scan_index_forward(false)
+            .select(Select::AllAttributes)
+            .limit(limit)
+            .send()
+            .await?;
+
+        Ok(serde_dynamo::from_items(resp.items().to_vec())?)
+    }
+
     pub async fn get_track(&self, station_id: Ulid, track_id: Ulid) -> Result<Option<TrackInDB>> {
         let resp = self
             .db_client
@@ -372,11 +389,11 @@ impl CRUDStation {
     }
 
     // todo: traverse play partitions
-    pub async fn list_plays(&self, station_id: Ulid, limit: Option<i32>) -> Result<Vec<PlayInDB>> {
+    pub async fn list_plays(&self, station_id: Ulid, limit: i32) -> Result<Vec<PlayInDB>> {
         let play_datetime = Utc::now();
         let play_partition = play_datetime.format("%Y-%m-%d");
 
-        let mut query = self
+        let resp = self
             .db_client
             .query()
             .table_name(&self.db_table)
@@ -387,13 +404,10 @@ impl CRUDStation {
             )
             .expression_attribute_values(":sk", AttributeValue::S(PlayInDB::get_sk_prefix()))
             .scan_index_forward(false)
-            .select(Select::AllAttributes);
-
-        if let Some(limit) = limit {
-            query = query.limit(limit);
-        }
-
-        let resp = query.send().await?;
+            .select(Select::AllAttributes)
+            .limit(limit)
+            .send()
+            .await?;
 
         if let Some(items) = resp.items {
             Ok(serde_dynamo::from_items(items.to_vec())?)
