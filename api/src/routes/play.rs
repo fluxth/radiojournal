@@ -45,11 +45,7 @@ pub(crate) async fn list_plays(
                     .expect("track key to exist")
                     .clone();
 
-                Play {
-                    id: play_internal.id,
-                    played_at: play_internal.created_ts,
-                    track,
-                }
+                Play::new(play_internal, track)
             })
             .collect(),
     )

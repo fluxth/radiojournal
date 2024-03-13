@@ -3,8 +3,8 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use chrono::{DateTime, Utc};
-use radiojournal::models::{StationInDB, TrackInDB, TrackMinimalInDB};
+use chrono::{DateTime, SubsecRound, Timelike, Utc};
+use radiojournal::models::{PlayInDB, StationInDB, TrackInDB, TrackMinimalInDB};
 use serde::Serialize;
 use ulid::Ulid;
 use utoipa::ToSchema;
@@ -22,6 +22,12 @@ where
     fn into_response(self) -> Response {
         Json(self.0).into_response()
     }
+}
+
+fn truncate_datetime(dt: DateTime<Utc>) -> DateTime<Utc> {
+    dt.trunc_subsecs(0)
+        .with_second(0)
+        .expect("set second to 0 on utc tz")
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -60,8 +66,8 @@ impl From<TrackInDB> for Track {
             title: track.title,
             artist: track.artist,
             is_song: track.is_song,
-            created_at: track.created_ts,
-            updated_at: track.updated_ts,
+            created_at: truncate_datetime(track.created_ts),
+            updated_at: truncate_datetime(track.updated_ts),
         }
     }
 }
@@ -90,4 +96,14 @@ pub(crate) struct Play {
     pub(crate) id: Ulid,
     pub(crate) played_at: DateTime<Utc>,
     pub(crate) track: TrackMinimal,
+}
+
+impl Play {
+    pub(crate) fn new(play: PlayInDB, track: TrackMinimal) -> Self {
+        Self {
+            id: play.id,
+            played_at: truncate_datetime(play.created_ts),
+            track,
+        }
+    }
 }
