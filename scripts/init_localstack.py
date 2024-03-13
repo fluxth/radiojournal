@@ -11,7 +11,7 @@ def create_play(
     dynamodb, dt: datetime, station_id: str, track_id: str, first_play: bool = False
 ) -> str:
     play_id = ulid.from_timestamp(dt).str
-    timestamp = dt.isoformat().replace("+00:00", "Z")
+    timestamp = dt.isoformat().replace("+00:00", "000Z")
 
     dynamodb.put_item(
         TableName=TABLE_NAME,
@@ -81,7 +81,7 @@ def create_track(
     is_song: bool,
 ) -> str:
     track_id = ulid.from_timestamp(dt).str
-    timestamp = dt.isoformat().replace("+00:00", "Z")
+    timestamp = dt.isoformat().replace("+00:00", "000Z")
 
     dynamodb.put_item(
         TableName=TABLE_NAME,
@@ -123,7 +123,7 @@ def create_station(
     fetcher: str | None = None,
 ) -> str:
     station_id = ulid.from_timestamp(dt).str
-    timestamp = dt.isoformat().replace("+00:00", "Z")
+    timestamp = dt.isoformat().replace("+00:00", "000Z")
 
     dynamodb.put_item(
         TableName=TABLE_NAME,
