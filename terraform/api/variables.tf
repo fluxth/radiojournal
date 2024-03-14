@@ -13,3 +13,7 @@ variable "lambda_zip_hash" {
 variable "db_table_name" {
   type = string
 }
+
+variable "allowed_cors_domains" {
+  type = list(string)
+}
