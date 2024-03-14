@@ -56,7 +56,7 @@ impl CRUDStation {
         }
     }
 
-    pub async fn list(&self) -> Result<Vec<StationInDB>> {
+    pub async fn list(&self, limit: i32) -> Result<Vec<StationInDB>> {
         let resp = self
             .db_client
             .query()
@@ -65,6 +65,7 @@ impl CRUDStation {
             .expression_attribute_values(":pk", AttributeValue::S(StationInDB::get_pk()))
             .expression_attribute_values(":sk", AttributeValue::S(StationInDB::get_sk_prefix()))
             .select(Select::AllAttributes)
+            .limit(limit)
             .send()
             .await?;
 
@@ -372,6 +373,7 @@ impl CRUDStation {
             )
             .expression_attribute_values(":gsi1sk", AttributeValue::S(TrackInDB::get_gsi1sk(title)))
             .select(Select::AllAttributes)
+            .limit(1)
             .send()
             .await?;
 

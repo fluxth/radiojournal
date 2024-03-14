@@ -15,7 +15,7 @@ use radiojournal::crud::station::CRUDStation;
 pub(crate) async fn list_stations(
     State(crud_station): State<Arc<CRUDStation>>,
 ) -> APIJson<Vec<Station>> {
-    let stations = crud_station.list().await.unwrap();
+    let stations = crud_station.list(50).await.unwrap();
 
     APIJson(
         stations
