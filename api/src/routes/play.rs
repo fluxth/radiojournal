@@ -9,12 +9,12 @@ use ulid::Ulid;
 
 use crate::{
     errors::APIError,
-    models::{APIJson, ListPlayResponse, NextToken, Play, TrackMinimal},
+    models::{APIJson, ListPlaysResponse, NextToken, Play, TrackMinimal},
 };
 use radiojournal::crud::station::CRUDStation;
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct ListPlayQuery {
+pub(crate) struct ListPlaysQuery {
     next_token: Option<NextToken>,
 }
 
@@ -26,15 +26,15 @@ pub(crate) struct ListPlayQuery {
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
-        (status = 200, description = "Plays listed successfully", body = ListPlayResponse),
+        (status = 200, description = "Plays listed successfully", body = ListPlaysResponse),
         (status = 404, description = "Station not found", body = APIErrorResponse),
     )
 )]
 pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
-    Query(query): Query<ListPlayQuery>,
+    Query(query): Query<ListPlaysQuery>,
     State(crud_station): State<Arc<CRUDStation>>,
-) -> Result<APIJson<ListPlayResponse>, APIError> {
+) -> Result<APIJson<ListPlaysResponse>, APIError> {
     let next_key = if let Some(next_token) = query.next_token {
         Some(
             Ulid::from_string(&next_token.0).or(Err(APIError::ValidationFailed {
@@ -60,7 +60,7 @@ pub(crate) async fn list_plays(
             .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal))),
     );
 
-    Ok(APIJson(ListPlayResponse {
+    Ok(APIJson(ListPlaysResponse {
         plays: plays
             .into_iter()
             .map(|play_internal| {

@@ -290,8 +290,13 @@ impl CRUDStation {
         Ok(AddPlayType::NewTrack)
     }
 
-    pub async fn list_tracks(&self, station_id: Ulid, limit: i32) -> Result<Vec<TrackInDB>> {
-        let resp = self
+    pub async fn list_tracks(
+        &self,
+        station_id: Ulid,
+        limit: i32,
+        next_key: Option<Ulid>,
+    ) -> Result<(Vec<TrackInDB>, Option<Ulid>)> {
+        let mut query = self
             .db_client
             .query()
             .table_name(&self.db_table)
@@ -300,11 +305,35 @@ impl CRUDStation {
             .expression_attribute_values(":sk", AttributeValue::S(TrackInDB::get_sk_prefix()))
             .scan_index_forward(false)
             .select(Select::AllAttributes)
-            .limit(limit)
-            .send()
-            .await?;
+            .limit(limit);
 
-        Ok(serde_dynamo::from_items(resp.items().to_vec())?)
+        if let Some(next_key) = next_key {
+            query = query
+                .exclusive_start_key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
+                .exclusive_start_key("sk", AttributeValue::S(TrackInDB::get_sk(next_key)));
+        };
+
+        let resp = query.send().await?;
+
+        let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
+            let paginate_key: PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
+            Some(
+                Ulid::from_string(
+                    paginate_key
+                        .sk
+                        .strip_prefix(&TrackInDB::get_sk_prefix())
+                        .expect("parse next key"),
+                )
+                .expect("next key into ulid"),
+            )
+        } else {
+            None
+        };
+
+        Ok((
+            serde_dynamo::from_items(resp.items.expect("query response to have items"))?,
+            next_key,
+        ))
     }
 
     pub async fn get_track(&self, station_id: Ulid, track_id: Ulid) -> Result<Option<TrackInDB>> {

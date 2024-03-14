@@ -8,7 +8,9 @@ use axum::{routing::get, Router};
 use utoipa::{openapi::Server, Modify, OpenApi};
 
 use crate::errors::{APIErrorDetail, APIErrorResponse};
-use crate::models::{ListPlayResponse, NextToken, Play, Station, Track, TrackMinimal};
+use crate::models::{
+    ListPlaysResponse, ListTracksResponse, NextToken, Play, Station, Track, TrackMinimal,
+};
 use radiojournal::crud::station::CRUDStation;
 
 #[derive(OpenApi)]
@@ -26,7 +28,8 @@ use radiojournal::crud::station::CRUDStation;
             Track,
             TrackMinimal,
             NextToken,
-            ListPlayResponse,
+            ListPlaysResponse,
+            ListTracksResponse,
             APIErrorDetail,
             APIErrorResponse
         ),
