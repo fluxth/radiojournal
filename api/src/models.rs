@@ -5,7 +5,7 @@ use axum::{
 };
 use chrono::{DateTime, SubsecRound, Timelike, Utc};
 use radiojournal::models::{PlayInDB, StationInDB, TrackInDB, TrackMinimalInDB};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 use utoipa::ToSchema;
 
@@ -21,6 +21,16 @@ where
 {
     fn into_response(self) -> Response {
         Json(self.0).into_response()
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[repr(transparent)]
+pub(crate) struct NextToken(pub(crate) String);
+
+impl Into<NextToken> for String {
+    fn into(self) -> NextToken {
+        NextToken(self)
     }
 }
 
@@ -106,4 +116,10 @@ impl Play {
             track,
         }
     }
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub(crate) struct ListPlayResponse {
+    pub(crate) plays: Vec<Play>,
+    pub(crate) next_token: Option<NextToken>,
 }

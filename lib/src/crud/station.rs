@@ -6,7 +6,7 @@ use aws_sdk_dynamodb::{
     Client,
 };
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
 use crate::{
@@ -41,6 +41,13 @@ pub enum AddPlayType {
 pub struct AddPlayMetadata {
     title: String,
     artist: String,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+struct PaginateKey {
+    pk: String,
+    sk: String,
 }
 
 pub struct CRUDStation {
@@ -391,11 +398,16 @@ impl CRUDStation {
     }
 
     // todo: traverse play partitions
-    pub async fn list_plays(&self, station_id: Ulid, limit: i32) -> Result<Vec<PlayInDB>> {
+    pub async fn list_plays(
+        &self,
+        station_id: Ulid,
+        limit: i32,
+        next_key: Option<Ulid>,
+    ) -> Result<(Vec<PlayInDB>, Option<Ulid>)> {
         let play_datetime = Utc::now();
         let play_partition = play_datetime.format("%Y-%m-%d");
 
-        let resp = self
+        let mut query = self
             .db_client
             .query()
             .table_name(&self.db_table)
@@ -407,14 +419,45 @@ impl CRUDStation {
             .expression_attribute_values(":sk", AttributeValue::S(PlayInDB::get_sk_prefix()))
             .scan_index_forward(false)
             .select(Select::AllAttributes)
-            .limit(limit)
-            .send()
-            .await?;
+            .limit(limit);
+
+        if let Some(next_key) = next_key {
+            let next_key_datetime: DateTime<Utc> =
+                next_key.datetime().try_into().expect("ulid to datetime");
+            let next_key_partition = next_key_datetime.format("%Y-%m-%d");
+
+            query = query
+                .exclusive_start_key(
+                    "pk",
+                    AttributeValue::S(PlayInDB::get_pk(
+                        station_id,
+                        &next_key_partition.to_string(),
+                    )),
+                )
+                .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(next_key)));
+        }
+
+        let resp = query.send().await?;
+
+        let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
+            let paginate_key: PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
+            Some(
+                Ulid::from_string(
+                    paginate_key
+                        .sk
+                        .strip_prefix(&PlayInDB::get_sk_prefix())
+                        .expect("parse next key"),
+                )
+                .expect("next key into ulid"),
+            )
+        } else {
+            None
+        };
 
         if let Some(items) = resp.items {
-            Ok(serde_dynamo::from_items(items.to_vec())?)
+            Ok((serde_dynamo::from_items(items.to_vec())?, next_key))
         } else {
-            Ok(vec![])
+            Ok((vec![], next_key))
         }
     }
 }

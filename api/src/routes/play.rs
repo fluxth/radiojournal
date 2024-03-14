@@ -3,28 +3,52 @@ use std::{
     sync::Arc,
 };
 
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
+use serde::Deserialize;
 use ulid::Ulid;
 
-use crate::models::{APIJson, Play, TrackMinimal};
+use crate::{
+    errors::APIError,
+    models::{APIJson, ListPlayResponse, NextToken, Play, TrackMinimal},
+};
 use radiojournal::crud::station::CRUDStation;
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct ListPlayQuery {
+    next_token: Option<NextToken>,
+}
 
 #[utoipa::path(
     get,
     path = "/station/{station_id}/plays",
     params(
-        ("station_id" = Ulid, Path, deprecated = false)
+        ("station_id" = Ulid, Path, deprecated = false),
+        ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
-        (status = 200, description = "Plays listed successfully", body = Vec<Play>),
+        (status = 200, description = "Plays listed successfully", body = ListPlayResponse),
         (status = 404, description = "Station not found", body = APIErrorResponse),
     )
 )]
 pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
+    Query(query): Query<ListPlayQuery>,
     State(crud_station): State<Arc<CRUDStation>>,
-) -> APIJson<Vec<Play>> {
-    let plays = crud_station.list_plays(station_id, 50).await.unwrap();
+) -> Result<APIJson<ListPlayResponse>, APIError> {
+    let next_key = if let Some(next_token) = query.next_token {
+        Some(
+            Ulid::from_string(&next_token.0).or(Err(APIError::ValidationFailed {
+                message: Some("Invalid next_token"),
+            }))?,
+        )
+    } else {
+        None
+    };
+
+    let (plays, next_key) = crud_station
+        .list_plays(station_id, 50, next_key)
+        .await
+        .unwrap();
 
     let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
     let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(
@@ -36,8 +60,8 @@ pub(crate) async fn list_plays(
             .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal))),
     );
 
-    APIJson(
-        plays
+    Ok(APIJson(ListPlayResponse {
+        plays: plays
             .into_iter()
             .map(|play_internal| {
                 let track = tracks
@@ -48,5 +72,6 @@ pub(crate) async fn list_plays(
                 Play::new(play_internal, track)
             })
             .collect(),
-    )
+        next_token: next_key.map(|val| val.to_string().into()),
+    }))
 }

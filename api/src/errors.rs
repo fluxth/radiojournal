@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use axum::{
-    extract::rejection::JsonRejection,
+    extract::rejection::{JsonRejection, PathRejection, QueryRejection},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
@@ -12,7 +12,8 @@ use crate::models::APIJson;
 
 pub(crate) enum APIError {
     NotFound,
-    JsonRejection(JsonRejection),
+    ValidationFailed { message: Option<&'static str> },
+    InputRejection { status: StatusCode, message: String },
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -39,12 +40,27 @@ impl IntoResponse for APIError {
                 }),
             )
                 .into_response(),
-            Self::JsonRejection(rejection) => (
-                rejection.status(),
+            Self::ValidationFailed { message } => (
+                StatusCode::BAD_REQUEST,
                 APIJson(APIErrorResponse {
                     error: APIErrorDetail {
-                        code: "BAD_INPUT",
-                        message: Cow::Owned(rejection.body_text()),
+                        code: "VALIDATION_FAILED",
+                        message: if let Some(message) = message {
+                            Cow::Borrowed(message)
+                        } else {
+                            Cow::Borrowed("Validation failed on user input")
+                        },
+                    },
+                }),
+            )
+                .into_response(),
+
+            Self::InputRejection { status, message } => (
+                status,
+                APIJson(APIErrorResponse {
+                    error: APIErrorDetail {
+                        code: "BAD_REQUEST",
+                        message: Cow::Owned(message),
                     },
                 }),
             )
@@ -55,6 +71,27 @@ impl IntoResponse for APIError {
 
 impl From<JsonRejection> for APIError {
     fn from(rejection: JsonRejection) -> Self {
-        Self::JsonRejection(rejection)
+        Self::InputRejection {
+            status: rejection.status(),
+            message: rejection.body_text(),
+        }
+    }
+}
+
+impl From<QueryRejection> for APIError {
+    fn from(rejection: QueryRejection) -> Self {
+        Self::InputRejection {
+            status: rejection.status(),
+            message: rejection.body_text(),
+        }
+    }
+}
+
+impl From<PathRejection> for APIError {
+    fn from(rejection: PathRejection) -> Self {
+        Self::InputRejection {
+            status: rejection.status(),
+            message: rejection.body_text(),
+        }
     }
 }
