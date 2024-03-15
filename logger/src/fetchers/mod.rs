@@ -26,5 +26,6 @@ impl PlayTrait for Play {
 
 #[async_trait]
 pub(crate) trait Fetcher {
+    fn get_name(&self) -> &'static str;
     async fn fetch_play(&self) -> Result<Play>;
 }

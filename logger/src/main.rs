@@ -117,7 +117,7 @@ async fn process_station(
     let logger_result = if let Some(fetcher) = get_fetcher(&station) {
         info!(
             station_name = station.name,
-            fetcher = ?fetcher,
+            fetcher = fetcher.get_name(),
             "Processing station"
         );
 
