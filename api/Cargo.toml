@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 aws-config = "=1.1.8"
-aws-sdk-dynamodb = "=1.17.0"
+aws-sdk-dynamodb = "=1.18.0"
 axum = { version = "=0.7.4", features = ["macros"] }
 chrono = { version = "=0.4.35", features = ["serde"] }
 lambda_http = "=0.10.0"
