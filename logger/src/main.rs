@@ -1,6 +1,5 @@
 mod fetchers;
 use fetchers::Fetcher;
-use serde_json::Value;
 
 use std::sync::Arc;
 
@@ -9,6 +8,8 @@ use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::Client;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use serde::Serialize;
+use serde_json::Value;
+use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 use tracing::info;
 use ulid::Ulid;
@@ -24,6 +25,16 @@ const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
 /// You can use your own method for determining whether to use LocalStack endpoints.
 fn use_localstack() -> bool {
     std::env::var("LOCALSTACK").unwrap_or_default() == "true"
+}
+
+#[derive(Debug, Default)]
+struct State {
+    fetchers: Fetchers,
+}
+
+#[derive(Debug, Default)]
+struct Fetchers {
+    coolism: Option<fetchers::coolism::Coolism>,
 }
 
 #[tokio::main]
@@ -57,7 +68,9 @@ async fn main() -> Result<(), Error> {
 
     let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
 
-    let func = service_fn(|event| invoke(event, crud_station.clone()));
+    let state = Arc::new(Mutex::new(State::default()));
+
+    let func = service_fn(|event| invoke(event, state.clone(), crud_station.clone()));
     info!("Initialization complete, now listening for events");
 
     lambda_runtime::run(func).await?;
@@ -79,6 +92,7 @@ struct StationResult {
 
 async fn invoke(
     _event: LambdaEvent<Value>,
+    state: Arc<Mutex<State>>,
     crud_station: Arc<CRUDStation>,
 ) -> Result<InvokeOutput, Error> {
     let mut join_set = JoinSet::new();
@@ -91,7 +105,8 @@ async fn invoke(
         .filter(|station| station.fetcher.is_some())
         .for_each(|station| {
             let crud_station = crud_station.clone();
-            join_set.spawn(async move { process_station(crud_station, station) });
+            let state = state.clone();
+            join_set.spawn(async move { process_station(state, crud_station, station) });
         });
 
     let mut stations = vec![];
@@ -102,19 +117,27 @@ async fn invoke(
     Ok(InvokeOutput { stations })
 }
 
-fn get_fetcher(station: &StationInDB) -> Option<impl fetchers::Fetcher + std::fmt::Debug> {
-    match station.fetcher {
-        Some(FetcherConfig::Coolism) => Some(fetchers::coolism::Coolism::new()),
-        None => None,
-    }
-}
-
 #[tracing::instrument(skip_all, fields(station.id = station.id.to_string(), station.name = station.name))]
 async fn process_station(
+    state: Arc<Mutex<State>>,
     crud_station: Arc<CRUDStation>,
     station: StationInDB,
 ) -> anyhow::Result<StationResult> {
-    let logger_result = if let Some(fetcher) = get_fetcher(&station) {
+    let mut state = state.lock().await;
+
+    let maybe_fetcher = match station.fetcher {
+        Some(FetcherConfig::Coolism) => {
+            if let Some(shared) = &mut state.fetchers.coolism {
+                Some(shared)
+            } else {
+                state.fetchers.coolism = Some(fetchers::coolism::Coolism::new());
+                state.fetchers.coolism.as_mut()
+            }
+        }
+        None => None,
+    };
+
+    let logger_result = if let Some(fetcher) = maybe_fetcher {
         info!(
             station_name = station.name,
             fetcher = fetcher.get_name(),
