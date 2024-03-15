@@ -18,6 +18,10 @@ resource "aws_lambda_function" "this" {
       DB_TABLE_NAME = var.db_table_name
     }
   }
+
+  layers = [
+    "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:16"
+  ]
 }
 
 resource "aws_lambda_function_url" "this" {
