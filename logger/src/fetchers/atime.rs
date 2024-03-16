@@ -1,9 +1,11 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::{anyhow, bail, Result};
 use async_trait::async_trait;
+use moka::future::Cache;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
+use tracing::info;
 
 use super::{Fetcher, Play};
 use radiojournal::models::station::{AtimeStation, FetcherConfig};
@@ -11,6 +13,7 @@ use radiojournal::models::station::{AtimeStation, FetcherConfig};
 #[derive(Debug)]
 pub(crate) struct Atime {
     client: reqwest::Client,
+    cache: Cache<usize, Arc<Vec<StationData>>>,
 }
 
 impl Atime {
@@ -32,10 +35,15 @@ impl Atime {
                 .default_headers(default_headers)
                 .build()
                 .expect("successfully build reqwest client"),
+            cache: Cache::builder()
+                .max_capacity(1)
+                .time_to_live(Duration::from_secs(10))
+                .build(),
         }
     }
 
     async fn fetch_metadata(&self) -> Result<Vec<StationData>> {
+        info!("Fetching atime metadata");
         let response: MetadataResponse = self
             .client
             .get("https://onair.atime.live/nowplaying")
@@ -74,10 +82,16 @@ impl Fetcher for Atime {
             bail!("misconfigured atime station: {:?}", config);
         };
 
-        let metadata = self.fetch_metadata().await?;
+        let metadata = if let Some(metadata) = self.cache.get(&0).await {
+            metadata
+        } else {
+            let metadata = Arc::new(self.fetch_metadata().await?);
+            self.cache.insert(0, metadata.clone()).await;
+            metadata
+        };
 
         let station_data = metadata
-            .into_iter()
+            .iter()
             .find(|station_data| {
                 station_data.station_id == station_id && station_data.station_name == station_name
             })
@@ -88,8 +102,8 @@ impl Fetcher for Atime {
             ))?;
 
         Ok(Play {
-            title: station_data.title,
-            artist: station_data.artists,
+            title: station_data.title.clone(),
+            artist: station_data.artists.clone(),
         })
     }
 }
