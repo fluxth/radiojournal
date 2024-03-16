@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { invalidateAll } from "$app/navigation";
+
   export let data: any;
 
   const loadMore = async (nextToken: string) => {
@@ -12,9 +14,13 @@
       nextToken: newNextToken,
     };
   };
+
+  const refresh = async () => {
+    await invalidateAll();
+  };
 </script>
 
-<a href="/">Back to home</a>
+<a href="/">Back to home</a> | <a href="#" on:click|preventDefault={refresh}>Refresh</a>
 
 <h1>Station: {data.station.id}</h1>
 
@@ -29,7 +35,7 @@
   <tbody>
     {#each data.content.plays as play}
       <tr style={play.track.is_song ? "" : "color: #ccc"}>
-        <td>{new Date(play.played_at)}</td>
+        <td>{new Date(play.played_at).toLocaleString()}</td>
         <td>{play.track.artist}</td>
         <td>{play.track.title}</td>
       </tr>
