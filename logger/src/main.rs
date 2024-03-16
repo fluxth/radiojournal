@@ -161,15 +161,17 @@ async fn process_station(
     let maybe_fetcher = get_fetcher(&state, &station).await;
 
     let logger_result = if let Some((fetcher, config)) = maybe_fetcher {
-        let mut fetcher = fetcher.lock().await;
-
         info!(
             station_name = station.name,
             fetcher = ?config,
             "Processing station"
         );
 
-        let play = fetcher.fetch_play(config).await.unwrap();
+        let play = {
+            let mut fetcher = fetcher.lock().await;
+            fetcher.fetch_play(config).await.unwrap()
+        };
+
         info!(title = play.title, artist = play.artist, "Fetched play");
 
         let result = crud_station.add_play(&station, play).await?;
