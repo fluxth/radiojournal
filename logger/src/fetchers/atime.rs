@@ -63,10 +63,6 @@ struct StationData {
 
 #[async_trait]
 impl Fetcher for Atime {
-    fn get_name(&self) -> &'static str {
-        "Atime"
-    }
-
     async fn fetch_play(&mut self, config: &FetcherConfig) -> Result<Play> {
         let (station_id, station_name) = if let FetcherConfig::Atime { station } = config {
             match station {

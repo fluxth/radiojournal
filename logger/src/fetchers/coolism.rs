@@ -123,10 +123,6 @@ struct NowSong {
 
 #[async_trait]
 impl Fetcher for Coolism {
-    fn get_name(&self) -> &'static str {
-        "Coolism"
-    }
-
     async fn fetch_play(&mut self, _config: &FetcherConfig) -> Result<Play> {
         if let Some(token) = &self.token {
             let now = Utc::now();

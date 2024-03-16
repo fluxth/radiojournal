@@ -165,7 +165,7 @@ async fn process_station(
 
         info!(
             station_name = station.name,
-            fetcher = fetcher.get_name(),
+            fetcher = ?config,
             "Processing station"
         );
 
