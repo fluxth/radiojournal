@@ -27,14 +27,30 @@ fn use_localstack() -> bool {
     std::env::var("LOCALSTACK").unwrap_or_default() == "true"
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct State {
     fetchers: Fetchers,
 }
 
-#[derive(Debug, Default)]
+impl State {
+    fn new() -> Self {
+        Self {
+            fetchers: Fetchers::new(),
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Fetchers {
-    coolism: Option<fetchers::coolism::Coolism>,
+    coolism: Mutex<fetchers::coolism::Coolism>,
+}
+
+impl Fetchers {
+    fn new() -> Self {
+        Self {
+            coolism: Mutex::new(fetchers::coolism::Coolism::new()),
+        }
+    }
 }
 
 #[tokio::main]
@@ -68,7 +84,7 @@ async fn main() -> Result<(), Error> {
 
     let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
 
-    let state = Arc::new(Mutex::new(State::default()));
+    let state = Arc::new(State::new());
 
     let func = service_fn(|event| invoke(event, state.clone(), crud_station.clone()));
     info!("Initialization complete, now listening for events");
@@ -92,7 +108,7 @@ struct StationResult {
 
 async fn invoke(
     _event: LambdaEvent<Value>,
-    state: Arc<Mutex<State>>,
+    state: Arc<State>,
     crud_station: Arc<CRUDStation>,
 ) -> Result<InvokeOutput, Error> {
     let mut join_set = JoinSet::new();
@@ -117,27 +133,27 @@ async fn invoke(
     Ok(InvokeOutput { stations })
 }
 
+async fn get_fetcher<'a, 'b>(
+    state: &'a State,
+    station: &'b StationInDB,
+) -> Option<&'a Mutex<impl Fetcher>> {
+    match station.fetcher {
+        Some(FetcherConfig::Coolism) => Some(&state.fetchers.coolism),
+        None => None,
+    }
+}
+
 #[tracing::instrument(skip_all, fields(station.id = station.id.to_string(), station.name = station.name))]
 async fn process_station(
-    state: Arc<Mutex<State>>,
+    state: Arc<State>,
     crud_station: Arc<CRUDStation>,
     station: StationInDB,
 ) -> anyhow::Result<StationResult> {
-    let mut state = state.lock().await;
-
-    let maybe_fetcher = match station.fetcher {
-        Some(FetcherConfig::Coolism) => {
-            if let Some(shared) = &mut state.fetchers.coolism {
-                Some(shared)
-            } else {
-                state.fetchers.coolism = Some(fetchers::coolism::Coolism::new());
-                state.fetchers.coolism.as_mut()
-            }
-        }
-        None => None,
-    };
+    let maybe_fetcher = get_fetcher(&state, &station).await;
 
     let logger_result = if let Some(fetcher) = maybe_fetcher {
+        let mut fetcher = fetcher.lock().await;
+
         info!(
             station_name = station.name,
             fetcher = fetcher.get_name(),
