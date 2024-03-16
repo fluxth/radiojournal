@@ -1,8 +1,10 @@
+pub(crate) mod atime;
 pub(crate) mod coolism;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use radiojournal::crud::station::Play as PlayTrait;
+
+use radiojournal::{crud::station::Play as PlayTrait, models::station::FetcherConfig};
 
 #[derive(Debug)]
 pub(crate) struct Play {
@@ -27,5 +29,5 @@ impl PlayTrait for Play {
 #[async_trait]
 pub(crate) trait Fetcher {
     fn get_name(&self) -> &'static str;
-    async fn fetch_play(&mut self) -> Result<Play>;
+    async fn fetch_play(&mut self, config: &FetcherConfig) -> Result<Play>;
 }

@@ -121,9 +121,16 @@ def create_station(
     dt: datetime,
     station_name: str,
     fetcher: str | None = None,
+    fetcher_station: str | None = None,
 ) -> str:
     station_id = ulid.from_timestamp(dt).str
     timestamp = dt.isoformat().replace("+00:00", "Z")
+
+    fetcher_obj = {"NULL": True}
+    if fetcher:
+        fetcher_obj = {"M": {"id": {"S": fetcher}}}
+        if fetcher_station:
+            fetcher_obj["M"]["station"] = {"S": fetcher_station}
 
     dynamodb.put_item(
         TableName=TABLE_NAME,
@@ -132,7 +139,7 @@ def create_station(
             "sk": {"S": f"STATION#{station_id}"},
             "id": {"S": station_id},
             "name": {"S": station_name},
-            "fetcher": {"M": {"id": {"S": fetcher}}} if fetcher else {"NULL": True},
+            "fetcher": fetcher_obj,
             "first_play_id": {"NULL": True},
             "latest_play_id": {"NULL": True},
             "latest_play_track_id": {"NULL": True},
@@ -257,6 +264,26 @@ if __name__ == "__main__":
         dynamodb,
         dt,
         station_name="Mock station #2 :)",
+        fetcher="atime",
+        fetcher_station="efm",
+    )
+
+    dt = datetime.now(tz=UTC)
+    station_3 = create_station(
+        dynamodb,
+        dt,
+        station_name="Mock station #3 :)",
+        fetcher="atime",
+        fetcher_station="greenwave",
+    )
+
+    dt = datetime.now(tz=UTC)
+    station_4 = create_station(
+        dynamodb,
+        dt,
+        station_name="Mock station #4 :)",
+        fetcher="atime",
+        fetcher_station="chill",
     )
 
     print("Done")

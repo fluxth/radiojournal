@@ -11,7 +11,11 @@ use ulid::Ulid;
 
 use crate::{
     helpers::ziso_timestamp,
-    models::{PlayInDB, StationInDB, TrackInDB, TrackMinimalInDB},
+    models::{
+        play::PlayInDB,
+        station::StationInDB,
+        track::{TrackInDB, TrackMinimalInDB},
+    },
 };
 
 pub trait Play {

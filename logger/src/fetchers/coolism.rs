@@ -8,6 +8,7 @@ use serde::Deserialize;
 use tracing::info;
 
 use super::{Fetcher, Play};
+use radiojournal::models::station::FetcherConfig;
 
 #[derive(Debug)]
 struct CoolismToken {
@@ -126,7 +127,7 @@ impl Fetcher for Coolism {
         "Coolism"
     }
 
-    async fn fetch_play(&mut self) -> Result<Play> {
+    async fn fetch_play(&mut self, _config: &FetcherConfig) -> Result<Play> {
         if let Some(token) = &self.token {
             let now = Utc::now();
             let deadline = token.expiry - Duration::from_secs(600);

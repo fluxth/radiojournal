@@ -16,7 +16,7 @@ use ulid::Ulid;
 
 use radiojournal::{
     crud::station::{AddPlayResult, CRUDStation},
-    models::{FetcherConfig, StationInDB},
+    models::station::{FetcherConfig, StationInDB},
 };
 
 const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
@@ -43,12 +43,14 @@ impl State {
 #[derive(Debug)]
 struct Fetchers {
     coolism: Mutex<fetchers::coolism::Coolism>,
+    atime: Mutex<fetchers::atime::Atime>,
 }
 
 impl Fetchers {
     fn new() -> Self {
         Self {
             coolism: Mutex::new(fetchers::coolism::Coolism::new()),
+            atime: Mutex::new(fetchers::atime::Atime::new()),
         }
     }
 }
@@ -136,10 +138,17 @@ async fn invoke(
 async fn get_fetcher<'a, 'b>(
     state: &'a State,
     station: &'b StationInDB,
-) -> Option<&'a Mutex<impl Fetcher>> {
-    match station.fetcher {
-        Some(FetcherConfig::Coolism) => Some(&state.fetchers.coolism),
-        None => None,
+) -> Option<(&'a Mutex<dyn Fetcher + Send + Sync>, &'b FetcherConfig)> {
+    if let Some(fetcher_config) = &station.fetcher {
+        Some((
+            match fetcher_config {
+                FetcherConfig::Coolism => &state.fetchers.coolism,
+                FetcherConfig::Atime { station: _ } => &state.fetchers.atime,
+            },
+            fetcher_config,
+        ))
+    } else {
+        None
     }
 }
 
@@ -151,7 +160,7 @@ async fn process_station(
 ) -> anyhow::Result<StationResult> {
     let maybe_fetcher = get_fetcher(&state, &station).await;
 
-    let logger_result = if let Some(fetcher) = maybe_fetcher {
+    let logger_result = if let Some((fetcher, config)) = maybe_fetcher {
         let mut fetcher = fetcher.lock().await;
 
         info!(
@@ -160,7 +169,7 @@ async fn process_station(
             "Processing station"
         );
 
-        let play = fetcher.fetch_play().await.unwrap();
+        let play = fetcher.fetch_play(config).await.unwrap();
         info!(title = play.title, artist = play.artist, "Fetched play");
 
         let result = crud_station.add_play(&station, play).await?;
