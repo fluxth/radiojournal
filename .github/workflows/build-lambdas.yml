@@ -14,15 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Resolve week ID
-        run: |
-          echo "WEEK_ID=$(date +%Y.%W)" >> "$GITHUB_ENV"
-
       - name: Cache rustup directory
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ~/.rustup
-          key: rustup-${{ runner.os }}-${{ env.WEEK_ID }}
+          key: rustup-${{ runner.os }}
           restore-keys: |
             rustup-${{ runner.os }}-
 
@@ -49,6 +45,16 @@ jobs:
 
       - name: Install cargo lambda
         run: pip3 install cargo-lambda
+
+      - name: Cache cargo target directory
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: |
+            target
+            !target/lambda
+          key: cargo-target-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-target-${{ runner.os }}-
 
       - name: Build lambdas
         run: cargo lambda build --release --arm64
