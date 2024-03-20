@@ -31,6 +31,6 @@
     "vite": "5.1.6",
     "vitest": "1.4.0"
   },
-  "packageManager": "pnpm@8.15.2",
+  "packageManager": "pnpm@8.15.4",
   "type": "module"
 }
