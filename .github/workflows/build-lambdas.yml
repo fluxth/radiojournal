@@ -1,0 +1,54 @@
+name: Build radiojournal lambdas
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Resolve week ID
+        run: |
+          echo "WEEK_ID=$(date +%Y.%W)" >> "$GITHUB_ENV"
+
+      - name: Cache rustup directory
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.2
+        with:
+          path: ~/.rustup
+          key: rustup-${{ runner.os }}-${{ env.WEEK_ID }}
+          restore-keys: |
+            rustup-${{ runner.os }}-
+
+      - name: Install Rust stable
+        run: |
+          rustup update
+          rustup toolchain install stable --profile minimal
+          echo "RUSTC_HASH=$(rustc --version | sed 's/^.*(\(.*\))$/\1/' | awk '{ printf $1 }')" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.2
+        with:
+          path: |
+            ~/.cargo/registry
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      - name: Setup python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+
+      - name: Install cargo lambda
+        run: pip3 install cargo-lambda
+
+      - name: Build lambdas
+        run: cargo lambda build --release --arm64
