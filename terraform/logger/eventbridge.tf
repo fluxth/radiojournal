@@ -2,7 +2,7 @@ resource "aws_cloudwatch_event_rule" "this" {
   name        = var.name
   description = "Invokes ${var.name} lambda function every minute"
 
-  schedule_expression = "cron(* * * * ? *)"
+  schedule_expression = "rate(1 minute)"
 }
 
 resource "aws_cloudwatch_event_target" "this" {
