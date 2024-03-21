@@ -10,6 +10,7 @@ use axum::{response::IntoResponse, Router};
 use errors::APIError;
 use lambda_http::{run, Error};
 use radiojournal::crud::station::CRUDStation;
+use tower_http::compression::CompressionLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -56,9 +57,16 @@ async fn main() -> Result<(), Error> {
 
     let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
 
+    let compression_layer: CompressionLayer = CompressionLayer::new()
+        .br(true)
+        .deflate(true)
+        .gzip(true)
+        .zstd(true);
+
     let app = Router::new()
         .nest("/v1", routes::get_router().with_state(crud_station))
         .merge(SwaggerUi::new("/apidocs").url("/openapi/v1.json", APIDoc::openapi()))
+        .layer(compression_layer)
         .fallback(handle_404);
 
     run(app).await
