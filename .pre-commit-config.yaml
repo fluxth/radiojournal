@@ -35,13 +35,13 @@ repos:
     hooks:
       - id: prettier
         name: prettier
-        entry: 'cd frontend && pnpm exec prettier -w .'
+        entry: bash -c 'cd frontend && pnpm exec prettier -w .'
         language: system
         pass_filenames: false
 
       - id: eslint
         name: eslint
-        entry: 'cd frontend && pnpm exec eslint'
+        entry: bash -c 'cd frontend && pnpm exec eslint'
         language: system
         pass_filenames: false
 
