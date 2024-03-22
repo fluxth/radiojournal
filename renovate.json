@@ -29,6 +29,15 @@
       "automergeStrategy": "squash"
     },
     {
+      "description": "Auto-merge pre-commit patch and digest updates",
+      "matchUpdateTypes": ["patch", "digest"],
+      "matchManagers": ["pre-commit"],
+      "schedule": ["before 6am"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
       "description": "Auto-merge testable NPM updates",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchManagers": ["npm"],
