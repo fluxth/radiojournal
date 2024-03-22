@@ -8,6 +8,9 @@
     ":maintainLockFilesMonthly",
     ":pinVersions"
   ],
+  "pre-commit": {
+    "enabled": true
+  },
   "reviewers": ["fluxth"],
   "timezone": "Asia/Tokyo",
   "schedule": [
