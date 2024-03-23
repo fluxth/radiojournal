@@ -419,13 +419,11 @@ impl CRUDStation {
 
         match resp.count {
             0 => Ok(None),
-            1 => Ok(
-                if let Some(item) = resp.items().to_vec().into_iter().nth(0) {
-                    serde_dynamo::from_item(item)?
-                } else {
-                    bail!("kaputt state!")
-                },
-            ),
+            1 => Ok(if let Some(item) = resp.items().iter().nth(0).cloned() {
+                serde_dynamo::from_item(item)?
+            } else {
+                bail!("kaputt state!")
+            }),
             _ => bail!("unexpected multiple items"),
         }
     }

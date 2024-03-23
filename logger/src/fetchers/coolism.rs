@@ -62,7 +62,7 @@ impl Coolism {
             .await?;
 
         let token = if let Some(token) = response.get("token") {
-            if token.len() > 0 {
+            if !token.is_empty() {
                 token.clone()
             } else {
                 Err(anyhow!("empty token"))?
@@ -73,8 +73,7 @@ impl Coolism {
 
         let expiry: Option<DateTime<Utc>> = response
             .get("expire")
-            .map(|val| DateTime::parse_from_rfc3339(&val).ok())
-            .flatten()
+            .and_then(|val| DateTime::parse_from_rfc3339(val).ok())
             .map(|dt| dt.with_timezone(&Utc));
 
         info!(

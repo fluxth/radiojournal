@@ -28,7 +28,7 @@ pub(crate) async fn get_track(
 ) -> Result<APIJson<Track>, APIError> {
     let maybe_track_internal = crud_station.get_track(station_id, track_id).await.unwrap();
 
-    if let Some(track) = maybe_track_internal.map(|track_internal| Track::from(track_internal)) {
+    if let Some(track) = maybe_track_internal.map(Track::from) {
         Ok(APIJson(track))
     } else {
         Err(APIError::NotFound)
@@ -73,10 +73,7 @@ pub(crate) async fn list_tracks(
         .unwrap();
 
     Ok(APIJson(ListTracksResponse {
-        tracks: tracks_internal
-            .into_iter()
-            .map(|track_internal| Track::from(track_internal))
-            .collect(),
+        tracks: tracks_internal.into_iter().map(Track::from).collect(),
         next_token: next_key.map(|val| val.to_string().into()),
     }))
 }

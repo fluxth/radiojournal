@@ -17,10 +17,5 @@ pub(crate) async fn list_stations(
 ) -> APIJson<Vec<Station>> {
     let stations = crud_station.list(50).await.unwrap();
 
-    APIJson(
-        stations
-            .into_iter()
-            .map(|station_internal| Station::from(station_internal))
-            .collect(),
-    )
+    APIJson(stations.into_iter().map(Station::from).collect())
 }

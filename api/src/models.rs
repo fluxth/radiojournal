@@ -32,9 +32,9 @@ where
 #[repr(transparent)]
 pub(crate) struct NextToken(pub(crate) String);
 
-impl Into<NextToken> for String {
-    fn into(self) -> NextToken {
-        NextToken(self)
+impl From<String> for NextToken {
+    fn from(val: String) -> Self {
+        Self(val)
     }
 }
 

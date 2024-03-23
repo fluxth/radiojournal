@@ -124,12 +124,12 @@ async fn invoke(
         .for_each(|station| {
             let crud_station = crud_station.clone();
             let state = state.clone();
-            join_set.spawn(async move { process_station(state, crud_station, station) });
+            join_set.spawn(async move { process_station(state, crud_station, station).await });
         });
 
     let mut stations = vec![];
     while let Some(res) = join_set.join_next().await {
-        stations.push(res?.await?);
+        stations.push(res??);
     }
 
     Ok(InvokeOutput { stations })
@@ -139,17 +139,17 @@ async fn get_fetcher<'a, 'b>(
     state: &'a State,
     station: &'b StationInDB,
 ) -> Option<(&'a Mutex<dyn Fetcher + Send + Sync>, &'b FetcherConfig)> {
-    if let Some(fetcher_config) = &station.fetcher {
-        Some((
-            match fetcher_config {
-                FetcherConfig::Coolism => &state.fetchers.coolism,
-                FetcherConfig::Atime { station: _ } => &state.fetchers.atime,
-            },
-            fetcher_config,
-        ))
-    } else {
-        None
-    }
+    station.fetcher.as_ref().map(
+        |fetcher_config| -> (&'a Mutex<dyn Fetcher + Send + Sync>, &'b FetcherConfig) {
+            (
+                match fetcher_config {
+                    FetcherConfig::Coolism => &state.fetchers.coolism,
+                    FetcherConfig::Atime { station: _ } => &state.fetchers.atime,
+                },
+                fetcher_config,
+            )
+        },
+    )
 }
 
 #[tracing::instrument(skip_all, fields(station.id = station.id.to_string(), station.name = station.name))]
