@@ -18,7 +18,7 @@ jobs:
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ~/.rustup
-          key: rustup-${{ runner.os }}
+          key: rustup-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
             rustup-${{ runner.os }}-
 
@@ -27,7 +27,7 @@ jobs:
         with:
           path: |
             ~/.cargo/registry
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock') }}
           restore-keys: |
             cargo-${{ runner.os }}-
 
@@ -46,7 +46,7 @@ jobs:
           path: |
             target
             !target/lambda
-          key: cargo-target-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-target-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock') }}
           restore-keys: |
             cargo-target-${{ runner.os }}-
 
