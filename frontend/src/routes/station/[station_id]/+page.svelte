@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { invalidateAll } from "$app/navigation";
+  import { invalidate } from "$app/navigation";
 
   export let data: any;
 
@@ -16,23 +16,25 @@
   };
 
   const refresh = async () => {
-    await invalidateAll();
+    await invalidate(
+      `https://nna6sr3v62fsk5oauz37tnzuvm0lvtfl.lambda-url.ap-southeast-1.on.aws/v1/station/${data.station.id}/plays`,
+    );
   };
 </script>
 
 <svelte:head>
-  <title>{data.station.id} - radiojournal</title>
+  <title>{data.station.name} - radiojournal</title>
 </svelte:head>
 
-<div class="px-2 py-4 flex flex-wrap gap-4">
-  <h2 class="font-bold text-2xl truncate">{data.station.id}</h2>
+<div class="px-2 py-6 flex flex-wrap gap-4">
+  <h2 class="font-bold text-2xl truncate">{data.station.name}</h2>
   <button class="btn btn-sm" on:click|preventDefault={refresh}>Refresh</button>
 </div>
 
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
   <ul>
     <li><a href="/">Stations</a></li>
-    <li>{data.station.id}</li>
+    <li>{data.station.name}</li>
   </ul>
 </div>
 

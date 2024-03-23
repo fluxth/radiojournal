@@ -14,7 +14,7 @@
   <title>Stations - radiojournal</title>
 </svelte:head>
 
-<div class="px-2 py-4 flex flex-wrap gap-4">
+<div class="px-2 py-6 flex flex-wrap gap-4">
   <h2 class="font-bold text-2xl truncate">Stations</h2>
   <button class="btn btn-sm" on:click|preventDefault={refresh}>Refresh</button>
 </div>
