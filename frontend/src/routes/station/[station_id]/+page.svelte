@@ -39,20 +39,32 @@
 </div>
 
 <div class="overflow-x-auto my-4">
-  <table class="table table-sm table-auto">
+  <table class="table table-sm table-responsive">
     <thead>
       <tr>
         <th>Timestamp</th>
         <th>Artist</th>
         <th>Title</th>
+        <th />
       </tr>
     </thead>
     <tbody>
       {#each data.content.plays as play}
         <tr class={play.track.is_song ? "" : "italic text-neutral-300 dark:text-neutral-600"}>
-          <td class="whitespace-nowrap w-0">{new Date(play.played_at).toLocaleString()}</td>
+          <td class="whitespace-nowrap w-0 max-sm:font-bold">
+            {new Date(play.played_at).toLocaleString()}
+          </td>
           <td>{play.track.artist}</td>
           <td>{play.track.title}</td>
+          <td class="whitespace-nowrap w-0">
+            <button
+              class="btn btn-xs"
+              on:click={async () =>
+                await navigator.clipboard.writeText(`${play.track.artist} ${play.track.title}`)}
+            >
+              Copy
+            </button>
+          </td>
         </tr>
       {/each}
     </tbody>

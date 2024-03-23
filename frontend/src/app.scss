@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.table-responsive tr {
+  @apply max-sm:flex max-sm:flex-col max-sm:py-1;
+
+  td,
+  th {
+    @apply max-sm:py-0.5;
+  }
+}
