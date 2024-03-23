@@ -7,7 +7,7 @@
     "npm:unpublishSafe",
     ":maintainLockFilesMonthly",
     ":pinVersions",
-    "github>Turbo87/renovate-config/rust/updateToolchain"
+    "github>Turbo87/renovate-config//rust/updateToolchain"
   ],
   "pre-commit": {
     "enabled": true
