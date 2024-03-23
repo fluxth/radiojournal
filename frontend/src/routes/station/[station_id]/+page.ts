@@ -8,7 +8,6 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
   const { plays, next_token: nextToken } = await res.json();
 
   const layoutData: any = await parent();
-  console.log(layoutData);
 
   return {
     station: layoutData.stations[params.station_id],

@@ -39,7 +39,7 @@
 </div>
 
 <div class="overflow-x-auto my-4">
-  <table class="table table-sm">
+  <table class="table table-sm table-auto">
     <thead>
       <tr>
         <th>Timestamp</th>
@@ -50,7 +50,7 @@
     <tbody>
       {#each data.content.plays as play}
         <tr class={play.track.is_song ? "" : "italic text-neutral-300 dark:text-neutral-600"}>
-          <td>{new Date(play.played_at).toLocaleString()}</td>
+          <td class="whitespace-nowrap w-0">{new Date(play.played_at).toLocaleString()}</td>
           <td>{play.track.artist}</td>
           <td>{play.track.title}</td>
         </tr>
