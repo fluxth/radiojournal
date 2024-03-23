@@ -1,12 +1,16 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
+  import { toHourId } from "$lib/helpers";
+  import moment from "moment";
 
   export let data: any;
 
   const numberFormat = new Intl.NumberFormat();
+  let hourId = toHourId(moment());
 
   const refresh = async () => {
     await invalidateAll();
+    hourId = toHourId(moment());
   };
 </script>
 
@@ -29,7 +33,7 @@
           {numberFormat.format(station.track_count)} songs
         </p>
         <div class="card-actions justify-end">
-          <a class="btn btn-primary" href={`/station/${station.id}`}>View</a>
+          <a class="btn btn-primary" href={`/station/${station.id}/plays/${hourId}`}>View</a>
         </div>
       </div>
     </div>

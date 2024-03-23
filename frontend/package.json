@@ -37,5 +37,8 @@
     "vitest": "1.4.0"
   },
   "packageManager": "pnpm@8.15.5",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "moment": "2.30.1"
+  }
 }
