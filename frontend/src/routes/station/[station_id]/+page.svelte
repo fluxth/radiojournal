@@ -20,29 +20,49 @@
   };
 </script>
 
-<a href="/">Back to home</a> | <a href="#" on:click|preventDefault={refresh}>Refresh</a>
+<svelte:head>
+  <title>{data.station.id} - radiojournal</title>
+</svelte:head>
 
-<h1>Station: {data.station.id}</h1>
+<div class="px-2 py-4 flex flex-wrap gap-4">
+  <h2 class="font-bold text-2xl truncate">{data.station.id}</h2>
+  <button class="btn btn-sm" on:click|preventDefault={refresh}>Refresh</button>
+</div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Timestamp</th>
-      <th>Artist</th>
-      <th>Title</th>
-    </tr>
-  </thead>
-  <tbody>
-    {#each data.content.plays as play}
-      <tr style={play.track.is_song ? "" : "color: #ccc"}>
-        <td>{new Date(play.played_at).toLocaleString()}</td>
-        <td>{play.track.artist}</td>
-        <td>{play.track.title}</td>
+<div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
+  <ul>
+    <li><a href="/">Stations</a></li>
+    <li>{data.station.id}</li>
+  </ul>
+</div>
+
+<div class="overflow-x-auto my-4">
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Artist</th>
+        <th>Title</th>
       </tr>
-    {/each}
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      {#each data.content.plays as play}
+        <tr class={play.track.is_song ? "" : "italic text-neutral-300 dark:text-neutral-600"}>
+          <td>{new Date(play.played_at).toLocaleString()}</td>
+          <td>{play.track.artist}</td>
+          <td>{play.track.title}</td>
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+</div>
 
-<button disabled={!data.content.nextToken} on:click={() => loadMore(data.content.nextToken)}
-  >Load More</button
->
+<div class="mb-6 flex justify-center">
+  <button
+    class="btn btn-sm btn-primary"
+    disabled={!data.content.nextToken}
+    on:click={() => loadMore(data.content.nextToken)}
+  >
+    Load More
+  </button>
+</div>
