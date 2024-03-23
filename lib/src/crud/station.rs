@@ -152,7 +152,7 @@ impl CRUDStation {
         track_id: Ulid,
         play_id: Ulid,
     ) -> Result<AddPlayType> {
-        let play_datetime: DateTime<Utc> = play_id.datetime().try_into()?;
+        let play_datetime: DateTime<Utc> = play_id.datetime().into();
         let play_partition = play_datetime.format("%Y-%m-%d");
 
         self.db_client
@@ -453,8 +453,7 @@ impl CRUDStation {
             .limit(limit);
 
         if let Some(next_key) = next_key {
-            let next_key_datetime: DateTime<Utc> =
-                next_key.datetime().try_into().expect("ulid to datetime");
+            let next_key_datetime: DateTime<Utc> = next_key.datetime().into();
             let next_key_partition = next_key_datetime.format("%Y-%m-%d");
 
             query = query
