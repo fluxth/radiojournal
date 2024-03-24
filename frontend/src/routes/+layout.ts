@@ -1,6 +1,8 @@
 import type { LayoutLoad } from "./$types";
 import { listStations } from "$lib/api";
 
+export const ssr = false;
+
 export const load: LayoutLoad = async ({ fetch }) => {
   const stations = await listStations({ fetch });
 
