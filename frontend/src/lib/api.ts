@@ -29,7 +29,18 @@ export type PlayResponse = {
   invalidate: () => Promise<void>;
 };
 
-export type Play = {};
+export type Play = {
+  id: string;
+  played_at: string;
+  track: TrackMinimal;
+};
+
+export type TrackMinimal = {
+  id: string;
+  artist: string;
+  title: string;
+  is_song: string;
+};
 
 export const listPlays = async ({
   fetch,

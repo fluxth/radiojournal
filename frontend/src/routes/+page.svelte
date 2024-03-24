@@ -2,8 +2,9 @@
   import { invalidateAll } from "$app/navigation";
   import { toHourId } from "$lib/helpers";
   import moment from "moment";
+  import type { PageData } from "./$types";
 
-  export let data: any;
+  export let data: PageData;
 
   const numberFormat = new Intl.NumberFormat();
   let hourId = toHourId(moment());

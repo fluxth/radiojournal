@@ -20,10 +20,13 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
 
   const maxPageHour = moment().startOf("hour");
 
-  const layoutData: any = await parent();
+  const layoutData = await parent();
+
+  const station = layoutData.stationMap[params.station_id];
+  if (!station) throw error(404);
 
   return {
-    station: layoutData.stations[params.station_id],
+    station,
     pageHour: {
       current: currentPageHour,
       max: maxPageHour,

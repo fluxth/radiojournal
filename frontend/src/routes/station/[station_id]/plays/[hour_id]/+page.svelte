@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { goto, invalidate } from "$app/navigation";
+  import { goto } from "$app/navigation";
   import { toHourId } from "$lib/helpers";
   import moment from "moment";
+  import type { PageData } from "./$types";
 
-  export let data: any;
+  export let data: PageData;
 
   const refresh = async () => {
     await data.invalidate();
