@@ -484,7 +484,6 @@ impl CRUDStation {
                         },
                 ),
             )
-            .scan_index_forward(false)
             .select(Select::AllAttributes)
             .limit(limit);
 
