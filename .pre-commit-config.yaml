@@ -33,15 +33,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: prettier
-        name: prettier
-        entry: bash -c 'cd frontend && pnpm exec prettier -w .'
-        language: system
-        pass_filenames: false
-
-      - id: eslint
-        name: eslint
-        entry: bash -c 'cd frontend && pnpm exec eslint'
+      - id: lint-frontend
+        name: lint frontend
+        entry: bash -c 'cd frontend && pnpm lint'
         language: system
         pass_filenames: false
 
