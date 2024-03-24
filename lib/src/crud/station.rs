@@ -433,21 +433,57 @@ impl CRUDStation {
         &self,
         station_id: Ulid,
         limit: i32,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
         next_key: Option<Ulid>,
     ) -> Result<(Vec<PlayInDB>, Option<Ulid>)> {
-        let play_datetime = Utc::now();
-        let play_partition = play_datetime.format("%Y-%m-%d");
+        let play_partition = {
+            let play_datetime = if let Some(start) = start {
+                start
+            } else {
+                Utc::now()
+            };
+
+            play_datetime.format("%Y-%m-%d")
+        };
 
         let mut query = self
             .db_client
             .query()
             .table_name(&self.db_table)
-            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
+            .key_condition_expression("pk = :pk AND sk BETWEEN :start_sk AND :end_sk")
             .expression_attribute_values(
                 ":pk",
                 AttributeValue::S(PlayInDB::get_pk(station_id, &play_partition.to_string())),
             )
-            .expression_attribute_values(":sk", AttributeValue::S(PlayInDB::get_sk_prefix()))
+            .expression_attribute_values(
+                ":start_sk",
+                AttributeValue::S(
+                    PlayInDB::get_sk_prefix()
+                        + &{
+                            if let Some(start) = start {
+                                Ulid::from_parts(start.timestamp_millis().try_into()?, 0)
+                                    .to_string()
+                            } else {
+                                Ulid::nil().to_string()
+                            }
+                        },
+                ),
+            )
+            .expression_attribute_values(
+                ":end_sk",
+                AttributeValue::S(
+                    PlayInDB::get_sk_prefix()
+                        + &{
+                            if let Some(end) = end {
+                                Ulid::from_parts(end.timestamp_millis().try_into()?, u128::MAX)
+                                    .to_string()
+                            } else {
+                                Ulid::from_parts(u64::MAX, u128::MAX).to_string()
+                            }
+                        },
+                ),
+            )
             .scan_index_forward(false)
             .select(Select::AllAttributes)
             .limit(limit);

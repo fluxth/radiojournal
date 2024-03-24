@@ -4,6 +4,7 @@ use std::{
 };
 
 use axum::extract::{Path, Query, State};
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use ulid::Ulid;
 
@@ -15,6 +16,8 @@ use radiojournal::crud::station::CRUDStation;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListPlaysQuery {
+    start: Option<DateTime<Utc>>,
+    end: Option<DateTime<Utc>>,
     next_token: Option<NextToken>,
 }
 
@@ -45,12 +48,28 @@ pub(crate) async fn list_plays(
         None
     };
 
+    if let (Some(start), Some(end)) = (query.start, query.end) {
+        if end <= start {
+            return Err(APIError::ValidationFailed {
+                message: Some("`end` must be more than `start`"),
+            });
+        }
+    }
+
     let (plays, next_key) = crud_station
-        .list_plays(station_id, 50, next_key)
+        .list_plays(station_id, 50, query.start, query.end, next_key)
         .await
         .unwrap();
 
     let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
+    if track_ids.is_empty() {
+        // FIXME actually return 404 if station id in pk not found
+        return Ok(APIJson(ListPlaysResponse {
+            plays: vec![],
+            next_token: None,
+        }));
+    }
+
     let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(
         crud_station
             .batch_get_tracks(station_id, track_ids.iter())
