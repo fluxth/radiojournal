@@ -10,3 +10,13 @@
     @apply max-sm:py-0.5;
   }
 }
+
+#nprogress {
+  .bar {
+    @apply bg-primary;
+  }
+
+  .peg {
+    @apply shadow-md shadow-primary;
+  }
+}
