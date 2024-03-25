@@ -1,17 +1,17 @@
 <script lang="ts">
   import { invalidateAll } from "$app/navigation";
   import { toHourId } from "$lib/helpers";
-  import moment from "moment";
+  import dayjs from "$lib/dayjs";
   import type { PageData } from "./$types";
 
   export let data: PageData;
 
   const numberFormat = new Intl.NumberFormat();
-  let hourId = toHourId(moment());
+  let hourId = toHourId(dayjs());
 
   const refresh = async () => {
     await invalidateAll();
-    hourId = toHourId(moment());
+    hourId = toHourId(dayjs());
   };
 </script>
 

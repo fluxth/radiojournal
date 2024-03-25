@@ -1,4 +1,4 @@
-import type { Moment } from "moment";
+import type { Dayjs } from "dayjs";
 
-export const toHourId = (date: Moment): string =>
-  date.startOf("hour").toISOString().replace(":00:00.000Z", "Z");
+export const toHourId = (date: Dayjs): string =>
+  date.startOf("hour").utc().format("YYYY-MM-DD[T]HH[Z]");

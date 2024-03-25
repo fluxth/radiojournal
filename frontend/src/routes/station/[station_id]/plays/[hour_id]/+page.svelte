@@ -1,14 +1,45 @@
 <script lang="ts">
+  import type { PageData } from "./$types";
+  import type { Dayjs } from "dayjs";
+
   import { goto } from "$app/navigation";
   import { toHourId } from "$lib/helpers";
-  import moment from "moment";
-  import type { PageData } from "./$types";
+  import dayjs from "$lib/dayjs";
 
   export let data: PageData;
+
+  let currentTimezone: string | null = null;
+
+  $: currentPageHour = currentTimezone
+    ? data.pageHour.current.tz(currentTimezone)
+    : data.pageHour.current;
+  $: maxPageHour = currentTimezone ? data.pageHour.max.tz(currentTimezone) : data.pageHour.max;
+
+  let timezoneModal: HTMLDialogElement;
+  const timezones = Intl.supportedValuesOf("timeZone")
+    .map((timezone) => {
+      const tzDate = data.pageHour.current.tz(timezone);
+      return {
+        name: timezone,
+        offset: tzDate.utcOffset(),
+        offsetString: tzDate.format("Z"),
+      };
+    })
+    .sort((a, b) => a.offset - b.offset);
 
   const refresh = async () => {
     await data.invalidate();
   };
+
+  const gotoYesterday = async () =>
+    await goto(toHourId(currentPageHour.subtract(dayjs.duration({ days: 1 }))));
+
+  const gotoTomorrow = async () =>
+    await goto(
+      toHourId(dayjs.min(currentPageHour.add(dayjs.duration({ days: 1 })), maxPageHour) as Dayjs),
+    );
+
+  const gotoNow = async () => await goto(toHourId(dayjs()));
 </script>
 
 <svelte:head>
@@ -30,31 +61,23 @@
 <div class="my-4 flex flex-col items-center gap-1">
   <div class="flex justify-center">
     <div class="join">
+      <button class="join-item btn sm:text-lg" on:click={gotoYesterday}>‹</button>
+      <button class="join-item btn sm:text-lg">{currentPageHour.format("dddd, LL")}</button>
       <button
-        class="join-item btn sm:text-lg"
-        on:click={() => goto(toHourId(moment(data.pageHour.current).subtract({ days: 1 })))}
-        >‹</button
+        class="join-item btn sm:text-lg hidden lg:block"
+        on:click={() => timezoneModal.showModal()}
       >
-      <button class="join-item btn sm:text-lg">{data.pageHour.current.format("dddd LL")}</button>
-      <button class="join-item btn sm:text-lg hidden lg:block">
-        {data.pageHour.current.format("UTCZ")}
+        {currentPageHour.format("UTCZ")}
       </button>
       <button
         class="join-item btn sm:text-lg"
-        disabled={moment(data.pageHour.current)
-          .startOf("date")
-          .isSameOrAfter(moment(data.pageHour.max).startOf("date"))}
-        on:click={() =>
-          goto(
-            toHourId(moment.min(moment(data.pageHour.current).add({ days: 1 }), data.pageHour.max)),
-          )}>›</button
+        disabled={currentPageHour.startOf("date").isSameOrAfter(maxPageHour.startOf("date"))}
+        on:click={gotoTomorrow}>›</button
       >
       <button
         class="join-item btn sm:text-lg"
-        disabled={moment(data.pageHour.current)
-          .startOf("hour")
-          .isSameOrAfter(moment().startOf("hour"))}
-        on:click={() => goto(toHourId(moment()))}>»</button
+        disabled={currentPageHour.startOf("hour").isSameOrAfter(dayjs().startOf("hour"))}
+        on:click={gotoNow}>»</button
       >
     </div>
   </div>
@@ -63,29 +86,33 @@
     <div class="join">
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs"
-        on:click={() => goto(toHourId(moment(data.pageHour.current).subtract({ hours: 1 })))}
+        on:click={() => goto(toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))))}
         >‹</button
       >
-      {#each [...Array(24).keys()].map( (hour) => moment(data.pageHour.current).hour(hour), ) as buttonHour}
+      {#each [...Array(24).keys()] as buttonHour}
         <button
           class="join-item btn btn-sm lg:max-xl:btn-xs hidden lg:block"
-          class:btn-active={buttonHour.isSame(data.pageHour.current)}
-          disabled={buttonHour.isAfter(data.pageHour.max)}
-          on:click={() => goto(toHourId(buttonHour))}
+          class:btn-active={currentPageHour.hour() === buttonHour}
+          disabled={currentPageHour.isSameOrAfter(maxPageHour.startOf("date")) &&
+            buttonHour > maxPageHour.hour()}
+          on:click={() => goto(toHourId(currentPageHour.hour(buttonHour)))}
         >
-          {buttonHour.hours().toString().padStart(2, "0")}
+          {buttonHour.toString().padStart(2, "0")}
         </button>
       {/each}
       <button class="join-item btn btn-sm lg:max-xl:btn-xs block lg:hidden">
-        {data.pageHour.current.format("HH:00")}
+        {currentPageHour.format("HH:00")}
       </button>
-      <button class="join-item btn btn-sm lg:max-xl:btn-xs block lg:hidden">
-        {data.pageHour.current.format("UTCZ")}
+      <button
+        class="join-item btn btn-sm lg:max-xl:btn-xs block lg:hidden"
+        on:click={() => timezoneModal.showModal()}
+      >
+        {currentPageHour.format("UTCZ")}
       </button>
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs"
-        disabled={data.pageHour.current.isSameOrAfter(data.pageHour.max)}
-        on:click={() => goto(toHourId(moment(data.pageHour.current).add({ hours: 1 })))}>›</button
+        disabled={currentPageHour.isSameOrAfter(maxPageHour)}
+        on:click={() => goto(toHourId(currentPageHour.add(dayjs.duration({ hours: 1 }))))}>›</button
       >
     </div>
   </div>
@@ -105,7 +132,10 @@
       {#each data.content.plays as play}
         <tr class={play.track.is_song ? "" : "italic text-neutral-300 dark:text-neutral-600"}>
           <td class="whitespace-nowrap w-0 max-sm:font-bold">
-            {moment(play.played_at).format("HH:mm:ss")}
+            {(currentTimezone
+              ? dayjs(play.played_at).tz(currentTimezone)
+              : dayjs(play.played_at)
+            ).format("HH:mm:ss")}
           </td>
           <td>{play.track.artist}</td>
           <td>{play.track.title}</td>
@@ -123,3 +153,22 @@
     </tbody>
   </table>
 </div>
+
+<dialog class="modal" bind:this={timezoneModal}>
+  <div class="modal-box">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    <h3 class="font-bold text-lg">Timezone</h3>
+    <div class="my-2 py-4">
+      <select class="select select-bordered w-full" bind:value={currentTimezone}>
+        <option value={null}>System Default</option>
+        {#each timezones as timezone}
+          <option value={timezone.name}>
+            (UTC{timezone.offsetString}) {timezone.name}
+          </option>
+        {/each}
+      </select>
+    </div>
+  </div>
+</dialog>
