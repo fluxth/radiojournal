@@ -6,6 +6,8 @@
   import { toHourId } from "$lib/helpers";
   import dayjs from "$lib/dayjs";
 
+  import windowsZones from "$lib/data/windowsZones.json";
+
   export let data: PageData;
 
   let currentTimezone: string | null = null;
@@ -16,16 +18,12 @@
   $: maxPageHour = currentTimezone ? data.pageHour.max.tz(currentTimezone) : data.pageHour.max;
 
   let timezoneModal: HTMLDialogElement;
-  const timezones = Intl.supportedValuesOf("timeZone")
-    .map((timezone) => {
-      const tzDate = data.pageHour.current.tz(timezone);
-      return {
-        name: timezone,
-        offset: tzDate.utcOffset(),
-        offsetString: tzDate.format("Z"),
-      };
-    })
-    .sort((a, b) => a.offset - b.offset);
+
+  const timezones = windowsZones.map((zone) => ({
+    ...zone,
+    label: zone.label.split(") ", 2)[1],
+    offsetString: `UTC${data.pageHour.current.tz(zone.id).format("Z")}`,
+  }));
 
   const refresh = async () => {
     await data.invalidate();
@@ -164,8 +162,8 @@
       <select class="select select-bordered w-full" bind:value={currentTimezone}>
         <option value={null}>System Default</option>
         {#each timezones as timezone}
-          <option value={timezone.name}>
-            (UTC{timezone.offsetString}) {timezone.name}
+          <option value={timezone.id}>
+            ({timezone.offsetString}) {timezone.label}
           </option>
         {/each}
       </select>
