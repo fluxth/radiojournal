@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "=1.0.81"
-aws-sdk-dynamodb = "=1.19.0"
+aws-sdk-dynamodb = "=1.20.0"
 chrono = { version = "=0.4.35", features = ["serde"] }
 serde = { version = "=1.0.197", features = ["derive"] }
 serde_dynamo = { version = "=4.2.13", features = ["aws-sdk-dynamodb+1"] }
