@@ -1,3 +1,13 @@
+resource "aws_iam_role" "lambda" {
+  name               = var.name
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+
+  inline_policy {
+    name   = "DynamoDBAccess"
+    policy = data.aws_iam_policy_document.dynamodb_access.json
+  }
+}
+
 data "aws_iam_policy_document" "lambda_assume_role" {
   statement {
     effect = "Allow"
@@ -23,16 +33,6 @@ data "aws_iam_policy_document" "dynamodb_access" {
   }
 }
 
-resource "aws_iam_role" "lambda" {
-  name               = var.name
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
-
-  inline_policy {
-    name   = "DynamoDBAccess"
-    policy = data.aws_iam_policy_document.dynamodb_access.json
-  }
-}
-
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
   role       = aws_iam_role.lambda.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -41,4 +41,38 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
 resource "aws_iam_role_policy_attachment" "lambda_insights_execution_role" {
   role       = aws_iam_role.lambda.id
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy"
+}
+
+resource "aws_iam_role" "scheduler" {
+  name               = "${var.name}-scheduler"
+  assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
+
+  inline_policy {
+    name   = "LoggerLambdaInvoke"
+    policy = data.aws_iam_policy_document.lambda_invoke.json
+  }
+}
+
+data "aws_iam_policy_document" "scheduler_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["scheduler.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+data "aws_iam_policy_document" "lambda_invoke" {
+  statement {
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+    resources = [
+      aws_lambda_function.this.arn
+    ]
+  }
 }

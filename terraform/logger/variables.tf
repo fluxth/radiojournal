@@ -13,3 +13,8 @@ variable "lambda_zip_hash" {
 variable "db_table_name" {
   type = string
 }
+
+variable "enabled" {
+  type    = bool
+  default = true
+}

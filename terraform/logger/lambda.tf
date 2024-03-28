@@ -23,11 +23,3 @@ resource "aws_lambda_function" "this" {
     "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:16"
   ]
 }
-
-resource "aws_lambda_permission" "eventbridge" {
-  function_name = aws_lambda_function.this.function_name
-  statement_id  = "EventBridgePermissions"
-  action        = "lambda:InvokeFunction"
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.this.arn
-}
