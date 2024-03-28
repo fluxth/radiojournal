@@ -12,7 +12,14 @@
 
   const TIMEZONE_LOCALSTORAGE_KEY = "timezone";
 
-  let currentTimezone: string | null = localStorage.getItem(TIMEZONE_LOCALSTORAGE_KEY);
+  const isValidTimezoneOrNull = (timezone: string | null): string | null => {
+    if (timezone && !Intl.supportedValuesOf("timeZone").includes(timezone)) return null;
+    return timezone;
+  };
+
+  let currentTimezone: string | null = isValidTimezoneOrNull(
+    localStorage.getItem(TIMEZONE_LOCALSTORAGE_KEY),
+  );
 
   $: currentPageHour = currentTimezone
     ? data.pageHour.current.tz(currentTimezone)
@@ -177,6 +184,9 @@
         bind:value={currentTimezone}
         on:change={() => saveTimezone(currentTimezone)}
       >
+        {#if currentTimezone !== null && timezones.find((zone) => zone.id === currentTimezone) === undefined}
+          <option disabled value={currentTimezone}>{currentTimezone}</option>
+        {/if}
         <option value={null}>System Default</option>
         {#each timezones as timezone}
           <option value={timezone.id}>
