@@ -19,11 +19,17 @@
 
   let timezoneModal: HTMLDialogElement;
 
-  const timezones = windowsZones.map((zone) => ({
-    ...zone,
-    label: zone.label.split(") ", 2)[1],
-    offsetString: `UTC${data.pageHour.current.tz(zone.id).format("Z")}`,
-  }));
+  $: timezones = windowsZones
+    .map((zone, index) => {
+      const zoneHour = data.pageHour.current.tz(zone.id);
+      return {
+        ...zone,
+        index,
+        offset: zoneHour.utcOffset(),
+        offsetString: `UTC${zoneHour.format("Z")}`,
+      };
+    })
+    .sort((a, b) => a.offset - b.offset || a.index - b.index);
 
   const refresh = async () => {
     await data.invalidate();

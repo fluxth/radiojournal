@@ -2,11 +2,17 @@
 
 from xml.etree import ElementTree
 import json
+import urllib.request
+from pathlib import Path
 
-import requests
+SOURCE_URL = "https://raw.githubusercontent.com/unicode-org/cldr/main/common/supplemental/windowsZones.xml"
+OUTPUT_FILE = (
+    Path(__file__).parent / ".." / "frontend/src/lib/data" / "windowsZones.json"
+)
 
 
-URL = "https://raw.githubusercontent.com/unicode-org/cldr/main/common/supplemental/windowsZones.xml"
+def fetch_xml() -> str:
+    return urllib.request.urlopen(SOURCE_URL).read()
 
 
 def process_full(zones):
@@ -29,6 +35,8 @@ def process_full(zones):
             item = results[-1]
             if not "name" in item:
                 item["name"] = zone.attrib["other"]
+            else:
+                assert item["name"] == zone.attrib["other"]
 
             item["territories"].append(
                 {
@@ -47,7 +55,7 @@ def strip_minimal(zones):
         results.append(
             {
                 "name": zone["name"],
-                "label": zone["label"],
+                "label": zone["label"].split(") ", maxsplit=1)[-1],
                 "id": zone["territories"][0]["zoneinfo_ids"][0],
             }
         )
@@ -56,16 +64,23 @@ def strip_minimal(zones):
 
 
 if __name__ == "__main__":
-    resp = requests.get(URL)
+    print("Fetching windowsZones XML")
+    resp = fetch_xml()
 
     parser = ElementTree.XMLParser(target=ElementTree.TreeBuilder(insert_comments=True))
-    root = ElementTree.fromstring(resp.text, parser=parser)
+    root = ElementTree.fromstring(resp, parser=parser)
 
     zones = root.find("./windowsZones/mapTimezones")
     if zones is None:
         raise Exception("cannot find ./windowsZones/mapTimezones in xml")
 
-    results = process_full(zones)
-    results = strip_minimal(results)
+    print("Parsing timezones")
+    full_results = process_full(zones)
+    results = strip_minimal(full_results)
 
-    print(json.dumps(results, indent=2))
+    print(f"Writing to file {OUTPUT_FILE.resolve()}")
+    with Path.open(OUTPUT_FILE, "w") as f:
+        f.write(json.dumps(results, indent=2))
+        f.write("\n")
+
+    print("Done")

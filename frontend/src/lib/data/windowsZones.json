@@ -1,697 +1,697 @@
 [
   {
     "name": "Dateline Standard Time",
-    "label": "(UTC-12:00) International Date Line West",
+    "label": "International Date Line West",
     "id": "Etc/GMT+12"
   },
   {
     "name": "UTC-11",
-    "label": "(UTC-11:00) Coordinated Universal Time-11",
+    "label": "Coordinated Universal Time-11",
     "id": "Etc/GMT+11"
   },
   {
     "name": "Aleutian Standard Time",
-    "label": "(UTC-10:00) Aleutian Islands",
+    "label": "Aleutian Islands",
     "id": "America/Adak"
   },
   {
     "name": "Hawaiian Standard Time",
-    "label": "(UTC-10:00) Hawaii",
+    "label": "Hawaii",
     "id": "Pacific/Honolulu"
   },
   {
     "name": "Marquesas Standard Time",
-    "label": "(UTC-09:30) Marquesas Islands",
+    "label": "Marquesas Islands",
     "id": "Pacific/Marquesas"
   },
   {
     "name": "Alaskan Standard Time",
-    "label": "(UTC-09:00) Alaska",
+    "label": "Alaska",
     "id": "America/Anchorage"
   },
   {
     "name": "UTC-09",
-    "label": "(UTC-09:00) Coordinated Universal Time-09",
+    "label": "Coordinated Universal Time-09",
     "id": "Etc/GMT+9"
   },
   {
     "name": "Pacific Standard Time (Mexico)",
-    "label": "(UTC-08:00) Baja California",
+    "label": "Baja California",
     "id": "America/Tijuana"
   },
   {
     "name": "UTC-08",
-    "label": "(UTC-08:00) Coordinated Universal Time-08",
+    "label": "Coordinated Universal Time-08",
     "id": "Etc/GMT+8"
   },
   {
     "name": "Pacific Standard Time",
-    "label": "(UTC-08:00) Pacific Time (US & Canada)",
+    "label": "Pacific Time (US & Canada)",
     "id": "America/Los_Angeles"
   },
   {
     "name": "US Mountain Standard Time",
-    "label": "(UTC-07:00) Arizona",
+    "label": "Arizona",
     "id": "America/Phoenix"
   },
   {
     "name": "Mountain Standard Time (Mexico)",
-    "label": "(UTC-07:00) Chihuahua, La Paz, Mazatlan",
+    "label": "Chihuahua, La Paz, Mazatlan",
     "id": "America/Mazatlan"
   },
   {
     "name": "Mountain Standard Time",
-    "label": "(UTC-07:00) Mountain Time (US & Canada)",
+    "label": "Mountain Time (US & Canada)",
     "id": "America/Denver"
   },
   {
     "name": "Yukon Standard Time",
-    "label": "(UTC-07:00) Yukon",
+    "label": "Yukon",
     "id": "America/Whitehorse"
   },
   {
     "name": "Central America Standard Time",
-    "label": "(UTC-06:00) Central America",
+    "label": "Central America",
     "id": "America/Guatemala"
   },
   {
     "name": "Central Standard Time",
-    "label": "(UTC-06:00) Central Time (US & Canada)",
+    "label": "Central Time (US & Canada)",
     "id": "America/Chicago"
   },
   {
     "name": "Easter Island Standard Time",
-    "label": "(UTC-06:00) Easter Island",
+    "label": "Easter Island",
     "id": "Pacific/Easter"
   },
   {
     "name": "Central Standard Time (Mexico)",
-    "label": "(UTC-06:00) Guadalajara, Mexico City, Monterrey",
+    "label": "Guadalajara, Mexico City, Monterrey",
     "id": "America/Mexico_City"
   },
   {
     "name": "Canada Central Standard Time",
-    "label": "(UTC-06:00) Saskatchewan",
+    "label": "Saskatchewan",
     "id": "America/Regina"
   },
   {
     "name": "SA Pacific Standard Time",
-    "label": "(UTC-05:00) Bogota, Lima, Quito, Rio Branco",
+    "label": "Bogota, Lima, Quito, Rio Branco",
     "id": "America/Bogota"
   },
   {
     "name": "Eastern Standard Time (Mexico)",
-    "label": "(UTC-05:00) Chetumal",
+    "label": "Chetumal",
     "id": "America/Cancun"
   },
   {
     "name": "Eastern Standard Time",
-    "label": "(UTC-05:00) Eastern Time (US & Canada)",
+    "label": "Eastern Time (US & Canada)",
     "id": "America/New_York"
   },
   {
     "name": "Haiti Standard Time",
-    "label": "(UTC-05:00) Haiti",
+    "label": "Haiti",
     "id": "America/Port-au-Prince"
   },
   {
     "name": "Cuba Standard Time",
-    "label": "(UTC-05:00) Havana",
+    "label": "Havana",
     "id": "America/Havana"
   },
   {
     "name": "US Eastern Standard Time",
-    "label": "(UTC-05:00) Indiana (East)",
+    "label": "Indiana (East)",
     "id": "America/Indianapolis"
   },
   {
     "name": "Turks And Caicos Standard Time",
-    "label": "(UTC-05:00) Turks and Caicos",
+    "label": "Turks and Caicos",
     "id": "America/Grand_Turk"
   },
   {
     "name": "Paraguay Standard Time",
-    "label": "(UTC-04:00) Asuncion",
+    "label": "Asuncion",
     "id": "America/Asuncion"
   },
   {
     "name": "Atlantic Standard Time",
-    "label": "(UTC-04:00) Atlantic Time (Canada)",
+    "label": "Atlantic Time (Canada)",
     "id": "America/Halifax"
   },
   {
     "name": "Venezuela Standard Time",
-    "label": "(UTC-04:00) Caracas",
+    "label": "Caracas",
     "id": "America/Caracas"
   },
   {
     "name": "Central Brazilian Standard Time",
-    "label": "(UTC-04:00) Cuiaba",
+    "label": "Cuiaba",
     "id": "America/Cuiaba"
   },
   {
     "name": "SA Western Standard Time",
-    "label": "(UTC-04:00) Georgetown, La Paz, Manaus, San Juan",
+    "label": "Georgetown, La Paz, Manaus, San Juan",
     "id": "America/La_Paz"
   },
   {
     "name": "Pacific SA Standard Time",
-    "label": "(UTC-04:00) Santiago",
+    "label": "Santiago",
     "id": "America/Santiago"
   },
   {
     "name": "Newfoundland Standard Time",
-    "label": "(UTC-03:30) Newfoundland",
+    "label": "Newfoundland",
     "id": "America/St_Johns"
   },
   {
     "name": "Tocantins Standard Time",
-    "label": "(UTC-03:00) Araguaina",
+    "label": "Araguaina",
     "id": "America/Araguaina"
   },
   {
     "name": "E. South America Standard Time",
-    "label": "(UTC-03:00) Brasilia",
+    "label": "Brasilia",
     "id": "America/Sao_Paulo"
   },
   {
     "name": "SA Eastern Standard Time",
-    "label": "(UTC-03:00) Cayenne, Fortaleza",
+    "label": "Cayenne, Fortaleza",
     "id": "America/Cayenne"
   },
   {
     "name": "Argentina Standard Time",
-    "label": "(UTC-03:00) City of Buenos Aires",
+    "label": "City of Buenos Aires",
     "id": "America/Buenos_Aires"
   },
   {
     "name": "Greenland Standard Time",
-    "label": "(UTC-03:00) Greenland",
+    "label": "Greenland",
     "id": "America/Godthab"
   },
   {
     "name": "Montevideo Standard Time",
-    "label": "(UTC-03:00) Montevideo",
+    "label": "Montevideo",
     "id": "America/Montevideo"
   },
   {
     "name": "Magallanes Standard Time",
-    "label": "(UTC-03:00) Punta Arenas",
+    "label": "Punta Arenas",
     "id": "America/Punta_Arenas"
   },
   {
     "name": "Saint Pierre Standard Time",
-    "label": "(UTC-03:00) Saint Pierre and Miquelon",
+    "label": "Saint Pierre and Miquelon",
     "id": "America/Miquelon"
   },
   {
     "name": "Bahia Standard Time",
-    "label": "(UTC-03:00) Salvador",
+    "label": "Salvador",
     "id": "America/Bahia"
   },
   {
     "name": "UTC-02",
-    "label": "(UTC-02:00) Coordinated Universal Time-02",
+    "label": "Coordinated Universal Time-02",
     "id": "Etc/GMT+2"
   },
   {
     "name": "Azores Standard Time",
-    "label": "(UTC-01:00) Azores",
+    "label": "Azores",
     "id": "Atlantic/Azores"
   },
   {
     "name": "Cape Verde Standard Time",
-    "label": "(UTC-01:00) Cabo Verde Is.",
+    "label": "Cabo Verde Is.",
     "id": "Atlantic/Cape_Verde"
   },
   {
     "name": "UTC",
-    "label": "(UTC) Coordinated Universal Time",
+    "label": "Coordinated Universal Time",
     "id": "Etc/UTC"
   },
   {
     "name": "GMT Standard Time",
-    "label": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+    "label": "Dublin, Edinburgh, Lisbon, London",
     "id": "Europe/London"
   },
   {
     "name": "Greenwich Standard Time",
-    "label": "(UTC+00:00) Monrovia, Reykjavik",
+    "label": "Monrovia, Reykjavik",
     "id": "Atlantic/Reykjavik"
   },
   {
     "name": "Sao Tome Standard Time",
-    "label": "(UTC+00:00) Sao Tome",
+    "label": "Sao Tome",
     "id": "Africa/Sao_Tome"
   },
   {
     "name": "Morocco Standard Time",
-    "label": "(UTC+01:00) Casablanca",
+    "label": "Casablanca",
     "id": "Africa/Casablanca"
   },
   {
     "name": "W. Europe Standard Time",
-    "label": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
+    "label": "Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
     "id": "Europe/Berlin"
   },
   {
     "name": "Central Europe Standard Time",
-    "label": "(UTC+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague",
+    "label": "Belgrade, Bratislava, Budapest, Ljubljana, Prague",
     "id": "Europe/Budapest"
   },
   {
     "name": "Romance Standard Time",
-    "label": "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
+    "label": "Brussels, Copenhagen, Madrid, Paris",
     "id": "Europe/Paris"
   },
   {
     "name": "Central European Standard Time",
-    "label": "(UTC+01:00) Sarajevo, Skopje, Warsaw, Zagreb",
+    "label": "Sarajevo, Skopje, Warsaw, Zagreb",
     "id": "Europe/Warsaw"
   },
   {
     "name": "W. Central Africa Standard Time",
-    "label": "(UTC+01:00) West Central Africa",
+    "label": "West Central Africa",
     "id": "Africa/Lagos"
   },
   {
     "name": "Jordan Standard Time",
-    "label": "(UTC+02:00) Amman",
+    "label": "Amman",
     "id": "Asia/Amman"
   },
   {
     "name": "GTB Standard Time",
-    "label": "(UTC+02:00) Athens, Bucharest",
+    "label": "Athens, Bucharest",
     "id": "Europe/Bucharest"
   },
   {
     "name": "Middle East Standard Time",
-    "label": "(UTC+02:00) Beirut",
+    "label": "Beirut",
     "id": "Asia/Beirut"
   },
   {
     "name": "Egypt Standard Time",
-    "label": "(UTC+02:00) Cairo",
+    "label": "Cairo",
     "id": "Africa/Cairo"
   },
   {
     "name": "E. Europe Standard Time",
-    "label": "(UTC+02:00) Chisinau",
+    "label": "Chisinau",
     "id": "Europe/Chisinau"
   },
   {
     "name": "Syria Standard Time",
-    "label": "(UTC+02:00) Damascus",
+    "label": "Damascus",
     "id": "Asia/Damascus"
   },
   {
     "name": "West Bank Standard Time",
-    "label": "(UTC+02:00) Gaza, Hebron",
+    "label": "Gaza, Hebron",
     "id": "Asia/Hebron"
   },
   {
     "name": "South Africa Standard Time",
-    "label": "(UTC+02:00) Harare, Pretoria",
+    "label": "Harare, Pretoria",
     "id": "Africa/Johannesburg"
   },
   {
     "name": "FLE Standard Time",
-    "label": "(UTC+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius",
+    "label": "Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius",
     "id": "Europe/Kiev"
   },
   {
     "name": "Israel Standard Time",
-    "label": "(UTC+02:00) Jerusalem",
+    "label": "Jerusalem",
     "id": "Asia/Jerusalem"
   },
   {
     "name": "South Sudan Standard Time",
-    "label": "(UTC+02:00) Juba",
+    "label": "Juba",
     "id": "Africa/Juba"
   },
   {
     "name": "Kaliningrad Standard Time",
-    "label": "(UTC+02:00) Kaliningrad",
+    "label": "Kaliningrad",
     "id": "Europe/Kaliningrad"
   },
   {
     "name": "Sudan Standard Time",
-    "label": "(UTC+02:00) Khartoum",
+    "label": "Khartoum",
     "id": "Africa/Khartoum"
   },
   {
     "name": "Libya Standard Time",
-    "label": "(UTC+02:00) Tripoli",
+    "label": "Tripoli",
     "id": "Africa/Tripoli"
   },
   {
     "name": "Namibia Standard Time",
-    "label": "(UTC+02:00) Windhoek",
+    "label": "Windhoek",
     "id": "Africa/Windhoek"
   },
   {
     "name": "Arabic Standard Time",
-    "label": "(UTC+03:00) Baghdad",
+    "label": "Baghdad",
     "id": "Asia/Baghdad"
   },
   {
     "name": "Turkey Standard Time",
-    "label": "(UTC+03:00) Istanbul",
+    "label": "Istanbul",
     "id": "Europe/Istanbul"
   },
   {
     "name": "Arab Standard Time",
-    "label": "(UTC+03:00) Kuwait, Riyadh",
+    "label": "Kuwait, Riyadh",
     "id": "Asia/Riyadh"
   },
   {
     "name": "Belarus Standard Time",
-    "label": "(UTC+03:00) Minsk",
+    "label": "Minsk",
     "id": "Europe/Minsk"
   },
   {
     "name": "Russian Standard Time",
-    "label": "(UTC+03:00) Moscow, St. Petersburg",
+    "label": "Moscow, St. Petersburg",
     "id": "Europe/Moscow"
   },
   {
     "name": "E. Africa Standard Time",
-    "label": "(UTC+03:00) Nairobi",
+    "label": "Nairobi",
     "id": "Africa/Nairobi"
   },
   {
     "name": "Iran Standard Time",
-    "label": "(UTC+03:30) Tehran",
+    "label": "Tehran",
     "id": "Asia/Tehran"
   },
   {
     "name": "Arabian Standard Time",
-    "label": "(UTC+04:00) Abu Dhabi, Muscat",
+    "label": "Abu Dhabi, Muscat",
     "id": "Asia/Dubai"
   },
   {
     "name": "Astrakhan Standard Time",
-    "label": "(UTC+04:00) Astrakhan, Ulyanovsk",
+    "label": "Astrakhan, Ulyanovsk",
     "id": "Europe/Astrakhan"
   },
   {
     "name": "Azerbaijan Standard Time",
-    "label": "(UTC+04:00) Baku",
+    "label": "Baku",
     "id": "Asia/Baku"
   },
   {
     "name": "Russia Time Zone 3",
-    "label": "(UTC+04:00) Izhevsk, Samara",
+    "label": "Izhevsk, Samara",
     "id": "Europe/Samara"
   },
   {
     "name": "Mauritius Standard Time",
-    "label": "(UTC+04:00) Port Louis",
+    "label": "Port Louis",
     "id": "Indian/Mauritius"
   },
   {
     "name": "Saratov Standard Time",
-    "label": "(UTC+04:00) Saratov",
+    "label": "Saratov",
     "id": "Europe/Saratov"
   },
   {
     "name": "Georgian Standard Time",
-    "label": "(UTC+04:00) Tbilisi",
+    "label": "Tbilisi",
     "id": "Asia/Tbilisi"
   },
   {
     "name": "Volgograd Standard Time",
-    "label": "(UTC+04:00) Volgograd",
+    "label": "Volgograd",
     "id": "Europe/Volgograd"
   },
   {
     "name": "Caucasus Standard Time",
-    "label": "(UTC+04:00) Yerevan",
+    "label": "Yerevan",
     "id": "Asia/Yerevan"
   },
   {
     "name": "Afghanistan Standard Time",
-    "label": "(UTC+04:30) Kabul",
+    "label": "Kabul",
     "id": "Asia/Kabul"
   },
   {
     "name": "West Asia Standard Time",
-    "label": "(UTC+05:00) Ashgabat, Tashkent",
+    "label": "Ashgabat, Tashkent",
     "id": "Asia/Tashkent"
   },
   {
     "name": "Ekaterinburg Standard Time",
-    "label": "(UTC+05:00) Ekaterinburg",
+    "label": "Ekaterinburg",
     "id": "Asia/Yekaterinburg"
   },
   {
     "name": "Pakistan Standard Time",
-    "label": "(UTC+05:00) Islamabad, Karachi",
+    "label": "Islamabad, Karachi",
     "id": "Asia/Karachi"
   },
   {
     "name": "Qyzylorda Standard Time",
-    "label": "(UTC+05:00) Qyzylorda",
+    "label": "Qyzylorda",
     "id": "Asia/Qyzylorda"
   },
   {
     "name": "India Standard Time",
-    "label": "(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi",
+    "label": "Chennai, Kolkata, Mumbai, New Delhi",
     "id": "Asia/Calcutta"
   },
   {
     "name": "Sri Lanka Standard Time",
-    "label": "(UTC+05:30) Sri Jayawardenepura",
+    "label": "Sri Jayawardenepura",
     "id": "Asia/Colombo"
   },
   {
     "name": "Nepal Standard Time",
-    "label": "(UTC+05:45) Kathmandu",
+    "label": "Kathmandu",
     "id": "Asia/Katmandu"
   },
   {
     "name": "Central Asia Standard Time",
-    "label": "(UTC+06:00) Astana",
+    "label": "Astana",
     "id": "Asia/Bishkek"
   },
   {
     "name": "Bangladesh Standard Time",
-    "label": "(UTC+06:00) Dhaka",
+    "label": "Dhaka",
     "id": "Asia/Dhaka"
   },
   {
     "name": "Omsk Standard Time",
-    "label": "(UTC+06:00) Omsk",
+    "label": "Omsk",
     "id": "Asia/Omsk"
   },
   {
     "name": "Myanmar Standard Time",
-    "label": "(UTC+06:30) Yangon (Rangoon)",
+    "label": "Yangon (Rangoon)",
     "id": "Asia/Rangoon"
   },
   {
     "name": "SE Asia Standard Time",
-    "label": "(UTC+07:00) Bangkok, Hanoi, Jakarta",
+    "label": "Bangkok, Hanoi, Jakarta",
     "id": "Asia/Bangkok"
   },
   {
     "name": "Altai Standard Time",
-    "label": "(UTC+07:00) Barnaul, Gorno-Altaysk",
+    "label": "Barnaul, Gorno-Altaysk",
     "id": "Asia/Barnaul"
   },
   {
     "name": "W. Mongolia Standard Time",
-    "label": "(UTC+07:00) Hovd",
+    "label": "Hovd",
     "id": "Asia/Hovd"
   },
   {
     "name": "North Asia Standard Time",
-    "label": "(UTC+07:00) Krasnoyarsk",
+    "label": "Krasnoyarsk",
     "id": "Asia/Krasnoyarsk"
   },
   {
     "name": "N. Central Asia Standard Time",
-    "label": "(UTC+07:00) Novosibirsk",
+    "label": "Novosibirsk",
     "id": "Asia/Novosibirsk"
   },
   {
     "name": "Tomsk Standard Time",
-    "label": "(UTC+07:00) Tomsk",
+    "label": "Tomsk",
     "id": "Asia/Tomsk"
   },
   {
     "name": "China Standard Time",
-    "label": "(UTC+08:00) Beijing, Chongqing, Hong Kong, Urumqi",
+    "label": "Beijing, Chongqing, Hong Kong, Urumqi",
     "id": "Asia/Shanghai"
   },
   {
     "name": "North Asia East Standard Time",
-    "label": "(UTC+08:00) Irkutsk",
+    "label": "Irkutsk",
     "id": "Asia/Irkutsk"
   },
   {
     "name": "Singapore Standard Time",
-    "label": "(UTC+08:00) Kuala Lumpur, Singapore",
+    "label": "Kuala Lumpur, Singapore",
     "id": "Asia/Singapore"
   },
   {
     "name": "W. Australia Standard Time",
-    "label": "(UTC+08:00) Perth",
+    "label": "Perth",
     "id": "Australia/Perth"
   },
   {
     "name": "Taipei Standard Time",
-    "label": "(UTC+08:00) Taipei",
+    "label": "Taipei",
     "id": "Asia/Taipei"
   },
   {
     "name": "Ulaanbaatar Standard Time",
-    "label": "(UTC+08:00) Ulaanbaatar",
+    "label": "Ulaanbaatar",
     "id": "Asia/Ulaanbaatar"
   },
   {
     "name": "Aus Central W. Standard Time",
-    "label": "(UTC+08:45) Eucla",
+    "label": "Eucla",
     "id": "Australia/Eucla"
   },
   {
     "name": "Transbaikal Standard Time",
-    "label": "(UTC+09:00) Chita",
+    "label": "Chita",
     "id": "Asia/Chita"
   },
   {
     "name": "Tokyo Standard Time",
-    "label": "(UTC+09:00) Osaka, Sapporo, Tokyo",
+    "label": "Osaka, Sapporo, Tokyo",
     "id": "Asia/Tokyo"
   },
   {
     "name": "North Korea Standard Time",
-    "label": "(UTC+09:00) Pyongyang",
+    "label": "Pyongyang",
     "id": "Asia/Pyongyang"
   },
   {
     "name": "Korea Standard Time",
-    "label": "(UTC+09:00) Seoul",
+    "label": "Seoul",
     "id": "Asia/Seoul"
   },
   {
     "name": "Yakutsk Standard Time",
-    "label": "(UTC+09:00) Yakutsk",
+    "label": "Yakutsk",
     "id": "Asia/Yakutsk"
   },
   {
     "name": "Cen. Australia Standard Time",
-    "label": "(UTC+09:30) Adelaide",
+    "label": "Adelaide",
     "id": "Australia/Adelaide"
   },
   {
     "name": "AUS Central Standard Time",
-    "label": "(UTC+09:30) Darwin",
+    "label": "Darwin",
     "id": "Australia/Darwin"
   },
   {
     "name": "E. Australia Standard Time",
-    "label": "(UTC+10:00) Brisbane",
+    "label": "Brisbane",
     "id": "Australia/Brisbane"
   },
   {
     "name": "AUS Eastern Standard Time",
-    "label": "(UTC+10:00) Canberra, Melbourne, Sydney",
+    "label": "Canberra, Melbourne, Sydney",
     "id": "Australia/Sydney"
   },
   {
     "name": "West Pacific Standard Time",
-    "label": "(UTC+10:00) Guam, Port Moresby",
+    "label": "Guam, Port Moresby",
     "id": "Pacific/Port_Moresby"
   },
   {
     "name": "Tasmania Standard Time",
-    "label": "(UTC+10:00) Hobart",
+    "label": "Hobart",
     "id": "Australia/Hobart"
   },
   {
     "name": "Vladivostok Standard Time",
-    "label": "(UTC+10:00) Vladivostok",
+    "label": "Vladivostok",
     "id": "Asia/Vladivostok"
   },
   {
     "name": "Lord Howe Standard Time",
-    "label": "(UTC+10:30) Lord Howe Island",
+    "label": "Lord Howe Island",
     "id": "Australia/Lord_Howe"
   },
   {
     "name": "Bougainville Standard Time",
-    "label": "(UTC+11:00) Bougainville Island",
+    "label": "Bougainville Island",
     "id": "Pacific/Bougainville"
   },
   {
     "name": "Russia Time Zone 10",
-    "label": "(UTC+11:00) Chokurdakh",
+    "label": "Chokurdakh",
     "id": "Asia/Srednekolymsk"
   },
   {
     "name": "Magadan Standard Time",
-    "label": "(UTC+11:00) Magadan",
+    "label": "Magadan",
     "id": "Asia/Magadan"
   },
   {
     "name": "Norfolk Standard Time",
-    "label": "(UTC+11:00) Norfolk Island",
+    "label": "Norfolk Island",
     "id": "Pacific/Norfolk"
   },
   {
     "name": "Sakhalin Standard Time",
-    "label": "(UTC+11:00) Sakhalin",
+    "label": "Sakhalin",
     "id": "Asia/Sakhalin"
   },
   {
     "name": "Central Pacific Standard Time",
-    "label": "(UTC+11:00) Solomon Is., New Caledonia",
+    "label": "Solomon Is., New Caledonia",
     "id": "Pacific/Guadalcanal"
   },
   {
     "name": "Russia Time Zone 11",
-    "label": "(UTC+12:00) Anadyr, Petropavlovsk-Kamchatsky",
+    "label": "Anadyr, Petropavlovsk-Kamchatsky",
     "id": "Asia/Kamchatka"
   },
   {
     "name": "New Zealand Standard Time",
-    "label": "(UTC+12:00) Auckland, Wellington",
+    "label": "Auckland, Wellington",
     "id": "Pacific/Auckland"
   },
   {
     "name": "UTC+12",
-    "label": "(UTC+12:00) Coordinated Universal Time+12",
+    "label": "Coordinated Universal Time+12",
     "id": "Etc/GMT-12"
   },
   {
     "name": "Fiji Standard Time",
-    "label": "(UTC+12:00) Fiji",
+    "label": "Fiji",
     "id": "Pacific/Fiji"
   },
   {
     "name": "Chatham Islands Standard Time",
-    "label": "(UTC+12:45) Chatham Islands",
+    "label": "Chatham Islands",
     "id": "Pacific/Chatham"
   },
   {
     "name": "UTC+13",
-    "label": "(UTC+13:00) Coordinated Universal Time+13",
+    "label": "Coordinated Universal Time+13",
     "id": "Etc/GMT-13"
   },
   {
     "name": "Tonga Standard Time",
-    "label": "(UTC+13:00) Nuku'alofa",
+    "label": "Nuku'alofa",
     "id": "Pacific/Tongatapu"
   },
   {
     "name": "Samoa Standard Time",
-    "label": "(UTC+13:00) Samoa",
+    "label": "Samoa",
     "id": "Pacific/Apia"
   },
   {
     "name": "Line Islands Standard Time",
-    "label": "(UTC+14:00) Kiritimati Island",
+    "label": "Kiritimati Island",
     "id": "Pacific/Kiritimati"
   }
 ]
