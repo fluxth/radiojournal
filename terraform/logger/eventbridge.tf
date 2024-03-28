@@ -7,8 +7,7 @@ resource "aws_scheduler_schedule" "scheduler" {
   schedule_expression = "rate(1 minute)"
 
   flexible_time_window {
-    mode                      = "FLEXIBLE"
-    maximum_window_in_minutes = 1
+    mode = "OFF"
   }
 
   target {
