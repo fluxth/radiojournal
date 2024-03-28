@@ -10,7 +10,9 @@
 
   export let data: PageData;
 
-  let currentTimezone: string | null = null;
+  const TIMEZONE_LOCALSTORAGE_KEY = "timezone";
+
+  let currentTimezone: string | null = localStorage.getItem(TIMEZONE_LOCALSTORAGE_KEY);
 
   $: currentPageHour = currentTimezone
     ? data.pageHour.current.tz(currentTimezone)
@@ -33,6 +35,11 @@
 
   const refresh = async () => {
     await data.invalidate();
+  };
+
+  const saveTimezone = (timezone: string | null) => {
+    if (timezone) localStorage.setItem(TIMEZONE_LOCALSTORAGE_KEY, timezone);
+    else localStorage.removeItem(TIMEZONE_LOCALSTORAGE_KEY);
   };
 
   const gotoYesterday = async () =>
@@ -165,7 +172,11 @@
     </form>
     <h3 class="font-bold text-lg">Timezone</h3>
     <div class="my-2 py-4">
-      <select class="select select-bordered w-full" bind:value={currentTimezone}>
+      <select
+        class="select select-bordered w-full"
+        bind:value={currentTimezone}
+        on:change={() => saveTimezone(currentTimezone)}
+      >
         <option value={null}>System Default</option>
         {#each timezones as timezone}
           <option value={timezone.id}>
