@@ -19,6 +19,10 @@ resource "aws_lambda_function" "this" {
     }
   }
 
+  logging_config {
+    log_format = "JSON"
+  }
+
   layers = [
     "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:16"
   ]
