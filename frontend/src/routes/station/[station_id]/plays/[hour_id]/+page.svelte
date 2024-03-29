@@ -177,7 +177,7 @@
     <form method="dialog">
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
     </form>
-    <h3 class="font-bold text-lg -mt-2 mb-3">Timezone</h3>
+    <h3 class="font-bold text-lg -mt-2 mb-4">Timezone</h3>
     <div>
       <select
         class="select select-bordered w-full"

@@ -14,7 +14,7 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
     fetch,
     stationId: params.station_id,
     start: currentPageHour,
-    end: dayjs(currentPageHour).endOf("hour"),
+    end: currentPageHour.endOf("hour"),
   });
 
   const maxPageHour = dayjs().startOf("hour");
