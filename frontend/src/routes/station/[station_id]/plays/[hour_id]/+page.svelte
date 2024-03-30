@@ -40,6 +40,19 @@
     })
     .sort((a, b) => a.offset - b.offset || a.index - b.index);
 
+  const getHoursOfCurrentDay = (day: Dayjs) => {
+    const endHour = day.endOf("day");
+    const hours = [];
+    for (
+      let startHour = day.startOf("day");
+      !startHour.utc().isAfter(endHour.utc());
+      startHour = startHour.add(dayjs.duration({ hours: 1 }))
+    )
+      hours.push(startHour);
+
+    return hours;
+  };
+
   const refresh = async () => {
     await data.invalidate();
   };
@@ -107,15 +120,15 @@
         on:click={() => goto(toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))))}
         >‹</button
       >
-      {#each [...Array(24).keys()] as buttonHour}
+      {#each getHoursOfCurrentDay(currentPageHour) as buttonHour}
         <button
           class="join-item btn btn-sm lg:max-xl:btn-xs hidden lg:block"
-          class:btn-active={currentPageHour.hour() === buttonHour}
+          class:btn-active={currentPageHour.isSame(buttonHour)}
           disabled={currentPageHour.isSameOrAfter(maxPageHour.startOf("date")) &&
-            buttonHour > maxPageHour.hour()}
-          on:click={() => goto(toHourId(currentPageHour.hour(buttonHour)))}
+            buttonHour.isAfter(maxPageHour)}
+          on:click={() => goto(toHourId(buttonHour))}
         >
-          {buttonHour.toString().padStart(2, "0")}
+          {buttonHour.hour().toString().padStart(2, "0")}
         </button>
       {/each}
       <button class="join-item btn btn-sm lg:max-xl:btn-xs block lg:hidden">
