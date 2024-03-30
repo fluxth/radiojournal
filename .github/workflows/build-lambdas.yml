@@ -51,4 +51,4 @@ jobs:
             cargo-target-${{ runner.os }}-
 
       - name: Build lambdas
-        run: cargo lambda build --release --arm64
+        run: cargo lambda build --release --arm64 --locked
