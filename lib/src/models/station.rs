@@ -11,8 +11,6 @@ pub struct StationInDB {
     pub name: String,
     pub fetcher: Option<FetcherConfig>,
     pub first_play_id: Option<Ulid>,
-    pub latest_play_id: Option<Ulid>,
-    pub latest_play_track_id: Option<Ulid>,
     pub latest_play: Option<LatestPlay>,
     pub track_count: usize,
     pub play_count: usize,
