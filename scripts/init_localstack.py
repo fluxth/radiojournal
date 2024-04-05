@@ -52,10 +52,8 @@ def create_play(
             "pk": {"S": "STATIONS"},
             "sk": {"S": f"STATION#{station_id}"},
         },
-        UpdateExpression="SET latest_play_id = :play_id, latest_play_track_id = :track_id, latest_play = :latest_play, play_count = play_count + :inc, updated_ts = :ts",
+        UpdateExpression="SET latest_play = :latest_play, play_count = play_count + :inc, updated_ts = :ts",
         ExpressionAttributeValues={
-            ":play_id": {"S": play_id},
-            ":track_id": {"S": track_id},
             ":latest_play": {
                 "M": {
                     "id": {"S": play_id},
@@ -155,8 +153,6 @@ def create_station(
             "name": {"S": station_name},
             "fetcher": fetcher_obj,
             "first_play_id": {"NULL": True},
-            "latest_play_id": {"NULL": True},
-            "latest_play_track_id": {"NULL": True},
             "latest_play": {"NULL": True},
             "track_count": {"N": "0"},
             "play_count": {"N": "0"},

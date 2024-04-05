@@ -129,7 +129,7 @@ async fn invoke(
 
     let mut stations = vec![];
     while let Some(res) = join_set.join_next().await {
-        stations.push(res??);
+        stations.push(res?.unwrap());
     }
 
     Ok(InvokeOutput { stations })
