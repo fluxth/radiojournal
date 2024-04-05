@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
 #[allow(dead_code)]
@@ -13,6 +13,7 @@ pub struct StationInDB {
     pub first_play_id: Option<Ulid>,
     pub latest_play_id: Option<Ulid>,
     pub latest_play_track_id: Option<Ulid>,
+    pub latest_play: Option<LatestPlay>,
     pub track_count: usize,
     pub play_count: usize,
     pub created_ts: DateTime<Utc>,
@@ -31,6 +32,14 @@ impl StationInDB {
     pub(crate) fn get_sk_prefix() -> String {
         "STATION#".to_owned()
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LatestPlay {
+    pub id: Ulid,
+    pub track_id: Ulid,
+    pub artist: String,
+    pub title: String,
 }
 
 #[derive(Debug, Deserialize)]

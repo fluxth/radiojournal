@@ -8,7 +8,13 @@ TABLE_NAME = "radiojournal-local"
 
 
 def create_play(
-    dynamodb, dt: datetime, station_id: str, track_id: str, first_play: bool = False
+    dynamodb,
+    dt: datetime,
+    station_id: str,
+    track_id: str,
+    title: str,
+    artist: str,
+    first_play: bool = False,
 ) -> str:
     play_id = ulid.from_timestamp(dt).str
     timestamp = dt.isoformat().replace("+00:00", "Z")
@@ -46,10 +52,18 @@ def create_play(
             "pk": {"S": "STATIONS"},
             "sk": {"S": f"STATION#{station_id}"},
         },
-        UpdateExpression="SET latest_play_id = :play_id, latest_play_track_id = :track_id, play_count = play_count + :inc, updated_ts = :ts",
+        UpdateExpression="SET latest_play_id = :play_id, latest_play_track_id = :track_id, latest_play = :latest_play, play_count = play_count + :inc, updated_ts = :ts",
         ExpressionAttributeValues={
             ":play_id": {"S": play_id},
             ":track_id": {"S": track_id},
+            ":latest_play": {
+                "M": {
+                    "id": {"S": play_id},
+                    "track_id": {"S": track_id},
+                    "artist": {"S": artist},
+                    "title": {"S": title},
+                }
+            },
             ":inc": {"N": "1"},
             ":ts": {"S": timestamp},
         },
@@ -76,8 +90,8 @@ def create_track(
     dynamodb,
     dt: datetime,
     station_id: str,
-    title: str,
     artist: str,
+    title: str,
     is_song: bool,
 ) -> str:
     track_id = ulid.from_timestamp(dt).str
@@ -143,6 +157,7 @@ def create_station(
             "first_play_id": {"NULL": True},
             "latest_play_id": {"NULL": True},
             "latest_play_track_id": {"NULL": True},
+            "latest_play": {"NULL": True},
             "track_count": {"N": "0"},
             "play_count": {"N": "0"},
             "created_ts": {"S": timestamp},
@@ -207,8 +222,8 @@ if __name__ == "__main__":
         dynamodb,
         dt + timedelta(minutes=3),
         station_1,
-        "test title",
-        "very cool artist",
+        artist="very cool artist",
+        title="test title",
         is_song=True,
     )
 
@@ -217,6 +232,8 @@ if __name__ == "__main__":
         dt + timedelta(minutes=3),
         station_1,
         track_1,
+        artist="very cool artist",
+        title="test title",
         first_play=True,
     )
 
@@ -224,8 +241,8 @@ if __name__ == "__main__":
         dynamodb,
         dt + timedelta(minutes=6),
         station_1,
-        "another test song",
-        "soso artist",
+        artist="soso artist",
+        title="another test song",
         is_song=True,
     )
 
@@ -234,14 +251,16 @@ if __name__ == "__main__":
         dt + timedelta(minutes=6),
         station_1,
         track_2,
+        artist="soso artist",
+        title="another test song",
     )
 
     track_3 = create_track(
         dynamodb,
         dt + timedelta(minutes=9),
         station_1,
-        "not a song",
-        "station jingle",
+        artist="station jingle",
+        title="not a song",
         is_song=False,
     )
 
@@ -250,6 +269,8 @@ if __name__ == "__main__":
         dt + timedelta(minutes=9),
         station_1,
         track_3,
+        artist="station jingle",
+        title="not a song",
     )
 
     create_play(
@@ -257,6 +278,8 @@ if __name__ == "__main__":
         dt + timedelta(minutes=10),
         station_1,
         track_1,
+        artist="station jingle",
+        title="not a song",
     )
 
     dt = datetime.now(tz=UTC)

@@ -13,7 +13,7 @@ use crate::{
     helpers::ziso_timestamp,
     models::{
         play::PlayInDB,
-        station::StationInDB,
+        station::{LatestPlay, StationInDB},
         track::{TrackInDB, TrackMinimalInDB},
     },
 };
@@ -96,13 +96,12 @@ impl CRUDStation {
         let result_play_id;
         let result_track_id;
 
-        let add_type = if let (Some(station_latest_play_track_id), Some(track_id)) = (
-            station.latest_play_track_id,
-            maybe_track.as_ref().map(|track| track.id),
-        ) {
+        let add_type = if let (Some(station_latest_play_track_id), Some(track)) =
+            (station.latest_play_track_id, maybe_track)
+        {
             result_track_id = station_latest_play_track_id;
 
-            if station.latest_play_id.is_some() && station_latest_play_track_id == track_id {
+            if station.latest_play_id.is_some() && station_latest_play_track_id == track.id {
                 // update play updated_ts only
                 let station_latest_play_id =
                     station.latest_play_id.expect("station has latest play id");
@@ -117,11 +116,12 @@ impl CRUDStation {
                 .await?
             } else {
                 // insert new play using that track id
-                let play = PlayInDB::new(station.id, track_id);
+                let play = PlayInDB::new(station.id, track.id);
 
                 result_play_id = play.id;
 
-                self.add_play_with_new_play(station, play.clone()).await?
+                self.add_play_with_new_play(station, track, play.clone())
+                    .await?
             }
         } else {
             // insert new track and play
@@ -176,10 +176,18 @@ impl CRUDStation {
     async fn add_play_with_new_play(
         &self,
         station: &StationInDB,
+        track: TrackInDB, // temporary
         play: PlayInDB,
     ) -> Result<AddPlayType> {
         let play_id = play.id;
         let track_id = play.track_id;
+
+        let latest_play = LatestPlay {
+            id: play_id,
+            track_id,
+            artist: track.artist,
+            title: track.title,
+        };
 
         let play_put = Put::builder()
             .table_name(&self.db_table)
@@ -201,7 +209,7 @@ impl CRUDStation {
             .key("pk", AttributeValue::S(StationInDB::get_pk()))
             .key("sk", AttributeValue::S(StationInDB::get_sk(station.id)))
             .update_expression(
-                "SET updated_ts = :ts, latest_play_id = :play_id, latest_play_track_id = :track_id, play_count = play_count + :inc",
+                "SET updated_ts = :ts, latest_play_id = :play_id, latest_play_track_id = :track_id, latest_play = :latest_play, play_count = play_count + :inc",
             )
             .condition_expression("updated_ts = :station_locked_ts")
             .expression_attribute_values(
@@ -210,6 +218,7 @@ impl CRUDStation {
             )
             .expression_attribute_values(":play_id", AttributeValue::S(play_id.to_string()))
             .expression_attribute_values(":track_id", AttributeValue::S(track_id.to_string()))
+            .expression_attribute_values(":latest_play", AttributeValue::M(serde_dynamo::to_item(latest_play)?))
             .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
             .expression_attribute_values(
                 ":station_locked_ts",
@@ -242,6 +251,13 @@ impl CRUDStation {
 
         track.latest_play_id = Some(play_id);
 
+        let latest_play = LatestPlay {
+            id: play_id,
+            track_id,
+            artist: track.artist.clone(),
+            title: track.title.clone(),
+        };
+
         let track_put = Put::builder()
             .table_name(&self.db_table)
             .set_item(Some(serde_dynamo::to_item(track)?))
@@ -260,6 +276,10 @@ impl CRUDStation {
             .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&Utc::now())))
             .expression_attribute_values(":play_id", AttributeValue::S(play_id.to_string()))
             .expression_attribute_values(":track_id", AttributeValue::S(track_id.to_string()))
+            .expression_attribute_values(
+                ":latest_play",
+                AttributeValue::M(serde_dynamo::to_item(latest_play)?),
+            )
             .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
             .expression_attribute_values(
                 ":station_locked_ts",
@@ -269,13 +289,13 @@ impl CRUDStation {
         let station_update = if station.first_play_id.is_none() {
             // update first play id as well if this is the first play
             station_update_base.update_expression(
-                "SET updated_ts = :ts, first_play_id = :play_id, latest_play_id = :play_id, latest_play_track_id = :track_id, play_count = play_count + :inc, track_count = track_count + :inc"
+                "SET updated_ts = :ts, first_play_id = :play_id, latest_play_id = :play_id, latest_play_track_id = :track_id, latest_play = :latest_play, play_count = play_count + :inc, track_count = track_count + :inc"
             )
             .condition_expression("updated_ts = :station_locked_ts AND first_play_id = :null")
             .expression_attribute_values(":null", AttributeValue::Null(true))
         } else {
             station_update_base.update_expression(
-                "SET updated_ts = :ts, latest_play_id = :play_id, latest_play_track_id = :track_id, play_count = play_count + :inc, track_count = track_count + :inc"
+                "SET updated_ts = :ts, latest_play_id = :play_id, latest_play_track_id = :track_id, latest_play = :latest_play, play_count = play_count + :inc, track_count = track_count + :inc"
             )
             .condition_expression("updated_ts = :station_locked_ts")
         }
