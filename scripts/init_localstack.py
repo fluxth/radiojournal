@@ -199,7 +199,7 @@ if __name__ == "__main__":
     station_1 = create_station(
         dynamodb,
         dt,
-        station_name="Mock station #1",
+        station_name="coolism",
         fetcher="coolism",
     )
 
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     station_2 = create_station(
         dynamodb,
         dt,
-        station_name="Mock station #2 :)",
+        station_name="efm",
         fetcher="atime",
         fetcher_station="efm",
     )
@@ -272,7 +272,7 @@ if __name__ == "__main__":
     station_3 = create_station(
         dynamodb,
         dt,
-        station_name="Mock station #3 :)",
+        station_name="greenwave",
         fetcher="atime",
         fetcher_station="greenwave",
     )
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     station_4 = create_station(
         dynamodb,
         dt,
-        station_name="Mock station #4 :)",
+        station_name="chill",
         fetcher="atime",
         fetcher_station="chill",
     )
