@@ -31,7 +31,7 @@
         <h2 class="card-title">{station.name}</h2>
         <p>
           {numberFormat.format(station.play_count)} plays &middot;
-          {numberFormat.format(station.track_count)} songs
+          {numberFormat.format(station.track_count)} tracks
         </p>
         <div class="card-actions justify-end">
           <a class="btn btn-primary" href={`/station/${station.id}/plays/${hourId}`}>View</a>
