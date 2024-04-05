@@ -36,8 +36,16 @@ pub struct AddPlayResult {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum AddPlayType {
-    ExistingPlay,
-    NewPlay,
+    ExistingPlay {
+        #[serde(skip)]
+        track_id: Ulid,
+        #[serde(skip)]
+        play_id: Ulid,
+    },
+    NewPlay {
+        #[serde(skip)]
+        track: TrackInDB,
+    },
     NewTrack,
 }
 
@@ -87,52 +95,39 @@ impl CRUDStation {
     }
 
     pub async fn add_play(&self, station: &StationInDB, play: impl Play) -> Result<AddPlayResult> {
-        let title = play.get_title();
         let artist = play.get_artist();
+        let title = play.get_title();
 
-        // get the fetched play's track
-        let maybe_track = self.get_track_by_name(station, artist, title).await?;
+        let add_type = self.evaluate_play_metadata(station, artist, title).await?;
+        let (result_track_id, result_play_id) = match &add_type {
+            AddPlayType::ExistingPlay { track_id, play_id } => {
+                // all metadata matched, update play updated_ts only
+                self.add_play_with_existing_play(station.id, *track_id, *play_id)
+                    .await?;
 
-        let result_play_id;
-        let result_track_id;
+                (*track_id, *play_id)
+            }
+            AddPlayType::NewPlay { track } => {
+                // insert new play with existing track
+                let play = PlayInDB::new(station.id, track.id);
+                let play_id = play.id;
 
-        let add_type = if let (Some(station_latest_play_track_id), Some(track)) =
-            (station.latest_play_track_id, maybe_track)
-        {
-            result_track_id = station_latest_play_track_id;
+                self.add_play_with_new_play(station, track, play).await?;
 
-            if station.latest_play_id.is_some() && station_latest_play_track_id == track.id {
-                // update play updated_ts only
-                let station_latest_play_id =
-                    station.latest_play_id.expect("station has latest play id");
-
-                result_play_id = station_latest_play_id;
-
-                self.add_play_with_existing_play(
-                    station.id,
-                    station_latest_play_track_id,
-                    station_latest_play_id,
-                )
-                .await?
-            } else {
-                // insert new play using that track id
+                (track.id, play_id)
+            }
+            AddPlayType::NewTrack => {
+                // insert new track and play
+                let track = TrackInDB::new(station.id, artist, title, play.is_song(), None);
                 let play = PlayInDB::new(station.id, track.id);
 
-                result_play_id = play.id;
+                let track_id = track.id;
+                let play_id = play.id;
 
-                self.add_play_with_new_play(station, track, play.clone())
-                    .await?
+                self.add_play_with_new_track(station, track, play).await?;
+
+                (track_id, play_id)
             }
-        } else {
-            // insert new track and play
-            let track = TrackInDB::new(station.id, artist, title, play.is_song(), None);
-            let play = PlayInDB::new(station.id, track.id);
-
-            result_track_id = track.id;
-            result_play_id = play.id;
-
-            self.add_play_with_new_track(station, track, play.clone())
-                .await?
         };
 
         Ok(AddPlayResult {
@@ -146,12 +141,36 @@ impl CRUDStation {
         })
     }
 
+    async fn evaluate_play_metadata(
+        &self,
+        station: &StationInDB,
+        artist: &str,
+        title: &str,
+    ) -> Result<AddPlayType> {
+        if let Some(latest_play) = &station.latest_play {
+            if latest_play.artist == artist && latest_play.title == title {
+                return Ok(AddPlayType::ExistingPlay {
+                    track_id: latest_play.track_id,
+                    play_id: latest_play.id,
+                });
+            }
+        }
+
+        if let Some(fetched_track) = self.get_track_by_name(station, artist, title).await? {
+            Ok(AddPlayType::NewPlay {
+                track: fetched_track,
+            })
+        } else {
+            Ok(AddPlayType::NewTrack)
+        }
+    }
+
     async fn add_play_with_existing_play(
         &self,
         station_id: Ulid,
         track_id: Ulid,
         play_id: Ulid,
-    ) -> Result<AddPlayType> {
+    ) -> Result<()> {
         let play_datetime: DateTime<Utc> = play_id.datetime().into();
         let play_partition = play_datetime.format("%Y-%m-%d");
 
@@ -171,22 +190,22 @@ impl CRUDStation {
             .send()
             .await?;
 
-        Ok(AddPlayType::ExistingPlay)
+        Ok(())
     }
     async fn add_play_with_new_play(
         &self,
         station: &StationInDB,
-        track: TrackInDB, // temporary
+        track: &TrackInDB,
         play: PlayInDB,
-    ) -> Result<AddPlayType> {
+    ) -> Result<()> {
         let play_id = play.id;
         let track_id = play.track_id;
 
         let latest_play = LatestPlay {
             id: play_id,
             track_id,
-            artist: track.artist,
-            title: track.title,
+            artist: track.artist.clone(),
+            title: track.title.clone(),
         };
 
         let play_put = Put::builder()
@@ -238,14 +257,14 @@ impl CRUDStation {
             .send()
             .await?;
 
-        Ok(AddPlayType::NewPlay)
+        Ok(())
     }
     async fn add_play_with_new_track(
         &self,
         station: &StationInDB,
         mut track: TrackInDB,
         play: PlayInDB,
-    ) -> Result<AddPlayType> {
+    ) -> Result<()> {
         let play_id = play.id;
         let track_id = track.id;
 
@@ -311,7 +330,7 @@ impl CRUDStation {
             .send()
             .await?;
 
-        Ok(AddPlayType::NewTrack)
+        Ok(())
     }
 
     pub async fn list_tracks(

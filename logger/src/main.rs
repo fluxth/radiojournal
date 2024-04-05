@@ -175,11 +175,19 @@ async fn process_station(
         info!(title = play.title, artist = play.artist, "Fetched play");
 
         let result = crud_station.add_play(&station, play).await?;
+
+        let add_type_string = format!("{:?}", result.add_type);
+        let add_type = add_type_string
+            .split(' ')
+            .next()
+            .expect("get first word of add type");
+
         info!(
-            add_type = ?result.add_type,
+            add_type = add_type,
             track_id = result.track_id.to_string(),
             play_id = result.play_id.to_string(),
-            "Play added with type {:?}", result.add_type
+            "Play added with type {}",
+            add_type
         );
 
         Some(result)
