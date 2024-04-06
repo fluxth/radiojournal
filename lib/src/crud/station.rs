@@ -118,7 +118,7 @@ impl CRUDStation {
             }
             AddPlayType::NewTrack => {
                 // insert new track and play
-                let track = TrackInDB::new(station.id, artist, title, play.is_song(), None);
+                let track = TrackInDB::new(station.id, artist, title, play.is_song());
                 let play = PlayInDB::new(station.id, track.id);
 
                 let track_id = track.id;

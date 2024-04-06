@@ -12,7 +12,7 @@ pub struct TrackInDB {
     pub title: String,
     pub artist: String,
     pub is_song: bool,
-    pub play_count: Option<usize>, // TODO make this not optional
+    pub play_count: usize,
     pub latest_play_id: Option<Ulid>,
     pub created_ts: DateTime<Utc>,
     pub updated_ts: DateTime<Utc>,
@@ -44,7 +44,6 @@ impl TrackInDB {
         artist: impl Into<String>,
         title: impl Into<String>,
         is_song: bool,
-        latest_play_id: Option<Ulid>,
     ) -> Self {
         let now = Utc::now();
         let track_id = Ulid::new();
@@ -61,8 +60,8 @@ impl TrackInDB {
             title,
             artist,
             is_song,
-            play_count: Some(0),
-            latest_play_id,
+            play_count: 0,
+            latest_play_id: None,
             created_ts: now,
             updated_ts: now,
         }
