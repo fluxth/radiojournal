@@ -39,10 +39,11 @@ def create_play(
             "pk": {"S": f"STATION#{station_id}#TRACKS"},
             "sk": {"S": f"TRACK#{track_id}"},
         },
-        UpdateExpression="SET latest_play_id = :val, updated_ts = :ts",
+        UpdateExpression="SET latest_play_id = :val, play_count = play_count + :inc, updated_ts = :ts",
         ExpressionAttributeValues={
             ":val": {"S": play_id},
             ":ts": {"S": timestamp},
+            ":inc": {"N": "1"},
         },
     )
 
@@ -106,6 +107,7 @@ def create_track(
             "title": {"S": title},
             "artist": {"S": artist},
             "is_song": {"BOOL": is_song},
+            "play_count": {"N": "0"},
             "latest_play_id": {"NULL": True},
             "created_ts": {"S": timestamp},
             "updated_ts": {"S": timestamp},
