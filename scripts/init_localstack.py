@@ -278,8 +278,9 @@ if __name__ == "__main__":
         dt + timedelta(minutes=10),
         station_1,
         track_1,
-        artist="station jingle",
-        title="not a song",
+        artist="very cool artist",
+        title="test title",
+        # TODO: don't pass artist and title into create_play
     )
 
     dt = datetime.now(tz=UTC)
