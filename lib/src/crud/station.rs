@@ -44,7 +44,7 @@ pub enum AddPlayType {
     },
     NewPlay {
         #[serde(skip)]
-        track: TrackInDB,
+        track: Box<TrackInDB>,
     },
     NewTrack,
 }
@@ -158,7 +158,7 @@ impl CRUDStation {
 
         if let Some(fetched_track) = self.get_track_by_name(station, artist, title).await? {
             Ok(AddPlayType::NewPlay {
-                track: fetched_track,
+                track: Box::new(fetched_track),
             })
         } else {
             Ok(AddPlayType::NewTrack)
