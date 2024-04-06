@@ -1,11 +1,13 @@
 resource "aws_iam_role" "lambda" {
   name               = var.name
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
 
-  inline_policy {
-    name   = "DynamoDBAccess"
-    policy = data.aws_iam_policy_document.dynamodb_access.json
-  }
+resource "aws_iam_role_policy" "dynamodb_access" {
+  name = "DynamoDBAccess"
+  role = aws_iam_role.lambda.id
+
+  policy = data.aws_iam_policy_document.dynamodb_access.json
 }
 
 data "aws_iam_policy_document" "lambda_assume_role" {
@@ -51,11 +53,13 @@ resource "aws_iam_role_policy_attachment" "lambda_insights_execution_role" {
 resource "aws_iam_role" "scheduler" {
   name               = "${var.name}-scheduler"
   assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
+}
 
-  inline_policy {
-    name   = "LoggerLambdaInvoke"
-    policy = data.aws_iam_policy_document.lambda_invoke.json
-  }
+resource "aws_iam_role_policy" "lambda_invoke" {
+  name = "LoggerLambdaInvoke"
+  role = aws_iam_role.scheduler.id
+
+  policy = data.aws_iam_policy_document.lambda_invoke.json
 }
 
 data "aws_iam_policy_document" "scheduler_assume_role" {
@@ -77,7 +81,8 @@ data "aws_iam_policy_document" "lambda_invoke" {
       "lambda:InvokeFunction"
     ]
     resources = [
-      aws_lambda_function.this.arn
+      "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${aws_lambda_function.this.function_name}",
+      "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${aws_lambda_function.this.function_name}:*",
     ]
   }
 }
