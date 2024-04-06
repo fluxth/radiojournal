@@ -217,9 +217,12 @@ impl CRUDStation {
             .table_name(&self.db_table)
             .key("pk", AttributeValue::S(TrackInDB::get_pk(station.id)))
             .key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)))
-            .update_expression("SET updated_ts = :ts, latest_play_id = :play_id")
+            .update_expression(
+                "SET updated_ts = :ts, latest_play_id = :play_id, play_count = play_count + :inc",
+            )
             .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&Utc::now())))
             .expression_attribute_values(":play_id", AttributeValue::S(play_id.to_string()))
+            .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
             .build()?;
 
         // update station with latest play
@@ -265,6 +268,7 @@ impl CRUDStation {
         let track_id = track.id;
 
         track.latest_play_id = Some(play_id);
+        track.play_count += 1;
 
         let latest_play = LatestPlay {
             id: play_id,
