@@ -101,8 +101,6 @@ def create_track(
         Item={
             "pk": {"S": f"STATION#{station_id}#TRACKS"},
             "sk": {"S": f"TRACK#{track_id}"},
-            "gsi1pk": {"S": f"STATION#{station_id}#ARTIST#{artist}"},
-            "gsi1sk": {"S": f"TITLE#{title}"},
             "id": {"S": track_id},
             "title": {"S": title},
             "artist": {"S": artist},
