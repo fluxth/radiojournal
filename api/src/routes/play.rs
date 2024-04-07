@@ -42,7 +42,7 @@ pub(crate) async fn list_plays(
 ) -> Result<APIJson<ListPlaysResponse>, APIError> {
     let next_key = if let Some(next_token) = query.next_token {
         Some(
-            Ulid::from_string(&next_token.0).or(Err(APIError::ValidationFailed {
+            Ulid::from_string(&next_token).or(Err(APIError::ValidationFailed {
                 message: Some("Invalid next_token"),
             }))?,
         )
@@ -74,7 +74,7 @@ pub(crate) async fn list_plays(
 
     let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(
         crud_station
-            .batch_get_tracks(station_id, track_ids.iter())
+            .batch_get_tracks_minimal(station_id, track_ids.iter())
             .await
             .unwrap()
             .into_iter()

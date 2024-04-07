@@ -37,6 +37,7 @@ pub(crate) async fn get_track(
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListTracksQuery {
+    artist: Option<String>,
     next_token: Option<NextToken>,
 }
 
@@ -45,6 +46,7 @@ pub(crate) struct ListTracksQuery {
     path = "/station/{station_id}/tracks",
     params(
         ("station_id" = Ulid, Path, deprecated = false),
+        ("artist" = Option<String>, Query, deprecated = false),
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
@@ -57,23 +59,32 @@ pub(crate) async fn list_tracks(
     Query(query): Query<ListTracksQuery>,
     State(crud_station): State<Arc<CRUDStation>>,
 ) -> Result<APIJson<ListTracksResponse>, APIError> {
-    let next_key = if let Some(next_token) = query.next_token {
-        Some(
-            Ulid::from_string(&next_token.0).or(Err(APIError::ValidationFailed {
-                message: Some("Invalid next_token"),
-            }))?,
-        )
+    let (tracks_internal, next_key) = if let Some(artist) = query.artist {
+        crud_station
+            .list_tracks_by_artist(station_id, &artist, 50, query.next_token.as_deref())
+            .await
+            .unwrap()
     } else {
-        None
-    };
+        let next_key = if let Some(next_token) = query.next_token {
+            Some(
+                Ulid::from_string(&next_token).or(Err(APIError::ValidationFailed {
+                    message: Some("Invalid next_token"),
+                }))?,
+            )
+        } else {
+            None
+        };
 
-    let (tracks_internal, next_key) = crud_station
-        .list_tracks(station_id, 50, next_key)
-        .await
-        .unwrap();
+        let (tracks_internal, next_key) = crud_station
+            .list_tracks(station_id, 50, next_key)
+            .await
+            .unwrap();
+
+        (tracks_internal, next_key.map(|val| val.to_string()))
+    };
 
     Ok(APIJson(ListTracksResponse {
         tracks: tracks_internal.into_iter().map(Track::from).collect(),
-        next_token: next_key.map(|val| val.to_string().into()),
+        next_token: next_key.map(|val| val.into()),
     }))
 }

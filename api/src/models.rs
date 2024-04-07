@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use axum::{
     extract::FromRequest,
     response::{IntoResponse, Response},
@@ -30,11 +32,19 @@ where
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[repr(transparent)]
-pub(crate) struct NextToken(pub(crate) String);
+pub(crate) struct NextToken(String);
 
 impl From<String> for NextToken {
     fn from(val: String) -> Self {
         Self(val)
+    }
+}
+
+impl Deref for NextToken {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.0.as_str()
     }
 }
 

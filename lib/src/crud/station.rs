@@ -404,6 +404,68 @@ impl CRUDStation {
         ))
     }
 
+    pub async fn list_tracks_by_artist(
+        &self,
+        station_id: Ulid,
+        artist: &str,
+        limit: i32,
+        next_key: Option<&str>,
+    ) -> Result<(Vec<TrackInDB>, Option<String>)> {
+        let mut query = self
+            .db_client
+            .query()
+            .table_name(&self.db_table)
+            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
+            .expression_attribute_values(
+                ":pk",
+                AttributeValue::S(TrackMetadataInDB::get_pk(station_id, artist)),
+            )
+            .expression_attribute_values(
+                ":sk",
+                AttributeValue::S(TrackMetadataInDB::get_sk_prefix()),
+            )
+            .scan_index_forward(false)
+            .select(Select::SpecificAttributes)
+            .projection_expression("track_id")
+            .limit(limit);
+
+        if let Some(next_key) = next_key {
+            query = query
+                .exclusive_start_key(
+                    "pk",
+                    AttributeValue::S(TrackMetadataInDB::get_pk(station_id, artist)),
+                )
+                .exclusive_start_key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(next_key)));
+        };
+
+        let resp = query.send().await?;
+
+        let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
+            let paginate_key: PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
+            Some(
+                paginate_key
+                    .sk
+                    .strip_prefix(&TrackMetadataInDB::get_sk_prefix())
+                    .expect("parse next key")
+                    .to_owned(),
+            )
+        } else {
+            None
+        };
+
+        let track_metadatas: Vec<TrackMetadataInDB> =
+            serde_dynamo::from_items(resp.items.expect("query response to have items"))?;
+
+        let tracks = self
+            .batch_get_tracks(
+                station_id,
+                track_metadatas.iter().map(|item| &item.track_id),
+            )
+            .await?;
+
+        Ok((tracks, next_key))
+    }
+
     pub async fn get_track(&self, station_id: Ulid, track_id: Ulid) -> Result<Option<TrackInDB>> {
         let resp = self
             .db_client
@@ -425,9 +487,34 @@ impl CRUDStation {
         &self,
         station_id: Ulid,
         track_ids: impl Iterator<Item = &Ulid>,
+    ) -> Result<Vec<TrackInDB>> {
+        self.batch_get_tracks_internal(station_id, track_ids, None)
+            .await
+    }
+
+    pub async fn batch_get_tracks_minimal(
+        &self,
+        station_id: Ulid,
+        track_ids: impl Iterator<Item = &Ulid>,
     ) -> Result<Vec<TrackMinimalInDB>> {
-        let mut request_keys =
-            KeysAndAttributes::builder().projection_expression("id, title, artist, is_song");
+        self.batch_get_tracks_internal(station_id, track_ids, Some("id, title, artist, is_song"))
+            .await
+    }
+
+    async fn batch_get_tracks_internal<'a, O>(
+        &self,
+        station_id: Ulid,
+        track_ids: impl Iterator<Item = &Ulid>,
+        projection_expression: Option<&str>,
+    ) -> Result<Vec<O>>
+    where
+        O: Serialize + Deserialize<'a>,
+    {
+        let mut request_keys = KeysAndAttributes::builder();
+
+        if let Some(expression) = projection_expression {
+            request_keys = request_keys.projection_expression(expression);
+        }
 
         // TODO do multiple batches if id count > 100
         for track_id in track_ids {
