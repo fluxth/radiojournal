@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { type TrackMinimal, getTrack } from "$lib/api";
+  import type { TrackMinimal, Track } from "$lib/api";
+
+  import { getTrack } from "$lib/api";
   import dayjs from "$lib/dayjs";
 
   let dialog: HTMLDialogElement;
@@ -12,6 +14,10 @@
 
   export const show = () => {
     dialog.showModal();
+  };
+
+  const getTrackType = (track: Track | TrackMinimal): string => {
+    return track.is_song ? "Music" : "Other";
   };
 </script>
 
@@ -28,19 +34,43 @@
           <tbody>
             <tr>
               <td class="font-bold">Track ID</td>
-              <td>{trackMinimal.id}</td>
+              <td>
+                {#await trackPromise}
+                  {trackMinimal.id}
+                {:then track}
+                  {track.id}
+                {/await}
+              </td>
             </tr>
             <tr>
               <td class="font-bold">Artist</td>
-              <td>{trackMinimal.artist}</td>
+              <td>
+                {#await trackPromise}
+                  {trackMinimal.artist}
+                {:then track}
+                  {track.artist}
+                {/await}
+              </td>
             </tr>
             <tr>
               <td class="font-bold">Title</td>
-              <td>{trackMinimal.title}</td>
+              <td>
+                {#await trackPromise}
+                  {trackMinimal.title}
+                {:then track}
+                  {track.title}
+                {/await}
+              </td>
             </tr>
             <tr>
               <td class="font-bold">Type</td>
-              <td>{trackMinimal.is_song ? "Music" : "Other"}</td>
+              <td>
+                {#await trackPromise}
+                  {getTrackType(trackMinimal)}
+                {:then track}
+                  {getTrackType(track)}
+                {/await}
+              </td>
             </tr>
             <tr>
               <td class="font-bold">Created</td>
