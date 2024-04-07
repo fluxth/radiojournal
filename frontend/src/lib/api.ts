@@ -42,6 +42,12 @@ export type TrackMinimal = {
   is_song: string;
 };
 
+export type Track = TrackMinimal & {
+  play_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export const listPlays = async ({
   fetch,
   stationId,
@@ -74,4 +80,21 @@ export const listPlays = async ({
     nextToken: data.next_token,
     invalidate: async () => await invalidate(url),
   };
+};
+
+export const getTrack = async ({
+  fetch,
+  stationId,
+  trackId,
+}: {
+  fetch?: typeof window.fetch;
+  stationId: string;
+  trackId: string;
+}): Promise<Track> => {
+  if (!fetch) fetch = window.fetch;
+
+  const res = await fetch(`${API_BASE_URL}/v1/station/${stationId}/track/${trackId}`);
+
+  const track: Track = await res.json();
+  return track;
 };

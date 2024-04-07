@@ -1,8 +1,9 @@
 <script lang="ts">
+  import type { PageData } from "./$types";
+
   import { invalidateAll } from "$app/navigation";
   import { toHourId } from "$lib/helpers";
   import dayjs from "$lib/dayjs";
-  import type { PageData } from "./$types";
 
   export let data: PageData;
 

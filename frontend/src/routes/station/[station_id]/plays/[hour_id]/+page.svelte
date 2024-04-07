@@ -8,6 +8,9 @@
 
   import windowsZones from "$lib/data/windowsZones.json";
 
+  import TrackModal from "$lib/components/modals/TrackModal.svelte";
+  import type { TrackMinimal } from "$lib/api";
+
   export let data: PageData;
 
   const TIMEZONE_LOCALSTORAGE_KEY = "timezone";
@@ -71,6 +74,14 @@
     );
 
   const gotoNow = async () => await goto(toHourId(dayjs()));
+
+  let trackModalTrack: TrackMinimal | null = null;
+  let showTrackModal: () => void;
+
+  const showTrack = async (track: TrackMinimal) => {
+    trackModalTrack = track;
+    showTrackModal();
+  };
 </script>
 
 <svelte:head>
@@ -169,7 +180,11 @@
             ).format("HH:mm:ss")}
           </td>
           <td>{play.track.artist}</td>
-          <td>{play.track.title}</td>
+          <td>
+            <button class="link" on:click={() => showTrack(play.track)}>
+              {play.track.title}
+            </button>
+          </td>
           <td class="whitespace-nowrap w-0">
             <button
               class="btn btn-xs"
@@ -213,3 +228,5 @@
     <button>close</button>
   </form>
 </dialog>
+
+<TrackModal stationId={data.station.id} trackMinimal={trackModalTrack} bind:show={showTrackModal} />
