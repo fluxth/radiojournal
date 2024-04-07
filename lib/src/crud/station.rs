@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use aws_sdk_dynamodb::{
     types::{AttributeValue, KeysAndAttributes, Put, Select, TransactWriteItem, Update},
     Client,
@@ -14,7 +14,10 @@ use crate::{
     models::{
         play::PlayInDB,
         station::{LatestPlay, StationInDB},
-        track::{TrackInDB, TrackMetadataCreateInDB, TrackMinimalInDB},
+        track::{
+            TrackInDB, TrackMetadataCreateInDB, TrackMetadataInDB, TrackMetadataKeys,
+            TrackMinimalInDB,
+        },
     },
 };
 
@@ -167,9 +170,9 @@ impl CRUDStation {
             }
         }
 
-        if let Some(fetched_track) = self.get_track_by_metadata(station, artist, title).await? {
+        if let Some(track_metadata) = self.get_track_by_metadata(station, artist, title).await? {
             Ok(AddPlayTypeInteral::NewPlay {
-                track_id: fetched_track.id,
+                track_id: track_metadata.track_id,
             })
         } else {
             Ok(AddPlayTypeInteral::NewTrack)
@@ -461,32 +464,23 @@ impl CRUDStation {
         station: &StationInDB,
         artist: &str,
         title: &str,
-    ) -> Result<Option<TrackInDB>> {
-        // TODO: get from track metadata item instead of gsi
+    ) -> Result<Option<TrackMetadataInDB>> {
         let resp = self
             .db_client
-            .query()
+            .get_item()
             .table_name(&self.db_table)
-            .index_name("gsi1")
-            .key_condition_expression("gsi1pk = :gsi1pk AND gsi1sk = :gsi1sk")
-            .expression_attribute_values(
-                ":gsi1pk",
-                AttributeValue::S(TrackInDB::get_gsi1pk(station.id, artist)),
+            .key(
+                "pk",
+                AttributeValue::S(TrackMetadataInDB::get_pk(station.id, artist)),
             )
-            .expression_attribute_values(":gsi1sk", AttributeValue::S(TrackInDB::get_gsi1sk(title)))
-            .select(Select::AllAttributes)
-            .limit(1)
+            .key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(title)))
             .send()
             .await?;
 
-        match resp.count {
-            0 => Ok(None),
-            1 => Ok(if let Some(item) = resp.items().iter().nth(0).cloned() {
-                serde_dynamo::from_item(item)?
-            } else {
-                bail!("kaputt state!")
-            }),
-            _ => bail!("unexpected multiple items"),
+        if let Some(item) = resp.item {
+            Ok(Some(serde_dynamo::from_item(item)?))
+        } else {
+            Ok(None)
         }
     }
 

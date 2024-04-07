@@ -77,11 +77,23 @@ impl TrackInDB {
     }
 }
 
+pub(crate) trait TrackMetadataKeys {
+    fn get_pk(station_id: Ulid, artist: &str) -> String {
+        format!("STATION#{}#ARTIST#{}", station_id, artist)
+    }
+
+    fn get_sk(title: &str) -> String {
+        format!("TITLE#{}", title)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 /// Query variant of track item used for lookup using metadata
 pub struct TrackMetadataInDB {
     pub track_id: Ulid,
 }
+
+impl TrackMetadataKeys for TrackMetadataInDB {}
 
 #[derive(Debug, Serialize, Deserialize)]
 /// Insert variant of track item used for lookup using metadata
@@ -91,15 +103,7 @@ pub struct TrackMetadataCreateInDB {
     pub track_id: Ulid,
 }
 
-impl TrackMetadataCreateInDB {
-    pub(crate) fn get_pk(station_id: Ulid, artist: &str) -> String {
-        format!("STATION#{}#ARTIST#{}", station_id, artist)
-    }
-
-    pub(crate) fn get_sk(title: &str) -> String {
-        format!("TITLE#{}", title)
-    }
-}
+impl TrackMetadataKeys for TrackMetadataCreateInDB {}
 
 impl From<&TrackInDB> for TrackMetadataCreateInDB {
     fn from(track: &TrackInDB) -> Self {
