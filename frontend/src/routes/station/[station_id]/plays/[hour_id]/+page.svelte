@@ -161,19 +161,19 @@
 </div>
 
 <div class="overflow-x-auto my-4">
-  <table class="table table-sm table-responsive">
+  <table class="table table-sm table-responsive table-fixed">
     <thead>
       <tr>
-        <th>Timestamp</th>
+        <th class="w-24">Timestamp</th>
         <th>Artist</th>
         <th>Title</th>
-        <th />
+        <th class="w-24" />
       </tr>
     </thead>
     <tbody>
       {#each data.content.plays as play}
         <tr class={play.track.is_song ? "" : "italic text-neutral-300 dark:text-neutral-600"}>
-          <td class="whitespace-nowrap w-0 max-sm:font-bold">
+          <td class="max-sm:font-bold">
             {(currentTimezone
               ? dayjs(play.played_at).tz(currentTimezone)
               : dayjs(play.played_at)
@@ -185,7 +185,7 @@
               {play.track.title}
             </button>
           </td>
-          <td class="whitespace-nowrap w-0">
+          <td class="sm:text-right">
             <button
               class="btn btn-xs"
               on:click={async () =>
