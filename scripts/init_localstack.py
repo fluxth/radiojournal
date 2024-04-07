@@ -114,6 +114,15 @@ def create_track(
         },
     )
 
+    dynamodb.put_item(
+        TableName=TABLE_NAME,
+        Item={
+            "pk": {"S": f"STATION#{station_id}#ARTIST#{artist}"},
+            "sk": {"S": f"TITLE#{title}"},
+            "track_id": {"S": track_id},
+        },
+    )
+
     dynamodb.update_item(
         TableName=TABLE_NAME,
         Key={
