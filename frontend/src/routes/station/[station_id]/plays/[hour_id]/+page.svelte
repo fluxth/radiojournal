@@ -79,7 +79,7 @@
   let showTrackModal: () => void;
 
   const showTrack = async (track: TrackMinimal) => {
-    trackModalTrack = track;
+    if (trackModalTrack?.id !== track.id) trackModalTrack = track;
     showTrackModal();
   };
 </script>
