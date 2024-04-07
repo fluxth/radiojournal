@@ -6,8 +6,6 @@ use ulid::Ulid;
 pub struct TrackInDB {
     pk: String,
     sk: String,
-    gsi1pk: String,
-    gsi1sk: String,
     pub id: Ulid,
     pub title: String,
     pub artist: String,
@@ -29,14 +27,6 @@ impl TrackInDB {
 
     pub(crate) fn get_sk_prefix() -> String {
         "TRACK#".to_owned()
-    }
-
-    pub(crate) fn get_gsi1pk(station_id: Ulid, artist: &str) -> String {
-        format!("STATION#{}#ARTIST#{}", station_id, artist)
-    }
-
-    pub(crate) fn get_gsi1sk(title: &str) -> String {
-        format!("TITLE#{}", title)
     }
 
     fn station_id(&self) -> Ulid {
@@ -63,8 +53,6 @@ impl TrackInDB {
         Self {
             pk: Self::get_pk(station_id),
             sk: Self::get_sk(track_id),
-            gsi1pk: Self::get_gsi1pk(station_id, &artist),
-            gsi1sk: Self::get_gsi1sk(&title),
             id: track_id,
             title,
             artist,
