@@ -475,6 +475,7 @@ impl CRUDStation {
             )
             .key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(title)))
             .projection_expression("track_id")
+            .consistent_read(true)
             .send()
             .await?;
 
