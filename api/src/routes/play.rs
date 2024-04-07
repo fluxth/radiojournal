@@ -26,6 +26,8 @@ pub(crate) struct ListPlaysQuery {
     path = "/station/{station_id}/plays",
     params(
         ("station_id" = Ulid, Path, deprecated = false),
+        ("start" = Option<DateTime<Utc>>, Query, deprecated = false),
+        ("end" = Option<DateTime<Utc>>, Query, deprecated = false),
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
