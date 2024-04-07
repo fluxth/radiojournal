@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "this" {
-  function_name = var.name
+  function_name = local.function_name
   description   = "API lambda for radiojournal"
   role          = aws_iam_role.lambda.arn
 
