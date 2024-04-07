@@ -474,6 +474,7 @@ impl CRUDStation {
                 AttributeValue::S(TrackMetadataInDB::get_pk(station.id, artist)),
             )
             .key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(title)))
+            .projection_expression("track_id")
             .send()
             .await?;
 
