@@ -3,6 +3,7 @@
 
   import { getTrack } from "$lib/api";
   import dayjs from "$lib/dayjs";
+  import { fade } from "svelte/transition";
 
   let dialog: HTMLDialogElement;
 
@@ -44,7 +45,7 @@
             </tr>
             <tr>
               <td class="font-bold">Artist</td>
-              <td>
+              <td in:fade={{ duration: 300 }}>
                 {#await trackPromise}
                   {trackMinimal.artist}
                 {:then track}
@@ -78,7 +79,7 @@
                 {#await trackPromise}
                   <div class="skeleton h-3 w-full"></div>
                 {:then track}
-                  <div class="tooltip tooltip-top" data-tip={track.created_at}>
+                  <div in:fade class="tooltip tooltip-top" data-tip={track.created_at}>
                     <button class="underline decoration-dashed cursor-help">
                       {dayjs(track.created_at).fromNow()}
                     </button>
@@ -92,7 +93,7 @@
                 {#await trackPromise}
                   <div class="skeleton h-3 w-full"></div>
                 {:then track}
-                  <div class="tooltip tooltip-top" data-tip={track.updated_at}>
+                  <div in:fade class="tooltip tooltip-top" data-tip={track.updated_at}>
                     <button class="underline decoration-dashed cursor-help">
                       {dayjs(track.updated_at).fromNow()}
                     </button>
@@ -106,7 +107,7 @@
                 {#await trackPromise}
                   <div class="skeleton h-3 w-full"></div>
                 {:then track}
-                  {numberFormat.format(track.play_count)}
+                  <span in:fade>{numberFormat.format(track.play_count)}</span>
                 {/await}
               </td>
             </tr>
