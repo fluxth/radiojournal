@@ -69,6 +69,7 @@ pub(crate) struct Track {
     title: String,
     artist: String,
     is_song: bool,
+    play_count: usize,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -80,6 +81,7 @@ impl From<TrackInDB> for Track {
             title: track.title,
             artist: track.artist,
             is_song: track.is_song,
+            play_count: track.play_count,
             created_at: truncate_datetime(track.created_ts),
             updated_at: truncate_datetime(track.updated_ts),
         }
