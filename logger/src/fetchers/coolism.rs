@@ -153,8 +153,8 @@ impl Fetcher for Coolism {
         let metadata = self.fetch_metadata(token.as_str()).await?;
 
         Ok(Play {
-            title: metadata.now_song.song,
-            artist: metadata.now_song.artist,
+            title: metadata.now_song.song.trim().to_owned(),
+            artist: metadata.now_song.artist.trim().to_owned(),
         })
     }
 }

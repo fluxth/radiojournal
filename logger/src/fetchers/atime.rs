@@ -102,8 +102,8 @@ impl Fetcher for Atime {
             ))?;
 
         Ok(Play {
-            title: station_data.title.clone(),
-            artist: station_data.artists.clone(),
+            title: station_data.title.trim().to_owned(),
+            artist: station_data.artists.trim().to_owned(),
         })
     }
 }
