@@ -14,7 +14,7 @@ use crate::{
     models::{
         play::PlayInDB,
         station::{LatestPlay, StationInDB},
-        track::{TrackInDB, TrackMinimalInDB},
+        track::{TrackInDB, TrackMetadataCreateInDB, TrackMinimalInDB},
     },
 };
 
@@ -36,16 +36,25 @@ pub struct AddPlayResult {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum AddPlayType {
-    ExistingPlay {
-        #[serde(skip)]
-        track_id: Ulid,
-        #[serde(skip)]
-        play_id: Ulid,
-    },
-    NewPlay {
-        #[serde(skip)]
-        track: Box<TrackInDB>,
-    },
+    ExistingPlay,
+    NewPlay,
+    NewTrack,
+}
+
+impl From<AddPlayTypeInteral> for AddPlayType {
+    fn from(value: AddPlayTypeInteral) -> Self {
+        match value {
+            AddPlayTypeInteral::ExistingPlay { .. } => AddPlayType::ExistingPlay,
+            AddPlayTypeInteral::NewPlay { .. } => AddPlayType::NewPlay,
+            AddPlayTypeInteral::NewTrack => AddPlayType::NewTrack,
+        }
+    }
+}
+
+#[derive(Debug)]
+enum AddPlayTypeInteral {
+    ExistingPlay { track_id: Ulid, play_id: Ulid },
+    NewPlay { track_id: Ulid },
     NewTrack,
 }
 
@@ -100,23 +109,25 @@ impl CRUDStation {
 
         let add_type = self.evaluate_play_metadata(station, artist, title).await?;
         let (result_track_id, result_play_id) = match &add_type {
-            AddPlayType::ExistingPlay { track_id, play_id } => {
+            AddPlayTypeInteral::ExistingPlay { track_id, play_id } => {
                 // all metadata matched, update play updated_ts only
                 self.add_play_with_existing_play(station.id, *track_id, *play_id)
                     .await?;
 
                 (*track_id, *play_id)
             }
-            AddPlayType::NewPlay { track } => {
+            AddPlayTypeInteral::NewPlay { track_id } => {
                 // insert new play with existing track
-                let play = PlayInDB::new(station.id, track.id);
+                let play = PlayInDB::new(station.id, *track_id);
                 let play_id = play.id;
 
-                self.add_play_with_new_play(station, track, play).await?;
+                // use the metadata from fetcher to populate latest_play
+                self.add_play_with_new_play(station, play, artist, title)
+                    .await?;
 
-                (track.id, play_id)
+                (*track_id, play_id)
             }
-            AddPlayType::NewTrack => {
+            AddPlayTypeInteral::NewTrack => {
                 // insert new track and play
                 let track = TrackInDB::new(station.id, artist, title, play.is_song());
                 let play = PlayInDB::new(station.id, track.id);
@@ -131,7 +142,7 @@ impl CRUDStation {
         };
 
         Ok(AddPlayResult {
-            add_type,
+            add_type: AddPlayType::from(add_type),
             play_id: result_play_id,
             track_id: result_track_id,
             metadata: AddPlayMetadata {
@@ -146,22 +157,22 @@ impl CRUDStation {
         station: &StationInDB,
         artist: &str,
         title: &str,
-    ) -> Result<AddPlayType> {
+    ) -> Result<AddPlayTypeInteral> {
         if let Some(latest_play) = &station.latest_play {
             if latest_play.artist == artist && latest_play.title == title {
-                return Ok(AddPlayType::ExistingPlay {
+                return Ok(AddPlayTypeInteral::ExistingPlay {
                     track_id: latest_play.track_id,
                     play_id: latest_play.id,
                 });
             }
         }
 
-        if let Some(fetched_track) = self.get_track_by_name(station, artist, title).await? {
-            Ok(AddPlayType::NewPlay {
-                track: Box::new(fetched_track),
+        if let Some(fetched_track) = self.get_track_by_metadata(station, artist, title).await? {
+            Ok(AddPlayTypeInteral::NewPlay {
+                track_id: fetched_track.id,
             })
         } else {
-            Ok(AddPlayType::NewTrack)
+            Ok(AddPlayTypeInteral::NewTrack)
         }
     }
 
@@ -192,11 +203,13 @@ impl CRUDStation {
 
         Ok(())
     }
+
     async fn add_play_with_new_play(
         &self,
         station: &StationInDB,
-        track: &TrackInDB,
         play: PlayInDB,
+        artist: &str,
+        title: &str,
     ) -> Result<()> {
         let play_id = play.id;
         let track_id = play.track_id;
@@ -204,8 +217,8 @@ impl CRUDStation {
         let latest_play = LatestPlay {
             id: play_id,
             track_id,
-            artist: track.artist.clone(),
-            title: track.title.clone(),
+            artist: artist.to_owned(),
+            title: title.to_owned(),
         };
 
         let play_put = Put::builder()
@@ -258,6 +271,7 @@ impl CRUDStation {
 
         Ok(())
     }
+
     async fn add_play_with_new_track(
         &self,
         station: &StationInDB,
@@ -270,6 +284,8 @@ impl CRUDStation {
         track.latest_play_id = Some(play_id);
         track.play_count += 1;
 
+        let track_metadata = TrackMetadataCreateInDB::from(&track);
+
         let latest_play = LatestPlay {
             id: play_id,
             track_id,
@@ -280,6 +296,11 @@ impl CRUDStation {
         let track_put = Put::builder()
             .table_name(&self.db_table)
             .set_item(Some(serde_dynamo::to_item(track)?))
+            .build()?;
+
+        let track_metadata_put = Put::builder()
+            .table_name(&self.db_table)
+            .set_item(Some(serde_dynamo::to_item(track_metadata)?))
             .build()?;
 
         let play_put = Put::builder()
@@ -325,6 +346,7 @@ impl CRUDStation {
             .db_client
             .transact_write_items()
             .transact_items(TransactWriteItem::builder().put(track_put).build())
+            .transact_items(TransactWriteItem::builder().put(track_metadata_put).build())
             .transact_items(TransactWriteItem::builder().put(play_put).build())
             .transact_items(TransactWriteItem::builder().update(station_update).build())
             .send()
@@ -434,12 +456,13 @@ impl CRUDStation {
         )?)
     }
 
-    pub async fn get_track_by_name(
+    pub async fn get_track_by_metadata(
         &self,
         station: &StationInDB,
         artist: &str,
         title: &str,
     ) -> Result<Option<TrackInDB>> {
+        // TODO: get from track metadata item instead of gsi
         let resp = self
             .db_client
             .query()

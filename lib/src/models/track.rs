@@ -39,6 +39,15 @@ impl TrackInDB {
         format!("TITLE#{}", title)
     }
 
+    fn station_id(&self) -> Ulid {
+        Ulid::from_string(
+            self.pk
+                .trim_start_matches("STATION#")
+                .trim_end_matches("#TRACKS"),
+        )
+        .expect("track station id must be ulid")
+    }
+
     pub fn new(
         station_id: Ulid,
         artist: impl Into<String>,
@@ -64,6 +73,40 @@ impl TrackInDB {
             latest_play_id: None,
             created_ts: now,
             updated_ts: now,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+/// Query variant of track item used for lookup using metadata
+pub struct TrackMetadataInDB {
+    pub track_id: Ulid,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+/// Insert variant of track item used for lookup using metadata
+pub struct TrackMetadataCreateInDB {
+    pk: String,
+    sk: String,
+    pub track_id: Ulid,
+}
+
+impl TrackMetadataCreateInDB {
+    pub(crate) fn get_pk(station_id: Ulid, artist: &str) -> String {
+        format!("STATION#{}#ARTIST#{}", station_id, artist)
+    }
+
+    pub(crate) fn get_sk(title: &str) -> String {
+        format!("TITLE#{}", title)
+    }
+}
+
+impl From<&TrackInDB> for TrackMetadataCreateInDB {
+    fn from(track: &TrackInDB) -> Self {
+        Self {
+            pk: Self::get_pk(track.station_id(), &track.artist),
+            sk: Self::get_sk(&track.title),
+            track_id: track.id,
         }
     }
 }
