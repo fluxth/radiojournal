@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 radiojournal = { path = "../lib" }
 anyhow = "=1.0.81"
-aws-config = "=1.1.9"
-aws-sdk-dynamodb = "=1.20.0"
+aws-config = "=1.1.10"
+aws-sdk-dynamodb = "=1.21.0"
 chrono = { version = "=0.4.37", features = ["serde", "now"] }
 serde = { version = "=1.0.197", features = ["derive"] }
 serde_dynamo = { version = "=4.2.14", features = ["aws-sdk-dynamodb+1"] }
