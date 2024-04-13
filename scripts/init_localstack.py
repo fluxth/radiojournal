@@ -24,7 +24,7 @@ def create_play(
         Item={
             "pk": {"S": f"STATION#{station_id}#PLAYS#{dt.strftime('%Y-%m-%d')}"},
             "sk": {"S": f"PLAY#{play_id}"},
-            "gsi1pk": {"S": f"STATION#{station_id}#TRACK#{track_id}"},
+            "gsi1pk": {"S": f"TRACK#{track_id}"},
             "gsi1sk": {"S": f"PLAY#{play_id}"},
             "id": {"S": play_id},
             "track_id": {"S": track_id},

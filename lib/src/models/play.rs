@@ -27,8 +27,8 @@ impl PlayInDB {
         "PLAY#".to_owned()
     }
 
-    pub(crate) fn get_gsi1pk(station_id: Ulid, track_id: Ulid) -> String {
-        format!("STATION#{}#TRACK#{}", station_id, track_id)
+    pub(crate) fn get_gsi1pk(track_id: Ulid) -> String {
+        format!("TRACK#{}", track_id)
     }
 
     pub(crate) fn get_gsi1sk(play_id: Ulid) -> String {
@@ -42,7 +42,7 @@ impl PlayInDB {
         PlayInDB {
             pk: Self::get_pk(station_id, &now.format("%Y-%m-%d").to_string()),
             sk: Self::get_sk(play_id),
-            gsi1pk: Self::get_gsi1pk(station_id, track_id),
+            gsi1pk: Self::get_gsi1pk(track_id),
             gsi1sk: Self::get_gsi1sk(play_id),
             id: play_id,
             track_id,
