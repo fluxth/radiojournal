@@ -1,11 +1,12 @@
-use std::{borrow::Cow, collections::HashMap, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
-use tracing::info;
+use tokio::sync::Mutex;
+use tracing::{info, warn};
 
 use super::{Fetcher, Play};
 use radiojournal::models::station::FetcherConfig;
@@ -19,7 +20,7 @@ struct CoolismToken {
 #[derive(Debug)]
 pub(crate) struct Coolism {
     client: reqwest::Client,
-    token: Option<CoolismToken>,
+    token: Mutex<Option<CoolismToken>>,
 }
 
 impl Coolism {
@@ -47,7 +48,7 @@ impl Coolism {
                 .default_headers(default_headers)
                 .build()
                 .expect("successfully build reqwest client"),
-            token: None,
+            token: Mutex::new(None),
         }
     }
 
@@ -84,7 +85,43 @@ impl Coolism {
         Ok((token, expiry))
     }
 
-    async fn fetch_metadata(&self, token: &str) -> Result<Data> {
+    async fn fetch_token_cached(&self) -> Result<String> {
+        let mut token_locked = self.token.lock().await;
+        if let Some(token) = token_locked.as_ref() {
+            let now = Utc::now();
+            let deadline = token.expiry - Duration::from_secs(600);
+            if now >= deadline {
+                // expiry too close, refresh
+                info!(
+                    now = %now,
+                    expiry = %token.expiry,
+                    deadline = %deadline,
+                    "Token near expiry, invalidating"
+                );
+                *token_locked = None;
+            }
+        }
+
+        if let Some(token) = token_locked.as_ref() {
+            Ok(token.token.clone())
+        } else {
+            let (token, maybe_expiry) = self.fetch_token().await?;
+            if let Some(expiry) = maybe_expiry {
+                *token_locked = Some(CoolismToken {
+                    token: token.clone(),
+                    expiry,
+                });
+
+                Ok(token)
+            } else {
+                warn!("No expiry detected, will not save token");
+                Ok(token)
+            }
+        }
+    }
+
+    async fn fetch_metadata(&self) -> Result<Data> {
+        let token = self.fetch_token_cached().await?;
         let response: MetadataResponse = self
             .client
             .get("https://api.coolism.net/api/song/radio/nowPlaying")
@@ -122,36 +159,8 @@ struct NowSong {
 
 #[async_trait]
 impl Fetcher for Coolism {
-    async fn fetch_play(&mut self, _config: &FetcherConfig) -> Result<Play> {
-        if let Some(token) = &self.token {
-            let now = Utc::now();
-            let deadline = token.expiry - Duration::from_secs(600);
-            if now >= deadline {
-                // expiry too close, refresh
-                info!(
-                    now = %now,
-                    expiry = %token.expiry,
-                    deadline = %deadline,
-                    "Token near expiry, invalidating"
-                );
-                self.token = None;
-            }
-        }
-
-        let token = if let Some(token) = &self.token {
-            Cow::Borrowed(&token.token)
-        } else {
-            let (token, expiry) = self.fetch_token().await?;
-            if let Some(expiry) = expiry {
-                self.token = Some(CoolismToken { token, expiry });
-                Cow::Borrowed(&self.token.as_ref().expect("token must have value").token)
-            } else {
-                Cow::Owned(token)
-            }
-        };
-
-        let metadata = self.fetch_metadata(token.as_str()).await?;
-
+    async fn fetch_play(&self, _config: &FetcherConfig) -> Result<Play> {
+        let metadata = self.fetch_metadata().await?;
         Ok(Play {
             title: metadata.now_song.song.trim().to_owned(),
             artist: metadata.now_song.artist.trim().to_owned(),

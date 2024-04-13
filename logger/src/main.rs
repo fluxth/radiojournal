@@ -9,7 +9,6 @@ use aws_sdk_dynamodb::Client;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use serde::Serialize;
 use serde_json::Value;
-use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 use tracing::error;
 use tracing::info;
@@ -46,17 +45,17 @@ impl State {
 
 #[derive(Debug)]
 struct Fetchers {
-    coolism: Mutex<fetchers::coolism::Coolism>,
-    atime: Mutex<fetchers::atime::Atime>,
-    iheart: Mutex<fetchers::iheart::Iheart>,
+    coolism: fetchers::coolism::Coolism,
+    atime: fetchers::atime::Atime,
+    iheart: fetchers::iheart::Iheart,
 }
 
 impl Fetchers {
     fn new() -> Self {
         Self {
-            coolism: Mutex::new(fetchers::coolism::Coolism::new()),
-            atime: Mutex::new(fetchers::atime::Atime::new()),
-            iheart: Mutex::new(fetchers::iheart::Iheart::new()),
+            coolism: fetchers::coolism::Coolism::new(),
+            atime: fetchers::atime::Atime::new(),
+            iheart: fetchers::iheart::Iheart::new(),
         }
     }
 }
@@ -157,9 +156,9 @@ async fn invoke(
 async fn get_fetcher<'a, 'b>(
     state: &'a State,
     station: &'b StationInDB,
-) -> Option<(&'a Mutex<dyn Fetcher + Send + Sync>, &'b FetcherConfig)> {
+) -> Option<(&'a (dyn Fetcher + Send + Sync), &'b FetcherConfig)> {
     station.fetcher.as_ref().map(
-        |fetcher_config| -> (&'a Mutex<dyn Fetcher + Send + Sync>, &'b FetcherConfig) {
+        |fetcher_config| -> (&'a (dyn Fetcher + Send + Sync), &'b FetcherConfig) {
             (
                 match fetcher_config {
                     FetcherConfig::Coolism => &state.fetchers.coolism,
@@ -187,10 +186,7 @@ async fn process_station(
             "Processing station"
         );
 
-        let play = {
-            let mut fetcher = fetcher.lock().await;
-            fetcher.fetch_play(config).await?
-        };
+        let play = fetcher.fetch_play(config).await?;
 
         info!(title = play.title, artist = play.artist, "Fetched play");
 

@@ -29,5 +29,5 @@ impl PlayTrait for Play {
 
 #[async_trait]
 pub(crate) trait Fetcher {
-    async fn fetch_play(&mut self, config: &FetcherConfig) -> Result<Play>;
+    async fn fetch_play(&self, config: &FetcherConfig) -> Result<Play>;
 }

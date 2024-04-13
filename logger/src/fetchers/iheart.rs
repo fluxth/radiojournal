@@ -106,7 +106,7 @@ struct Artist {
 
 #[async_trait]
 impl Fetcher for Iheart {
-    async fn fetch_play(&mut self, config: &FetcherConfig) -> Result<Play> {
+    async fn fetch_play(&self, config: &FetcherConfig) -> Result<Play> {
         let slug = if let FetcherConfig::Iheart { slug } = config {
             slug
         } else {

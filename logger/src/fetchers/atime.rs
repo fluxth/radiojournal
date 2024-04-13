@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use moka::future::Cache;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
+use tokio::sync::Mutex;
 use tracing::info;
 
 use super::{Fetcher, Play};
@@ -13,7 +14,7 @@ use radiojournal::models::station::{AtimeStation, FetcherConfig};
 #[derive(Debug)]
 pub(crate) struct Atime {
     client: reqwest::Client,
-    cache: Cache<usize, Arc<Vec<StationData>>>,
+    cache: Mutex<Cache<usize, Arc<Vec<StationData>>>>,
 }
 
 impl Atime {
@@ -35,10 +36,12 @@ impl Atime {
                 .default_headers(default_headers)
                 .build()
                 .expect("successfully build reqwest client"),
-            cache: Cache::builder()
-                .max_capacity(1)
-                .time_to_live(Duration::from_secs(10))
-                .build(),
+            cache: Mutex::new(
+                Cache::builder()
+                    .max_capacity(1)
+                    .time_to_live(Duration::from_secs(10))
+                    .build(),
+            ),
         }
     }
 
@@ -71,7 +74,7 @@ struct StationData {
 
 #[async_trait]
 impl Fetcher for Atime {
-    async fn fetch_play(&mut self, config: &FetcherConfig) -> Result<Play> {
+    async fn fetch_play(&self, config: &FetcherConfig) -> Result<Play> {
         let (station_id, station_name) = if let FetcherConfig::Atime { station } = config {
             match station {
                 AtimeStation::EFM => (1, "EFM"),
@@ -82,12 +85,15 @@ impl Fetcher for Atime {
             bail!("misconfigured atime station: {:?}", config);
         };
 
-        let metadata = if let Some(metadata) = self.cache.get(&0).await {
-            metadata
-        } else {
-            let metadata = Arc::new(self.fetch_metadata().await?);
-            self.cache.insert(0, metadata.clone()).await;
-            metadata
+        let metadata = {
+            let cache_locked = self.cache.lock().await;
+            if let Some(metadata) = cache_locked.get(&0).await {
+                metadata
+            } else {
+                let metadata = Arc::new(self.fetch_metadata().await?);
+                cache_locked.insert(0, metadata.clone()).await;
+                metadata
+            }
         };
 
         let station_data = metadata
