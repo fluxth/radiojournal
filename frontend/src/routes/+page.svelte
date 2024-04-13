@@ -29,7 +29,12 @@
   {#each data.stations as station}
     <div class="card bg-base-200 shadow-lg">
       <div class="card-body">
-        <h2 class="card-title">{station.name}</h2>
+        <div>
+          <h2 class="card-title">{station.name}</h2>
+          {#if station.location}
+            <p class="text-xs italic">{station.location}</p>
+          {/if}
+        </div>
         <p>
           {numberFormat.format(station.play_count)} plays &middot;
           {numberFormat.format(station.track_count)} tracks

@@ -7,6 +7,7 @@ const API_BASE_URL = "https://nna6sr3v62fsk5oauz37tnzuvm0lvtfl.lambda-url.ap-sou
 export type Station = {
   id: string;
   name: string;
+  location?: string;
   play_count: number;
   track_count: number;
 };
