@@ -47,6 +47,7 @@ impl State {
 struct Fetchers {
     coolism: Mutex<fetchers::coolism::Coolism>,
     atime: Mutex<fetchers::atime::Atime>,
+    iheart: Mutex<fetchers::iheart::Iheart>,
 }
 
 impl Fetchers {
@@ -54,6 +55,7 @@ impl Fetchers {
         Self {
             coolism: Mutex::new(fetchers::coolism::Coolism::new()),
             atime: Mutex::new(fetchers::atime::Atime::new()),
+            iheart: Mutex::new(fetchers::iheart::Iheart::new()),
         }
     }
 }
@@ -148,7 +150,8 @@ async fn get_fetcher<'a, 'b>(
             (
                 match fetcher_config {
                     FetcherConfig::Coolism => &state.fetchers.coolism,
-                    FetcherConfig::Atime { station: _ } => &state.fetchers.atime,
+                    FetcherConfig::Iheart { .. } => &state.fetchers.iheart,
+                    FetcherConfig::Atime { .. } => &state.fetchers.atime,
                 },
                 fetcher_config,
             )

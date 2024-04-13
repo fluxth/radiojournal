@@ -52,5 +52,6 @@ pub enum AtimeStation {
 #[serde(rename_all = "snake_case", tag = "id")]
 pub enum FetcherConfig {
     Coolism,
+    Iheart { slug: String },
     Atime { station: AtimeStation },
 }

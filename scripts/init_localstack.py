@@ -142,6 +142,7 @@ def create_station(
     station_name: str,
     fetcher: str | None = None,
     fetcher_station: str | None = None,
+    fetcher_slug: str | None = None,
 ) -> str:
     station_id = ulid.from_timestamp(dt).str
     timestamp = dt.isoformat().replace("+00:00", "Z")
@@ -151,6 +152,8 @@ def create_station(
         fetcher_obj = {"M": {"id": {"S": fetcher}}}
         if fetcher_station:
             fetcher_obj["M"]["station"] = {"S": fetcher_station}
+        if fetcher_slug:
+            fetcher_obj["M"]["slug"] = {"S": fetcher_slug}
 
     dynamodb.put_item(
         TableName=TABLE_NAME,
@@ -312,6 +315,24 @@ if __name__ == "__main__":
         station_name="chill",
         fetcher="atime",
         fetcher_station="chill",
+    )
+
+    dt = datetime.now(tz=UTC)
+    station_5 = create_station(
+        dynamodb,
+        dt,
+        station_name="kiis",
+        fetcher="iheart",
+        fetcher_slug="kiis-fm",
+    )
+
+    dt = datetime.now(tz=UTC)
+    station_6 = create_station(
+        dynamodb,
+        dt,
+        station_name="z100",
+        fetcher="iheart",
+        fetcher_slug="whtz-fm",
     )
 
     print("Done")
