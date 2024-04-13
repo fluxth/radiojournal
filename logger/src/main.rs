@@ -11,6 +11,7 @@ use serde::Serialize;
 use serde_json::Value;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
+use tracing::error;
 use tracing::info;
 use ulid::Ulid;
 
@@ -134,8 +135,20 @@ async fn invoke(
         });
 
     let mut stations = vec![];
+    let mut errors = vec![];
+
     while let Some(res) = join_set.join_next().await {
-        stations.push(res?.unwrap());
+        match res? {
+            Ok(result) => stations.push(result),
+            Err(error) => {
+                error!(error = ?error, "Error processing station");
+                errors.push(error);
+            }
+        }
+    }
+
+    if let Some(error) = errors.into_iter().next() {
+        panic!("{:?}", error);
     }
 
     Ok(InvokeOutput { stations })
@@ -176,7 +189,7 @@ async fn process_station(
 
         let play = {
             let mut fetcher = fetcher.lock().await;
-            fetcher.fetch_play(config).await.unwrap()
+            fetcher.fetch_play(config).await?
         };
 
         info!(title = play.title, artist = play.artist, "Fetched play");
