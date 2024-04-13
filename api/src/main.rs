@@ -9,7 +9,7 @@ use aws_sdk_dynamodb::Client;
 use axum::{response::IntoResponse, Router};
 use errors::APIError;
 use lambda_http::{run, Error};
-use radiojournal::crud::station::CRUDStation;
+use radiojournal::crud::{station::CRUDStation, Context};
 use tower_http::compression::CompressionLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -55,7 +55,8 @@ async fn main() -> Result<(), Error> {
     let db_client = Client::new(&config);
     let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
 
-    let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
+    let context = Arc::new(Context::new(db_client, table_name));
+    let crud_station = Arc::new(CRUDStation::new(context));
 
     let compression_layer: CompressionLayer = CompressionLayer::new()
         .br(true)

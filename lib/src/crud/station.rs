@@ -1,14 +1,14 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
-use aws_sdk_dynamodb::{
-    types::{AttributeValue, KeysAndAttributes, Put, Select, TransactWriteItem, Update},
-    Client,
+use aws_sdk_dynamodb::types::{
+    AttributeValue, KeysAndAttributes, Put, Select, TransactWriteItem, Update,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
+use super::Context;
 use crate::{
     helpers::ziso_timestamp,
     models::{
@@ -75,23 +75,20 @@ struct PaginateKey {
 }
 
 pub struct CRUDStation {
-    db_client: Client,
-    db_table: String,
+    context: Arc<Context>,
 }
 
 impl CRUDStation {
-    pub fn new(client: Client, table_name: &str) -> Self {
-        Self {
-            db_client: client,
-            db_table: table_name.to_owned(),
-        }
+    pub fn new(context: Arc<Context>) -> Self {
+        Self { context }
     }
 
     pub async fn list(&self, limit: i32) -> Result<Vec<StationInDB>> {
         let resp = self
+            .context
             .db_client
             .query()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
             .expression_attribute_values(":pk", AttributeValue::S(StationInDB::get_pk()))
             .expression_attribute_values(":sk", AttributeValue::S(StationInDB::get_sk_prefix()))
@@ -188,9 +185,10 @@ impl CRUDStation {
         let play_datetime: DateTime<Utc> = play_id.datetime().into();
         let play_partition = play_datetime.format("%Y-%m-%d");
 
-        self.db_client
+        self.context
+            .db_client
             .update_item()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key(
                 "pk",
                 AttributeValue::S(PlayInDB::get_pk(station_id, &play_partition.to_string())),
@@ -225,12 +223,12 @@ impl CRUDStation {
         };
 
         let play_put = Put::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .set_item(Some(serde_dynamo::to_item(play)?))
             .build()?;
 
         let track_update = Update::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key("pk", AttributeValue::S(TrackInDB::get_pk(station.id)))
             .key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)))
             .update_expression(
@@ -243,7 +241,7 @@ impl CRUDStation {
 
         // update station with latest play
         let station_update = Update::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key("pk", AttributeValue::S(StationInDB::get_pk()))
             .key("sk", AttributeValue::S(StationInDB::get_sk(station.id)))
             .update_expression(
@@ -264,6 +262,7 @@ impl CRUDStation {
 
         // TODO handle errors
         let _resp = self
+            .context
             .db_client
             .transact_write_items()
             .transact_items(TransactWriteItem::builder().put(play_put).build())
@@ -297,23 +296,23 @@ impl CRUDStation {
         };
 
         let track_put = Put::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .set_item(Some(serde_dynamo::to_item(track)?))
             .build()?;
 
         let track_metadata_put = Put::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .set_item(Some(serde_dynamo::to_item(track_metadata)?))
             .build()?;
 
         let play_put = Put::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .set_item(Some(serde_dynamo::to_item(play)?))
             .build()?;
 
         // update station with latest play and track
         let station_update_base = Update::builder()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key("pk", AttributeValue::S(StationInDB::get_pk()))
             .key("sk", AttributeValue::S(StationInDB::get_sk(station.id)))
             .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&Utc::now())))
@@ -346,6 +345,7 @@ impl CRUDStation {
 
         // TODO handle errors
         let _resp = self
+            .context
             .db_client
             .transact_write_items()
             .transact_items(TransactWriteItem::builder().put(track_put).build())
@@ -365,9 +365,10 @@ impl CRUDStation {
         next_key: Option<Ulid>,
     ) -> Result<(Vec<TrackInDB>, Option<Ulid>)> {
         let mut query = self
+            .context
             .db_client
             .query()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
             .expression_attribute_values(":pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
             .expression_attribute_values(":sk", AttributeValue::S(TrackInDB::get_sk_prefix()))
@@ -412,9 +413,10 @@ impl CRUDStation {
         next_key: Option<&str>,
     ) -> Result<(Vec<TrackInDB>, Option<String>)> {
         let mut query = self
+            .context
             .db_client
             .query()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
             .expression_attribute_values(
                 ":pk",
@@ -468,9 +470,10 @@ impl CRUDStation {
 
     pub async fn get_track(&self, station_id: Ulid, track_id: Ulid) -> Result<Option<TrackInDB>> {
         let resp = self
+            .context
             .db_client
             .get_item()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
             .key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)))
             .send()
@@ -531,16 +534,17 @@ impl CRUDStation {
         }
 
         let resp = self
+            .context
             .db_client
             .batch_get_item()
-            .request_items(&self.db_table, request_keys.build()?)
+            .request_items(&self.context.db_table, request_keys.build()?)
             .send()
             .await?;
 
         Ok(serde_dynamo::from_items(
             resp.responses
                 .expect("responses key must be present")
-                .get(&self.db_table)
+                .get(&self.context.db_table)
                 .expect("response with table name must be present")
                 .to_vec(),
         )?)
@@ -553,9 +557,10 @@ impl CRUDStation {
         title: &str,
     ) -> Result<Option<TrackMetadataInDB>> {
         let resp = self
+            .context
             .db_client
             .get_item()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key(
                 "pk",
                 AttributeValue::S(TrackMetadataInDB::get_pk(station.id, artist)),
@@ -593,9 +598,10 @@ impl CRUDStation {
         };
 
         let mut query = self
+            .context
             .db_client
             .query()
-            .table_name(&self.db_table)
+            .table_name(&self.context.db_table)
             .key_condition_expression("pk = :pk AND sk BETWEEN :start_sk AND :end_sk")
             .expression_attribute_values(
                 ":pk",

@@ -15,7 +15,10 @@ use tracing::info;
 use ulid::Ulid;
 
 use radiojournal::{
-    crud::station::{AddPlayResult, CRUDStation},
+    crud::{
+        station::{AddPlayResult, CRUDStation},
+        Context,
+    },
     models::station::{FetcherConfig, StationInDB},
 };
 
@@ -84,7 +87,8 @@ async fn main() -> Result<(), Error> {
     let db_client = Client::new(&config);
     let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
 
-    let crud_station = Arc::new(CRUDStation::new(db_client, &table_name));
+    let context = Arc::new(Context::new(db_client, table_name));
+    let crud_station = Arc::new(CRUDStation::new(context));
 
     let state = Arc::new(State::new());
 
