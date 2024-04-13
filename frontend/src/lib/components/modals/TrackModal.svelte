@@ -74,7 +74,7 @@
               </td>
             </tr>
             <tr>
-              <td class="font-bold">Created</td>
+              <td class="font-bold">First Played</td>
               <td>
                 {#await trackPromise}
                   <div class="skeleton h-3 w-full"></div>
