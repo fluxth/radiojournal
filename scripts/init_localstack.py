@@ -25,7 +25,6 @@ def create_play(
             "pk": {"S": f"STATION#{station_id}#PLAYS#{dt.strftime('%Y-%m-%d')}"},
             "sk": {"S": f"PLAY#{play_id}"},
             "gsi1pk": {"S": f"TRACK#{track_id}"},
-            "gsi1sk": {"S": f"PLAY#{play_id}"},
             "id": {"S": play_id},
             "track_id": {"S": track_id},
             "created_ts": {"S": timestamp},
@@ -193,7 +192,6 @@ if __name__ == "__main__":
             {"AttributeName": "pk", "AttributeType": "S"},
             {"AttributeName": "sk", "AttributeType": "S"},
             {"AttributeName": "gsi1pk", "AttributeType": "S"},
-            {"AttributeName": "gsi1sk", "AttributeType": "S"},
         ],
         KeySchema=[
             {"AttributeName": "pk", "KeyType": "HASH"},
@@ -204,10 +202,11 @@ if __name__ == "__main__":
                 "IndexName": "gsi1",
                 "KeySchema": [
                     {"AttributeName": "gsi1pk", "KeyType": "HASH"},
-                    {"AttributeName": "gsi1sk", "KeyType": "RANGE"},
+                    {"AttributeName": "sk", "KeyType": "RANGE"},
                 ],
                 "Projection": {
-                    "ProjectionType": "ALL",
+                    "ProjectionType": "INCLUDE",
+                    "NonKeyAttributes": ["id", "track_id"],
                 },
             },
         ],
