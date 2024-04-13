@@ -58,6 +58,7 @@ fn truncate_datetime(dt: DateTime<Utc>) -> DateTime<Utc> {
 pub(crate) struct Station {
     id: Ulid,
     name: String,
+    location: Option<String>,
     track_count: usize,
     play_count: usize,
 }
@@ -67,6 +68,7 @@ impl From<StationInDB> for Station {
         Self {
             id: station.id,
             name: station.name,
+            location: station.location,
             track_count: station.track_count,
             play_count: station.play_count,
         }

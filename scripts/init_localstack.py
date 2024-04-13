@@ -143,6 +143,7 @@ def create_station(
     fetcher: str | None = None,
     fetcher_station: str | None = None,
     fetcher_slug: str | None = None,
+    location: str | None = None,
 ) -> str:
     station_id = ulid.from_timestamp(dt).str
     timestamp = dt.isoformat().replace("+00:00", "Z")
@@ -154,6 +155,10 @@ def create_station(
             fetcher_obj["M"]["station"] = {"S": fetcher_station}
         if fetcher_slug:
             fetcher_obj["M"]["slug"] = {"S": fetcher_slug}
+
+    location_item = {}
+    if location:
+        location_item = {"location": {"S": location}}
 
     dynamodb.put_item(
         TableName=TABLE_NAME,
@@ -169,6 +174,7 @@ def create_station(
             "play_count": {"N": "0"},
             "created_ts": {"S": timestamp},
             "updated_ts": {"S": timestamp},
+            **location_item,
         },
     )
 
@@ -223,6 +229,7 @@ if __name__ == "__main__":
         dt,
         station_name="coolism",
         fetcher="coolism",
+        location="city 1",
     )
 
     track_1 = create_track(
@@ -306,6 +313,7 @@ if __name__ == "__main__":
         station_name="greenwave",
         fetcher="atime",
         fetcher_station="greenwave",
+        location="city 2",
     )
 
     dt = datetime.now(tz=UTC)
@@ -324,6 +332,7 @@ if __name__ == "__main__":
         station_name="kiis",
         fetcher="iheart",
         fetcher_slug="kiis-fm",
+        location="usa",
     )
 
     dt = datetime.now(tz=UTC)
@@ -333,6 +342,7 @@ if __name__ == "__main__":
         station_name="z100",
         fetcher="iheart",
         fetcher_slug="whtz-fm",
+        location="usa",
     )
 
     print("Done")

@@ -9,6 +9,7 @@ pub struct StationInDB {
     sk: String,
     pub id: Ulid,
     pub name: String,
+    pub location: Option<String>,
     pub fetcher: Option<FetcherConfig>,
     pub first_play_id: Option<Ulid>,
     pub latest_play: Option<LatestPlay>,
