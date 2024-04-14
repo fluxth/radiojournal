@@ -66,6 +66,8 @@ async def main():
             partition = current_dt.strftime("%Y-%m-%d")
             print(f"Processing partition {partition}")
 
+            track_partition = current_dt.strftime("%Y-%m")
+
             plays_to_update = [
                 play
                 async for play in table.query(
@@ -73,9 +75,7 @@ async def main():
                         HashKey("pk", f"STATION#{station_id}#PLAYS#{partition}")
                         & RangeKey("sk").begins_with("PLAY#")
                     ),
-                    filter_expression=(
-                        F("gsi1pk").begins_with("STATION#") | F("gsi1sk").exists()
-                    ),
+                    filter_expression=F("gsi1pk").begins_with("TRACK#"),
                     projection=F("pk") & F("sk") & F("track_id"),
                 )
             ]
@@ -89,9 +89,9 @@ async def main():
                 Update(
                     table=table_name,
                     key={"pk": play["pk"], "sk": play["sk"]},
+                    condition=F("created_ts").begins_with(partition),
                     expression=(
-                        F("gsi1pk").set(f"TRACK#{play['track_id']}")
-                        & F("gsi1sk").remove()
+                        F("gsi1pk").set(f"TRACK#{play['track_id']}#{track_partition}")
                     ),
                 )
                 for play in plays_to_update
