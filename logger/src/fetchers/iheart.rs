@@ -121,8 +121,8 @@ impl Fetcher for Iheart {
             .ok_or(anyhow!("cannot find track!"))?;
 
         Ok(Play {
-            artist: current_track.artist.artist_name,
-            title: current_track.title,
+            artist: current_track.artist.artist_name.trim().to_owned(),
+            title: current_track.title.trim().to_owned(),
         })
     }
 }
