@@ -42,7 +42,7 @@
       "description": "Auto-merge testable NPM updates",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchManagers": ["npm"],
-      "matchPackagePrefixes": ["eslint", "@typescript-eslint", "prettier"],
+      "matchPackagePrefixes": ["eslint", "@typescript-eslint", "prettier", "@types/"],
       "matchPackageNames": ["vitest", "svelte-check", "typescript", "tslib"],
       "schedule": ["before 7am"],
       "automerge": true,
