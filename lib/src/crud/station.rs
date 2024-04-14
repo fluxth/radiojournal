@@ -16,7 +16,7 @@ use crate::{
         station::{LatestPlay, StationInDB},
         track::{
             TrackInDB, TrackMetadataCreateInDB, TrackMetadataInDB, TrackMetadataKeys,
-            TrackMinimalInDB,
+            TrackMinimalInDB, TrackPlayInDB,
         },
     },
 };
@@ -574,6 +574,42 @@ impl CRUDStation {
             Ok(Some(serde_dynamo::from_item(item)?))
         } else {
             Ok(None)
+        }
+    }
+
+    pub async fn list_plays_of_track(
+        &self,
+        station_id: Ulid,
+        track_id: Ulid,
+        limit: i32,
+    ) -> Result<Vec<TrackPlayInDB>> {
+        let resp = self
+            .context
+            .db_client
+            .query()
+            .table_name(&self.context.db_table)
+            .index_name("gsi1")
+            .key_condition_expression("gsi1pk = :gsi1pk AND begins_with(sk, :sk)")
+            .filter_expression("begins_with(pk, :pk)")
+            .expression_attribute_values(
+                ":gsi1pk",
+                AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &Utc::now())),
+            )
+            .expression_attribute_values(":sk", AttributeValue::S(TrackPlayInDB::get_sk_prefix()))
+            // double check if it's the same station we're looking for
+            .expression_attribute_values(
+                ":pk",
+                AttributeValue::S(PlayInDB::get_pk_station_prefix(station_id)),
+            )
+            .scan_index_forward(false)
+            .limit(limit)
+            .send()
+            .await?;
+
+        if let Some(items) = resp.items {
+            Ok(serde_dynamo::from_items(items.to_vec())?)
+        } else {
+            Ok(vec![])
         }
     }
 

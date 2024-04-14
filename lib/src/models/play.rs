@@ -19,6 +19,10 @@ impl PlayInDB {
         format!("STATION#{}#PLAYS#{}", station_id, play_partition)
     }
 
+    pub(crate) fn get_pk_station_prefix(station_id: Ulid) -> String {
+        format!("STATION#{}", station_id)
+    }
+
     pub(crate) fn get_sk(play_id: Ulid) -> String {
         format!("PLAY#{}", play_id)
     }

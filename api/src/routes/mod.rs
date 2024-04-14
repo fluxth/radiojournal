@@ -9,7 +9,8 @@ use utoipa::{openapi::Server, Modify, OpenApi};
 
 use crate::errors::{APIErrorDetail, APIErrorResponse};
 use crate::models::{
-    ListPlaysResponse, ListTracksResponse, NextToken, Play, Station, Track, TrackMinimal,
+    ListPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal, Station, Track,
+    TrackMinimal,
 };
 use radiojournal::crud::station::CRUDStation;
 
@@ -19,12 +20,14 @@ use radiojournal::crud::station::CRUDStation;
         station::list_stations,
         play::list_plays,
         track::get_track,
+        track::list_plays_of_track,
         track::list_tracks,
     ),
     components(
         schemas(
             Station,
             Play,
+            PlayMinimal,
             Track,
             TrackMinimal,
             NextToken,
@@ -52,6 +55,10 @@ pub(crate) fn get_router() -> Router<Arc<CRUDStation>> {
         .route(
             "/station/:station_id/track/:track_id",
             get(track::get_track),
+        )
+        .route(
+            "/station/:station_id/track/:track_id/plays",
+            get(track::list_plays_of_track),
         )
         .route("/station/:station_id/tracks", get(track::list_tracks))
 }

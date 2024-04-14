@@ -6,7 +6,7 @@ use ulid::Ulid;
 
 use crate::{
     errors::APIError,
-    models::{APIJson, ListTracksResponse, NextToken, Track},
+    models::{APIJson, ListTracksResponse, NextToken, PlayMinimal, Track},
 };
 use radiojournal::crud::station::CRUDStation;
 
@@ -33,6 +33,35 @@ pub(crate) async fn get_track(
     } else {
         Err(APIError::NotFound)
     }
+}
+
+#[utoipa::path(
+    get,
+    path = "/station/{station_id}/track/{track_id}/plays",
+    params(
+        ("station_id" = Ulid, Path, deprecated = false),
+        ("track_id" = Ulid, Path, deprecated = false),
+    ),
+    responses(
+        (status = 200, description = "Plays of track returned successfully", body = Vec<PlayMinimal>),
+        (status = 404, description = "Station or track not found", body = APIErrorResponse),
+    )
+)]
+pub(crate) async fn list_plays_of_track(
+    Path((station_id, track_id)): Path<(Ulid, Ulid)>,
+    State(crud_station): State<Arc<CRUDStation>>,
+) -> Result<APIJson<Vec<PlayMinimal>>, APIError> {
+    let track_plays_internal = crud_station
+        .list_plays_of_track(station_id, track_id, 50)
+        .await
+        .unwrap();
+
+    Ok(APIJson(
+        track_plays_internal
+            .into_iter()
+            .map(PlayMinimal::from)
+            .collect(),
+    ))
 }
 
 #[derive(Debug, Deserialize)]

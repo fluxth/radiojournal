@@ -65,6 +65,26 @@ impl TrackInDB {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct TrackPlayInDB {
+    // pk: String,
+    // sk: String,
+    // gsi1pk: String,
+    pub id: Ulid,
+    pub track_id: Ulid,
+}
+
+impl TrackPlayInDB {
+    pub(crate) fn get_gsi1pk(track_id: Ulid, datetime: &DateTime<Utc>) -> String {
+        let track_partition = datetime.format("%Y-%m").to_string();
+        format!("TRACK#{}#{}", track_id, track_partition)
+    }
+
+    pub(crate) fn get_sk_prefix() -> String {
+        "PLAY#".to_owned()
+    }
+}
+
 pub(crate) trait TrackMetadataKeys {
     fn get_pk(station_id: Ulid, artist: &str) -> String {
         format!("STATION#{}#ARTIST#{}", station_id, artist)

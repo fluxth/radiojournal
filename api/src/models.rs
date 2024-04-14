@@ -14,7 +14,7 @@ use crate::errors::APIError;
 use radiojournal::models::{
     play::PlayInDB,
     station::StationInDB,
-    track::{TrackInDB, TrackMinimalInDB},
+    track::{TrackInDB, TrackMinimalInDB, TrackPlayInDB},
 };
 
 #[derive(FromRequest)]
@@ -115,6 +115,21 @@ impl From<TrackMinimalInDB> for TrackMinimal {
             title: track.title,
             artist: track.artist,
             is_song: track.is_song,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub(crate) struct PlayMinimal {
+    pub(crate) id: Ulid,
+    pub(crate) played_at: DateTime<Utc>,
+}
+
+impl From<TrackPlayInDB> for PlayMinimal {
+    fn from(track_play: TrackPlayInDB) -> Self {
+        Self {
+            id: track_play.id,
+            played_at: truncate_datetime(track_play.id.datetime().into()),
         }
     }
 }
