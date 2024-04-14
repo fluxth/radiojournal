@@ -27,8 +27,9 @@ impl PlayInDB {
         "PLAY#".to_owned()
     }
 
-    pub(crate) fn get_gsi1pk(track_id: Ulid) -> String {
-        format!("TRACK#{}", track_id)
+    pub(crate) fn get_gsi1pk(track_id: Ulid, datetime: &DateTime<Utc>) -> String {
+        let track_partition = datetime.format("%Y-%m").to_string();
+        format!("TRACK#{}#{}", track_id, track_partition)
     }
 
     pub fn new(station_id: Ulid, track_id: Ulid) -> Self {
@@ -38,7 +39,7 @@ impl PlayInDB {
         PlayInDB {
             pk: Self::get_pk(station_id, &now),
             sk: Self::get_sk(play_id),
-            gsi1pk: Self::get_gsi1pk(track_id),
+            gsi1pk: Self::get_gsi1pk(track_id, &now),
             id: play_id,
             track_id,
             created_ts: now,
