@@ -14,7 +14,8 @@ pub struct PlayInDB {
 }
 
 impl PlayInDB {
-    pub(crate) fn get_pk(station_id: Ulid, play_partition: &str) -> String {
+    pub(crate) fn get_pk(station_id: Ulid, datetime: &DateTime<Utc>) -> String {
+        let play_partition = datetime.format("%Y-%m-%d").to_string();
         format!("STATION#{}#PLAYS#{}", station_id, play_partition)
     }
 
@@ -35,7 +36,7 @@ impl PlayInDB {
         let play_id = Ulid::new();
 
         PlayInDB {
-            pk: Self::get_pk(station_id, &now.format("%Y-%m-%d").to_string()),
+            pk: Self::get_pk(station_id, &now),
             sk: Self::get_sk(play_id),
             gsi1pk: Self::get_gsi1pk(track_id),
             id: play_id,

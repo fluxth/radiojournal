@@ -183,7 +183,6 @@ impl CRUDStation {
         play_id: Ulid,
     ) -> Result<()> {
         let play_datetime: DateTime<Utc> = play_id.datetime().into();
-        let play_partition = play_datetime.format("%Y-%m-%d");
 
         self.context
             .db_client
@@ -191,7 +190,7 @@ impl CRUDStation {
             .table_name(&self.context.db_table)
             .key(
                 "pk",
-                AttributeValue::S(PlayInDB::get_pk(station_id, &play_partition.to_string())),
+                AttributeValue::S(PlayInDB::get_pk(station_id, &play_datetime)),
             )
             .key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)))
             .condition_expression("id = :play_id AND track_id = :track_id")
@@ -587,14 +586,10 @@ impl CRUDStation {
         end: Option<DateTime<Utc>>,
         next_key: Option<Ulid>,
     ) -> Result<(Vec<PlayInDB>, Option<Ulid>)> {
-        let play_partition = {
-            let play_datetime = if let Some(start) = start {
-                start
-            } else {
-                Utc::now()
-            };
-
-            play_datetime.format("%Y-%m-%d")
+        let play_datetime = if let Some(start) = start {
+            start
+        } else {
+            Utc::now()
         };
 
         let mut query = self
@@ -605,7 +600,7 @@ impl CRUDStation {
             .key_condition_expression("pk = :pk AND sk BETWEEN :start_sk AND :end_sk")
             .expression_attribute_values(
                 ":pk",
-                AttributeValue::S(PlayInDB::get_pk(station_id, &play_partition.to_string())),
+                AttributeValue::S(PlayInDB::get_pk(station_id, &play_datetime)),
             )
             .expression_attribute_values(
                 ":start_sk",
@@ -640,15 +635,11 @@ impl CRUDStation {
 
         if let Some(next_key) = next_key {
             let next_key_datetime: DateTime<Utc> = next_key.datetime().into();
-            let next_key_partition = next_key_datetime.format("%Y-%m-%d");
 
             query = query
                 .exclusive_start_key(
                     "pk",
-                    AttributeValue::S(PlayInDB::get_pk(
-                        station_id,
-                        &next_key_partition.to_string(),
-                    )),
+                    AttributeValue::S(PlayInDB::get_pk(station_id, &next_key_datetime)),
                 )
                 .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(next_key)));
         }
