@@ -32,7 +32,7 @@ impl Atime {
 
         Self {
             client: reqwest::Client::builder()
-                .timeout(Duration::from_secs(5))
+                .timeout(Duration::from_secs(10))
                 .default_headers(default_headers)
                 .build()
                 .expect("successfully build reqwest client"),
