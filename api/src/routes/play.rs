@@ -63,7 +63,7 @@ pub(crate) async fn list_plays(
         .await
         .unwrap();
 
-    let track_ids: HashSet<Ulid> = HashSet::from_iter(plays.iter().map(|play| play.track_id));
+    let track_ids: HashSet<Ulid> = plays.iter().map(|play| play.track_id).collect();
     if track_ids.is_empty() {
         // FIXME actually return 404 if station id in pk not found
         return Ok(APIJson(ListPlaysResponse {
@@ -72,14 +72,13 @@ pub(crate) async fn list_plays(
         }));
     }
 
-    let tracks: HashMap<Ulid, TrackMinimal> = HashMap::from_iter(
-        crud_station
-            .batch_get_tracks_minimal(station_id, track_ids.iter())
-            .await
-            .unwrap()
-            .into_iter()
-            .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal))),
-    );
+    let tracks: HashMap<Ulid, TrackMinimal> = crud_station
+        .batch_get_tracks_minimal(station_id, track_ids.iter())
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal)))
+        .collect();
 
     Ok(APIJson(ListPlaysResponse {
         plays: plays
