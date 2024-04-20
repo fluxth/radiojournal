@@ -5,7 +5,7 @@
   import { toHourId } from "$lib/helpers";
 
   import Chart from "chart.js/auto";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
 
   export let data: PageData;
 
@@ -24,8 +24,10 @@
     return chartData;
   })();
 
+  let chart: Chart | null = null;
+
   onMount(() => {
-    new Chart(chartCanvas, {
+    chart = new Chart(chartCanvas, {
       type: "line",
       data: {
         labels: chartData.map((_val, idx) => -1 * (idx + 1)),
@@ -38,6 +40,10 @@
         ],
       },
     });
+  });
+
+  onDestroy(() => {
+    if (chart) chart.destroy();
   });
 
   const refresh = async () => {
