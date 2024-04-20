@@ -83,6 +83,11 @@ export const listPlays = async ({
   };
 };
 
+export type TrackResponse = {
+  track: Track;
+  invalidate: () => Promise<void>;
+};
+
 export const getTrack = async ({
   fetch,
   stationId,
@@ -91,11 +96,45 @@ export const getTrack = async ({
   fetch?: typeof window.fetch;
   stationId: string;
   trackId: string;
-}): Promise<Track> => {
+}): Promise<TrackResponse> => {
   if (!fetch) fetch = window.fetch;
 
-  const res = await fetch(`${API_BASE_URL}/v1/station/${stationId}/track/${trackId}`);
+  const url = `${API_BASE_URL}/v1/station/${stationId}/track/${trackId}`;
+  const res = await fetch(url);
 
   const track: Track = await res.json();
-  return track;
+  return {
+    track,
+    invalidate: async () => await invalidate(url),
+  };
+};
+
+export type TrackPlay = {
+  played_at: string;
+};
+
+export type TrackPlayResponse = {
+  plays: TrackPlay[];
+  invalidate: () => Promise<void>;
+};
+
+export const listTrackPlays = async ({
+  fetch,
+  stationId,
+  trackId,
+}: {
+  fetch?: typeof window.fetch;
+  stationId: string;
+  trackId: string;
+}): Promise<TrackPlayResponse> => {
+  if (!fetch) fetch = window.fetch;
+
+  const url = `${API_BASE_URL}/v1/station/${stationId}/track/${trackId}/plays`;
+  const res = await fetch(url);
+
+  const plays: TrackPlay[] = await res.json();
+  return {
+    plays,
+    invalidate: async () => await invalidate(url),
+  };
 };
