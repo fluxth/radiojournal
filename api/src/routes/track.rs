@@ -109,11 +109,11 @@ pub(crate) async fn list_tracks(
             .await
             .unwrap();
 
-        (tracks_internal, next_key.map(|val| val.to_string()))
+        (tracks_internal, next_key.map(String::from))
     };
 
     Ok(APIJson(ListTracksResponse {
         tracks: tracks_internal.into_iter().map(Track::from).collect(),
-        next_token: next_key.map(|val| val.into()),
+        next_token: next_key.map(NextToken::from),
     }))
 }

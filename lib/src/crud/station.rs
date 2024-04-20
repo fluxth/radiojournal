@@ -44,18 +44,18 @@ pub enum AddPlayType {
     NewTrack,
 }
 
-impl From<AddPlayTypeInteral> for AddPlayType {
-    fn from(value: AddPlayTypeInteral) -> Self {
+impl From<AddPlayTypeInternal> for AddPlayType {
+    fn from(value: AddPlayTypeInternal) -> Self {
         match value {
-            AddPlayTypeInteral::ExistingPlay { .. } => AddPlayType::ExistingPlay,
-            AddPlayTypeInteral::NewPlay { .. } => AddPlayType::NewPlay,
-            AddPlayTypeInteral::NewTrack => AddPlayType::NewTrack,
+            AddPlayTypeInternal::ExistingPlay { .. } => AddPlayType::ExistingPlay,
+            AddPlayTypeInternal::NewPlay { .. } => AddPlayType::NewPlay,
+            AddPlayTypeInternal::NewTrack => AddPlayType::NewTrack,
         }
     }
 }
 
 #[derive(Debug)]
-enum AddPlayTypeInteral {
+enum AddPlayTypeInternal {
     ExistingPlay { track_id: Ulid, play_id: Ulid },
     NewPlay { track_id: Ulid },
     NewTrack,
@@ -109,14 +109,14 @@ impl CRUDStation {
 
         let add_type = self.evaluate_play_metadata(station, artist, title).await?;
         let (result_track_id, result_play_id) = match &add_type {
-            AddPlayTypeInteral::ExistingPlay { track_id, play_id } => {
+            AddPlayTypeInternal::ExistingPlay { track_id, play_id } => {
                 // all metadata matched, update play updated_ts only
                 self.add_play_with_existing_play(station.id, *track_id, *play_id)
                     .await?;
 
                 (*track_id, *play_id)
             }
-            AddPlayTypeInteral::NewPlay { track_id } => {
+            AddPlayTypeInternal::NewPlay { track_id } => {
                 // insert new play with existing track
                 let play = PlayInDB::new(station.id, *track_id);
                 let play_id = play.id;
@@ -127,7 +127,7 @@ impl CRUDStation {
 
                 (*track_id, play_id)
             }
-            AddPlayTypeInteral::NewTrack => {
+            AddPlayTypeInternal::NewTrack => {
                 // insert new track and play
                 let track = TrackInDB::new(station.id, artist, title, play.is_song());
                 let play = PlayInDB::new(station.id, track.id);
@@ -142,7 +142,7 @@ impl CRUDStation {
         };
 
         Ok(AddPlayResult {
-            add_type: AddPlayType::from(add_type),
+            add_type: add_type.into(),
             play_id: result_play_id,
             track_id: result_track_id,
             metadata: AddPlayMetadata {
@@ -157,10 +157,10 @@ impl CRUDStation {
         station: &StationInDB,
         artist: &str,
         title: &str,
-    ) -> Result<AddPlayTypeInteral> {
+    ) -> Result<AddPlayTypeInternal> {
         if let Some(latest_play) = &station.latest_play {
             if latest_play.artist == artist && latest_play.title == title {
-                return Ok(AddPlayTypeInteral::ExistingPlay {
+                return Ok(AddPlayTypeInternal::ExistingPlay {
                     track_id: latest_play.track_id,
                     play_id: latest_play.id,
                 });
@@ -168,11 +168,11 @@ impl CRUDStation {
         }
 
         if let Some(track_metadata) = self.get_track_by_metadata(station, artist, title).await? {
-            Ok(AddPlayTypeInteral::NewPlay {
+            Ok(AddPlayTypeInternal::NewPlay {
                 track_id: track_metadata.track_id,
             })
         } else {
-            Ok(AddPlayTypeInteral::NewTrack)
+            Ok(AddPlayTypeInternal::NewTrack)
         }
     }
 
