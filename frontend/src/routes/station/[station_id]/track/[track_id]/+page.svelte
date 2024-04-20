@@ -4,9 +4,41 @@
   import dayjs from "$lib/dayjs";
   import { toHourId } from "$lib/helpers";
 
+  import Chart from "chart.js/auto";
+  import { onMount } from "svelte";
+
   export let data: PageData;
 
   const numberFormat = new Intl.NumberFormat();
+
+  let chartCanvas: HTMLCanvasElement;
+  $: chartData = (() => {
+    const chartData: number[] = [];
+    data.track.plays.reduce((prev, val) => {
+      const diff = dayjs(prev.played_at).diff(val.played_at);
+      chartData.push(diff / 1000 / 60 / 60);
+
+      return val;
+    });
+
+    return chartData;
+  })();
+
+  onMount(() => {
+    new Chart(chartCanvas, {
+      type: "line",
+      data: {
+        labels: chartData.map((_val, idx) => -1 * (idx + 1)),
+        datasets: [
+          {
+            label: "Play gap in hours",
+            data: chartData,
+            tension: 0.1,
+          },
+        ],
+      },
+    });
+  });
 
   const refresh = async () => {
     await data.invalidate();
@@ -40,7 +72,7 @@
     <div class="absolute sticky top-4">
       <h2 class="font-bold text-2xl truncate mx-2 mt-2 mb-4">Track Details</h2>
 
-      <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
+      <div class="stats stats-vertical lg:stats-horizontal shadow-lg mb-4">
         <div class="stat">
           <div class="stat-title">Play Count</div>
           <div class="stat-value">{numberFormat.format(data.track.play_count)}</div>
@@ -93,6 +125,8 @@
           </tbody>
         </table>
       </div>
+
+      <canvas class="mb-4" bind:this={chartCanvas}></canvas>
     </div>
   </div>
 
