@@ -2,15 +2,20 @@ mod errors;
 mod models;
 mod routes;
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use aws_config::{meta::region::RegionProviderChain, BehaviorVersion};
 use aws_sdk_dynamodb::Client;
-use axum::{response::IntoResponse, Router};
+use axum::{
+    http::Request,
+    response::{IntoResponse, Response},
+    Router,
+};
 use errors::APIError;
-use lambda_http::{run, Error};
+use lambda_http::{request::RequestContext, run, Error, RequestExt};
 use radiojournal::crud::{station::CRUDStation, Context};
-use tower_http::compression::CompressionLayer;
+use tower_http::{compression::CompressionLayer, trace::TraceLayer};
+use tracing::{info, info_span, Span};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -64,11 +69,41 @@ async fn main() -> Result<(), Error> {
         .gzip(true)
         .zstd(true);
 
+    let trace_layer = TraceLayer::new_for_http()
+        .make_span_with(|request: &Request<_>| {
+            let (client_ip, user_agent) =
+                if let RequestContext::ApiGatewayV2(request_context) = request.request_context() {
+                    (
+                        request_context.http.source_ip,
+                        request_context.http.user_agent,
+                    )
+                } else {
+                    (None, None)
+                };
+
+            info_span!(
+                "http",
+                method = ?request.method(),
+                path = request.raw_http_path(),
+                client_ip = client_ip,
+                user_agent = user_agent
+            )
+        })
+        .on_response(|response: &Response, latency: Duration, _span: &Span| {
+            let latency_ms: u64 = latency.as_millis().try_into().unwrap_or(u64::MAX);
+            info!(
+                event = "request-log",
+                latency_ms = latency_ms,
+                response_status = response.status().as_u16(),
+            );
+        });
+
     let app = Router::new()
         .nest("/v1", routes::get_router().with_state(crud_station))
         .merge(SwaggerUi::new("/apidocs").url("/openapi/v1.json", APIDoc::openapi()))
         .layer(compression_layer)
-        .fallback(handle_404);
+        .fallback(handle_404)
+        .layer(trace_layer);
 
     run(app).await
 }
