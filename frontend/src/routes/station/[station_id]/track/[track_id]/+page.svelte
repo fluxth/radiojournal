@@ -30,7 +30,7 @@
     chart = new Chart(chartCanvas, {
       type: "line",
       data: {
-        labels: chartData.map((_val, idx) => -1 * (idx + 1)),
+        labels: chartData.map((_val, idx) => `${-1 * (idx + 1)} play`),
         datasets: [
           {
             label: "Play gap in hours",
@@ -38,6 +38,28 @@
             tension: 0.1,
           },
         ],
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function (value) {
+                if (typeof value === "string") return value;
+
+                if (value >= 24) {
+                  const days = Math.floor(value / 24);
+                  const hours = value % 24;
+
+                  if (hours === 0) return days + "d";
+                  return `${days}d ${hours}h`;
+                }
+
+                return value + "h";
+              },
+            },
+          },
+        },
       },
     });
   });
