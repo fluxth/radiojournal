@@ -56,7 +56,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.station.name} - radiojournal</title>
+  <title>{data.track.artist} / {data.track.title} - {data.station.name} - radiojournal</title>
 </svelte:head>
 
 <div class="px-2 py-6 flex flex-wrap gap-4">
