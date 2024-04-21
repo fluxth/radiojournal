@@ -39,6 +39,12 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: check-frontend
+        name: check frontend
+        entry: bash -c 'cd frontend && pnpm check'
+        language: system
+        pass_filenames: false
+
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.89.0
     hooks:
