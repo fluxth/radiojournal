@@ -9,7 +9,7 @@ anyhow = "=1.0.82"
 aws-config = "=1.2.1"
 aws-sdk-dynamodb = "=1.23.0"
 chrono = { version = "=0.4.38", features = ["serde", "now"] }
-serde = { version = "=1.0.199", features = ["derive"] }
+serde = { version = "=1.0.200", features = ["derive"] }
 serde_dynamo = { version = "=4.2.14", features = ["aws-sdk-dynamodb+1"] }
 tokio = { version = "=1.37.0", features = ["full"] }
 ulid = { version = "=1.1.2", features = ["serde"] }
