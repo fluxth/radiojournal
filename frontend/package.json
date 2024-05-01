@@ -41,7 +41,7 @@
   "type": "module",
   "dependencies": {
     "chart.js": "4.4.2",
-    "dayjs": "1.11.10",
+    "dayjs": "1.11.11",
     "nprogress": "0.2.0"
   }
 }
