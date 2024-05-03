@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
-use crate::models::id::{StationId, TrackId};
+use crate::models::id::{PlayId, StationId, TrackId};
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
@@ -37,7 +37,7 @@ impl StationInDB {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LatestPlay {
-    pub id: Ulid,
+    pub id: PlayId,
     pub track_id: TrackId,
     pub artist: String,
     pub title: String,

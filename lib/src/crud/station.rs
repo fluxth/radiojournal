@@ -4,13 +4,12 @@ use anyhow::Result;
 use aws_sdk_dynamodb::types::{AttributeValue, Put, Select, TransactWriteItem, Update};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use ulid::Ulid;
 
 use crate::{
     crud::{track::CRUDTrack, Context},
     helpers::ziso_timestamp,
     models::{
-        id::{StationId, TrackId},
+        id::{PlayId, StationId, TrackId},
         play::PlayInDB,
         station::{LatestPlay, StationInDB},
         track::{TrackInDB, TrackMetadataCreateInDB},
@@ -27,7 +26,7 @@ pub trait Play {
 pub struct AddPlayResult {
     #[serde(flatten)]
     pub add_type: AddPlayType,
-    pub play_id: Ulid,
+    pub play_id: PlayId,
     pub track_id: TrackId,
     metadata: AddPlayMetadata,
 }
@@ -52,7 +51,7 @@ impl From<AddPlayTypeInternal> for AddPlayType {
 
 #[derive(Debug)]
 enum AddPlayTypeInternal {
-    ExistingPlay { track_id: TrackId, play_id: Ulid },
+    ExistingPlay { track_id: TrackId, play_id: PlayId },
     NewPlay { track_id: TrackId },
     NewTrack,
 }
@@ -177,7 +176,7 @@ impl CRUDStation {
         &self,
         station_id: StationId,
         track_id: TrackId,
-        play_id: Ulid,
+        play_id: PlayId,
     ) -> Result<()> {
         let play_datetime: DateTime<Utc> = play_id.datetime().into();
 

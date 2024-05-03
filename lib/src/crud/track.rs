@@ -291,6 +291,7 @@ impl CRUDTrack {
         if let Some(next_key) = next_key {
             // if random < (2 ** 80) - 1, assume no exclusive_start_key
             if next_key.random() < ULID_RANDOM_MAX {
+                let play_id = next_key.into();
                 query = query
                     .exclusive_start_key(
                         "pk",
@@ -300,7 +301,7 @@ impl CRUDTrack {
                         "gsi1pk",
                         AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime)),
                     )
-                    .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(next_key)));
+                    .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)));
             }
         }
 

@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
-use crate::models::id::{StationId, TrackId};
+use crate::models::id::{PlayId, StationId, TrackId};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrackInDB {
@@ -13,7 +13,7 @@ pub struct TrackInDB {
     pub artist: String,
     pub is_song: bool,
     pub play_count: usize,
-    pub latest_play_id: Option<Ulid>,
+    pub latest_play_id: Option<PlayId>,
     pub created_ts: DateTime<Utc>,
     pub updated_ts: DateTime<Utc>,
 }

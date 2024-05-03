@@ -13,7 +13,7 @@ use crate::models::{
     Station, Track, TrackMinimal,
 };
 use crate::AppState;
-use radiojournal::models::id::{StationId, TrackId};
+use radiojournal::models::id::{PlayId, StationId, TrackId};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -30,6 +30,7 @@ use radiojournal::models::id::{StationId, TrackId};
             StationId,
             Play,
             PlayMinimal,
+            PlayId,
             Track,
             TrackMinimal,
             TrackId,

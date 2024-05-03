@@ -77,13 +77,14 @@ impl CRUDPlay {
 
         if let Some(next_key) = next_key {
             let next_key_datetime: DateTime<Utc> = next_key.datetime().into();
+            let play_id = next_key.into();
 
             query = query
                 .exclusive_start_key(
                     "pk",
                     AttributeValue::S(PlayInDB::get_pk(station_id, &next_key_datetime)),
                 )
-                .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(next_key)));
+                .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)));
         }
 
         let resp = query.send().await?;

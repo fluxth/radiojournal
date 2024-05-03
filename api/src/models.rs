@@ -12,7 +12,7 @@ use utoipa::ToSchema;
 
 use crate::errors::APIError;
 use radiojournal::models::{
-    id::TrackId,
+    id::{PlayId, TrackId},
     play::PlayInDB,
     station::StationInDB,
     track::{TrackInDB, TrackMinimalInDB, TrackPlayInDB},
@@ -135,7 +135,7 @@ impl From<TrackPlayInDB> for PlayMinimal {
 
 #[derive(Debug, Serialize, ToSchema)]
 pub(crate) struct Play {
-    pub(crate) id: Ulid,
+    pub(crate) id: PlayId,
     pub(crate) played_at: DateTime<Utc>,
     pub(crate) track: TrackMinimal,
 }

@@ -41,3 +41,22 @@ impl Deref for TrackId {
         &self.0
     }
 }
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(transparent)]
+#[repr(transparent)]
+pub struct PlayId(pub Ulid);
+
+impl From<Ulid> for PlayId {
+    fn from(val: Ulid) -> Self {
+        Self(val)
+    }
+}
+
+impl Deref for PlayId {
+    type Target = Ulid;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
