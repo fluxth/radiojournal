@@ -22,12 +22,13 @@
 
   $: if (chart) {
     const chartData: number[] = [];
-    playsData.plays.reduce((prev, val) => {
-      const diff = dayjs(prev.played_at).diff(val.played_at);
-      chartData.push(diff / 1000 / 60 / 60);
+    if (plays.length > 0)
+      playsData.plays.reduce((prev, val) => {
+        const diff = dayjs(prev.played_at).diff(val.played_at);
+        chartData.push(diff / 1000 / 60 / 60);
 
-      return val;
-    });
+        return val;
+      });
     const chartLabels = chartData.map((_val, idx) => `${-1 * (idx + 1)} play`);
 
     chart.data.labels = chartLabels;
@@ -112,6 +113,7 @@
   <ul>
     <li><a href="/">Stations</a></li>
     <li>{data.station.name}</li>
+    <li>Tracks</li>
     <li>{track.artist}</li>
     <li>{track.title}</li>
   </ul>
@@ -186,7 +188,7 @@
     </div>
   </div>
 
-  <div class="flex-initial">
+  <div class="basis-1/3">
     <ul class="timeline timeline-vertical max-md:-ml-20">
       {#each plays as play, i}
         <li>
