@@ -5,12 +5,13 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use chrono::{DateTime, SubsecRound, Timelike, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 use utoipa::ToSchema;
 
 use crate::errors::APIError;
+use radiojournal::helpers::truncate_datetime_to_minutes;
 use radiojournal::models::{
     play::PlayInDB,
     station::StationInDB,
@@ -46,12 +47,6 @@ impl Deref for NextToken {
     fn deref(&self) -> &Self::Target {
         self.0.as_str()
     }
-}
-
-fn truncate_datetime(dt: DateTime<Utc>) -> DateTime<Utc> {
-    dt.trunc_subsecs(0)
-        .with_second(0)
-        .expect("set second to 0 on utc tz")
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -94,8 +89,10 @@ impl From<TrackInDB> for Track {
             artist: track.artist,
             is_song: track.is_song,
             play_count: track.play_count,
-            created_at: truncate_datetime(track.created_ts),
-            updated_at: truncate_datetime(track.updated_ts),
+            created_at: truncate_datetime_to_minutes(track.created_ts)
+                .expect("truncate to minutes on utc datetime"),
+            updated_at: truncate_datetime_to_minutes(track.updated_ts)
+                .expect("truncate to minutes on utc datetime"),
         }
     }
 }
@@ -129,7 +126,8 @@ impl From<TrackPlayInDB> for PlayMinimal {
     fn from(track_play: TrackPlayInDB) -> Self {
         Self {
             id: track_play.id,
-            played_at: truncate_datetime(track_play.id.datetime().into()),
+            played_at: truncate_datetime_to_minutes(track_play.id.datetime().into())
+                .expect("truncate to minutes on utc datetime"),
         }
     }
 }
@@ -145,7 +143,8 @@ impl Play {
     pub(crate) fn new(play: PlayInDB, track: TrackMinimal) -> Self {
         Self {
             id: play.id,
-            played_at: truncate_datetime(play.created_ts),
+            played_at: truncate_datetime_to_minutes(play.created_ts)
+                .expect("truncate to minutes on utc datetime"),
             track,
         }
     }
