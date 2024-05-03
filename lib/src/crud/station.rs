@@ -76,7 +76,7 @@ impl CRUDStation {
         }
     }
 
-    pub async fn list(&self, limit: i32) -> Result<Vec<StationInDB>> {
+    pub async fn list_stations(&self, limit: i32) -> Result<Vec<StationInDB>> {
         let resp = self
             .context
             .db_client

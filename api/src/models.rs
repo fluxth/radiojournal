@@ -163,7 +163,7 @@ pub(crate) struct ListTracksResponse {
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub(crate) struct ListPlaysOfTrackResponse {
+pub(crate) struct ListTrackPlaysResponse {
     pub(crate) plays: Vec<PlayMinimal>,
     pub(crate) next_token: Option<NextToken>,
 }

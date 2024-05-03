@@ -15,7 +15,7 @@ use crate::{
     )
 )]
 pub(crate) async fn list_stations(State(state): State<Arc<AppState>>) -> APIJson<Vec<Station>> {
-    let stations = state.crud_station.list(50).await.unwrap();
+    let internal_stations = state.crud_station.list_stations(50).await.unwrap();
 
-    APIJson(stations.into_iter().map(Station::from).collect())
+    APIJson(internal_stations.into_iter().map(Station::from).collect())
 }

@@ -122,7 +122,7 @@ async fn invoke(
     let mut join_set = JoinSet::new();
 
     crud_station
-        .list(100)
+        .list_stations(100)
         .await
         .expect("list stations successfully")
         .into_iter()

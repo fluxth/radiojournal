@@ -6,9 +6,7 @@ use ulid::Ulid;
 
 use crate::{
     errors::APIError,
-    models::{
-        APIJson, ListPlaysOfTrackResponse, ListTracksResponse, NextToken, PlayMinimal, Track,
-    },
+    models::{APIJson, ListTrackPlaysResponse, ListTracksResponse, NextToken, PlayMinimal, Track},
     AppState,
 };
 
@@ -42,7 +40,7 @@ pub(crate) async fn get_track(
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct ListPlaysOfTrackQuery {
+pub(crate) struct ListTrackPlaysQuery {
     next_token: Option<NextToken>,
 }
 
@@ -55,15 +53,15 @@ pub(crate) struct ListPlaysOfTrackQuery {
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
-        (status = 200, description = "Plays of track returned successfully", body = ListPlaysOfTrackResponse),
+        (status = 200, description = "Plays of track returned successfully", body = ListTrackPlaysResponse),
         (status = 404, description = "Station or track not found", body = APIErrorResponse),
     )
 )]
 pub(crate) async fn list_plays_of_track(
     Path((station_id, track_id)): Path<(Ulid, Ulid)>,
-    Query(query): Query<ListPlaysOfTrackQuery>,
+    Query(query): Query<ListTrackPlaysQuery>,
     State(state): State<Arc<AppState>>,
-) -> Result<APIJson<ListPlaysOfTrackResponse>, APIError> {
+) -> Result<APIJson<ListTrackPlaysResponse>, APIError> {
     let next_key = if let Some(next_token) = query.next_token {
         Some(
             Ulid::from_string(&next_token).or(Err(APIError::ValidationFailed {
@@ -80,7 +78,7 @@ pub(crate) async fn list_plays_of_track(
         .await
         .unwrap();
 
-    Ok(APIJson(ListPlaysOfTrackResponse {
+    Ok(APIJson(ListTrackPlaysResponse {
         plays: track_plays_internal
             .into_iter()
             .map(PlayMinimal::from)

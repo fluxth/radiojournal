@@ -58,13 +58,13 @@ pub(crate) async fn list_plays(
         }
     }
 
-    let (plays, next_key) = state
+    let (plays_internal, next_key) = state
         .crud_play
         .list_plays(station_id, 50, query.start, query.end, next_key)
         .await
         .unwrap();
 
-    let track_ids: HashSet<Ulid> = plays.iter().map(|play| play.track_id).collect();
+    let track_ids: HashSet<Ulid> = plays_internal.iter().map(|play| play.track_id).collect();
     if track_ids.is_empty() {
         // FIXME actually return 404 if station id in pk not found
         return Ok(APIJson(ListPlaysResponse {
@@ -83,7 +83,7 @@ pub(crate) async fn list_plays(
         .collect();
 
     Ok(APIJson(ListPlaysResponse {
-        plays: plays
+        plays: plays_internal
             .into_iter()
             .map(|play_internal| {
                 let track = tracks

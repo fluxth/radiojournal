@@ -9,7 +9,7 @@ use utoipa::{openapi::Server, Modify, OpenApi};
 
 use crate::errors::{APIErrorDetail, APIErrorResponse};
 use crate::models::{
-    ListPlaysOfTrackResponse, ListPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal,
+    ListPlaysResponse, ListTrackPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal,
     Station, Track, TrackMinimal,
 };
 use crate::AppState;
@@ -33,7 +33,7 @@ use crate::AppState;
             NextToken,
             ListPlaysResponse,
             ListTracksResponse,
-            ListPlaysOfTrackResponse,
+            ListTrackPlaysResponse,
             APIErrorDetail,
             APIErrorResponse
         ),
