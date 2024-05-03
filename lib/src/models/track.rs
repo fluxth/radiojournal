@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
+use super::id::StationId;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrackInDB {
     pk: String,
@@ -17,8 +19,8 @@ pub struct TrackInDB {
 }
 
 impl TrackInDB {
-    pub(crate) fn get_pk(station_id: Ulid) -> String {
-        format!("STATION#{}#TRACKS", station_id)
+    pub(crate) fn get_pk(station_id: StationId) -> String {
+        format!("STATION#{}#TRACKS", station_id.0)
     }
 
     pub(crate) fn get_sk(track_id: Ulid) -> String {
@@ -29,17 +31,18 @@ impl TrackInDB {
         "TRACK#".to_owned()
     }
 
-    fn station_id(&self) -> Ulid {
+    fn station_id(&self) -> StationId {
         Ulid::from_string(
             self.pk
                 .trim_start_matches("STATION#")
                 .trim_end_matches("#TRACKS"),
         )
         .expect("track station id must be ulid")
+        .into()
     }
 
     pub fn new(
-        station_id: Ulid,
+        station_id: StationId,
         artist: impl Into<String>,
         title: impl Into<String>,
         is_song: bool,
@@ -86,8 +89,8 @@ impl TrackPlayInDB {
 }
 
 pub(crate) trait TrackMetadataKeys {
-    fn get_pk(station_id: Ulid, artist: &str) -> String {
-        format!("STATION#{}#ARTIST#{}", station_id, artist)
+    fn get_pk(station_id: StationId, artist: &str) -> String {
+        format!("STATION#{}#ARTIST#{}", station_id.0, artist)
     }
 
     fn get_sk(title: &str) -> String {

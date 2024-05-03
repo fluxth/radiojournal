@@ -2,12 +2,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
+use crate::models::id::StationId;
+
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct StationInDB {
     pk: String,
     sk: String,
-    pub id: Ulid,
+    pub id: StationId,
     pub name: String,
     pub location: Option<String>,
     pub fetcher: Option<FetcherConfig>,
@@ -24,8 +26,8 @@ impl StationInDB {
         "STATIONS".to_owned()
     }
 
-    pub(crate) fn get_sk(station_id: Ulid) -> String {
-        format!("STATION#{}", station_id)
+    pub(crate) fn get_sk(station_id: StationId) -> String {
+        format!("STATION#{}", station_id.0)
     }
 
     pub(crate) fn get_sk_prefix() -> String {

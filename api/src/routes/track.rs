@@ -9,6 +9,7 @@ use crate::{
     models::{APIJson, ListTrackPlaysResponse, ListTracksResponse, NextToken, PlayMinimal, Track},
     AppState,
 };
+use radiojournal::models::id::StationId;
 
 #[utoipa::path(
     get,
@@ -23,7 +24,7 @@ use crate::{
     )
 )]
 pub(crate) async fn get_track(
-    Path((station_id, track_id)): Path<(Ulid, Ulid)>,
+    Path((station_id, track_id)): Path<(StationId, Ulid)>,
     State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<Track>, APIError> {
     let maybe_track_internal = state
@@ -58,7 +59,7 @@ pub(crate) struct ListTrackPlaysQuery {
     )
 )]
 pub(crate) async fn list_plays_of_track(
-    Path((station_id, track_id)): Path<(Ulid, Ulid)>,
+    Path((station_id, track_id)): Path<(StationId, Ulid)>,
     Query(query): Query<ListTrackPlaysQuery>,
     State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListTrackPlaysResponse>, APIError> {
@@ -107,7 +108,7 @@ pub(crate) struct ListTracksQuery {
     )
 )]
 pub(crate) async fn list_tracks(
-    Path(station_id): Path<Ulid>,
+    Path(station_id): Path<StationId>,
     Query(query): Query<ListTracksQuery>,
     State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListTracksResponse>, APIError> {

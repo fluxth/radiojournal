@@ -5,7 +5,10 @@ use aws_sdk_dynamodb::types::{AttributeValue, Select};
 use chrono::{DateTime, Utc};
 use ulid::Ulid;
 
-use crate::{crud::Context, models::play::PlayInDB, models::PaginateKey};
+use crate::{
+    crud::Context,
+    models::{id::StationId, play::PlayInDB, PaginateKey},
+};
 
 pub struct CRUDPlay {
     context: Arc<Context>,
@@ -19,7 +22,7 @@ impl CRUDPlay {
     // todo: traverse play partitions
     pub async fn list_plays(
         &self,
-        station_id: Ulid,
+        station_id: StationId,
         limit: i32,
         start: Option<DateTime<Utc>>,
         end: Option<DateTime<Utc>>,

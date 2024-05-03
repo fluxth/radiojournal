@@ -7,10 +7,10 @@ use serde::Serialize;
 use ulid::Ulid;
 
 use crate::{
-    crud::track::CRUDTrack,
-    crud::Context,
+    crud::{track::CRUDTrack, Context},
     helpers::ziso_timestamp,
     models::{
+        id::StationId,
         play::PlayInDB,
         station::{LatestPlay, StationInDB},
         track::{TrackInDB, TrackMetadataCreateInDB},
@@ -175,7 +175,7 @@ impl CRUDStation {
 
     async fn add_play_with_existing_play(
         &self,
-        station_id: Ulid,
+        station_id: StationId,
         track_id: Ulid,
         play_id: Ulid,
     ) -> Result<()> {

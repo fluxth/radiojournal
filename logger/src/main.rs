@@ -1,5 +1,6 @@
 mod fetchers;
 use fetchers::Fetcher;
+use radiojournal::models::id::StationId;
 
 use std::sync::Arc;
 
@@ -12,7 +13,6 @@ use serde_json::Value;
 use tokio::task::JoinSet;
 use tracing::error;
 use tracing::info;
-use ulid::Ulid;
 
 use radiojournal::{
     crud::{
@@ -109,7 +109,7 @@ struct InvokeOutput {
 
 #[derive(Debug, Serialize)]
 struct StationResult {
-    id: Ulid,
+    id: StationId,
     name: String,
     logger_result: Option<AddPlayResult>,
 }

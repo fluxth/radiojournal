@@ -11,12 +11,12 @@ use ulid::Ulid;
 use utoipa::ToSchema;
 
 use crate::errors::APIError;
-use radiojournal::helpers::truncate_datetime_to_minutes;
 use radiojournal::models::{
     play::PlayInDB,
     station::StationInDB,
     track::{TrackInDB, TrackMinimalInDB, TrackPlayInDB},
 };
+use radiojournal::{helpers::truncate_datetime_to_minutes, models::id::StationId};
 
 #[derive(FromRequest)]
 #[from_request(via(axum::Json), rejection(APIError))]
@@ -51,7 +51,7 @@ impl Deref for NextToken {
 
 #[derive(Debug, Serialize, ToSchema)]
 pub(crate) struct Station {
-    id: Ulid,
+    id: StationId,
     name: String,
     location: Option<String>,
     track_count: usize,

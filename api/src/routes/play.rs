@@ -13,6 +13,7 @@ use crate::{
     models::{APIJson, ListPlaysResponse, NextToken, Play, TrackMinimal},
     AppState,
 };
+use radiojournal::models::id::StationId;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListPlaysQuery {
@@ -36,7 +37,7 @@ pub(crate) struct ListPlaysQuery {
     )
 )]
 pub(crate) async fn list_plays(
-    Path(station_id): Path<Ulid>,
+    Path(station_id): Path<StationId>,
     Query(query): Query<ListPlaysQuery>,
     State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListPlaysResponse>, APIError> {

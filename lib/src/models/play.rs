@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
+use super::id::StationId;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PlayInDB {
     pk: String,
@@ -14,13 +16,13 @@ pub struct PlayInDB {
 }
 
 impl PlayInDB {
-    pub(crate) fn get_pk(station_id: Ulid, datetime: &DateTime<Utc>) -> String {
+    pub(crate) fn get_pk(station_id: StationId, datetime: &DateTime<Utc>) -> String {
         let play_partition = datetime.format("%Y-%m-%d").to_string();
-        format!("STATION#{}#PLAYS#{}", station_id, play_partition)
+        format!("STATION#{}#PLAYS#{}", station_id.0, play_partition)
     }
 
-    pub(crate) fn get_pk_station_prefix(station_id: Ulid) -> String {
-        format!("STATION#{}", station_id)
+    pub(crate) fn get_pk_station_prefix(station_id: StationId) -> String {
+        format!("STATION#{}", station_id.0)
     }
 
     pub(crate) fn get_sk(play_id: Ulid) -> String {
@@ -36,7 +38,7 @@ impl PlayInDB {
         format!("TRACK#{}#{}", track_id, track_partition)
     }
 
-    pub fn new(station_id: Ulid, track_id: Ulid) -> Self {
+    pub fn new(station_id: StationId, track_id: Ulid) -> Self {
         let now = Utc::now();
         let play_id = Ulid::new();
 
