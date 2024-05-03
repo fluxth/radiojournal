@@ -4,13 +4,13 @@ use anyhow::Result;
 use aws_sdk_dynamodb::types::{
     AttributeValue, KeysAndAttributes, Put, Select, TransactWriteItem, Update,
 };
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
 use super::Context;
 use crate::{
-    helpers::ziso_timestamp,
+    helpers::{truncate_datetime_to_months, ziso_timestamp},
     models::{
         play::PlayInDB,
         station::{LatestPlay, StationInDB},
@@ -20,6 +20,8 @@ use crate::{
         },
     },
 };
+
+const ULID_RANDOM_MAX: u128 = (1 << 80) - 1;
 
 pub trait Play {
     fn get_title(&self) -> &str;
@@ -71,6 +73,13 @@ pub struct AddPlayMetadata {
 #[derive(Debug, Deserialize)]
 struct PaginateKey {
     pk: String,
+    sk: String,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+struct Gsi1PaginateKey {
+    gsi1pk: String,
     sk: String,
 }
 
@@ -582,8 +591,15 @@ impl CRUDStation {
         station_id: Ulid,
         track_id: Ulid,
         limit: i32,
-    ) -> Result<Vec<TrackPlayInDB>> {
-        let resp = self
+        next_key: Option<Ulid>,
+    ) -> Result<(Vec<TrackPlayInDB>, Option<String>)> {
+        let partition_datetime = if let Some(next_key) = next_key {
+            next_key.datetime().into()
+        } else {
+            Utc::now()
+        };
+
+        let mut query = self
             .context
             .db_client
             .query()
@@ -593,7 +609,7 @@ impl CRUDStation {
             .filter_expression("begins_with(pk, :pk)")
             .expression_attribute_values(
                 ":gsi1pk",
-                AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &Utc::now())),
+                AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime)),
             )
             .expression_attribute_values(":sk", AttributeValue::S(TrackPlayInDB::get_sk_prefix()))
             // double check if it's the same station we're looking for
@@ -602,14 +618,61 @@ impl CRUDStation {
                 AttributeValue::S(PlayInDB::get_pk_station_prefix(station_id)),
             )
             .scan_index_forward(false)
-            .limit(limit)
-            .send()
-            .await?;
+            .limit(limit);
+
+        if let Some(next_key) = next_key {
+            // if random < (2 ** 80) - 1, assume no exclusive_start_key
+            if next_key.random() < ULID_RANDOM_MAX {
+                query = query
+                    .exclusive_start_key(
+                        "pk",
+                        AttributeValue::S(PlayInDB::get_pk(station_id, &partition_datetime)),
+                    )
+                    .exclusive_start_key(
+                        "gsi1pk",
+                        AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime)),
+                    )
+                    .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(next_key)));
+            }
+        }
+
+        let resp = query.send().await?;
+
+        let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
+            let paginate_key: Gsi1PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
+            Some(
+                paginate_key
+                    .sk
+                    .strip_prefix(&TrackPlayInDB::get_sk_prefix())
+                    .expect("parse next key")
+                    .to_owned(),
+            )
+        } else {
+            let next_partition_datetime = truncate_datetime_to_months(partition_datetime)
+                .expect("truncate datetime to months")
+                - Duration::nanoseconds(1);
+
+            let track_creation: DateTime<Utc> = track_id.datetime().into();
+            if next_partition_datetime > track_creation {
+                Some(
+                    Ulid::from_parts(
+                        next_partition_datetime
+                            .timestamp_millis()
+                            .try_into()
+                            .expect("convert i64 unix ts to u64"),
+                        u128::MAX,
+                    )
+                    .to_string(),
+                )
+            } else {
+                None
+            }
+        };
 
         if let Some(items) = resp.items {
-            Ok(serde_dynamo::from_items(items.to_vec())?)
+            Ok((serde_dynamo::from_items(items.to_vec())?, next_key))
         } else {
-            Ok(vec![])
+            Ok((vec![], next_key))
         }
     }
 

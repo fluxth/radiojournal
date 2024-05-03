@@ -9,8 +9,8 @@ use utoipa::{openapi::Server, Modify, OpenApi};
 
 use crate::errors::{APIErrorDetail, APIErrorResponse};
 use crate::models::{
-    ListPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal, Station, Track,
-    TrackMinimal,
+    ListPlaysOfTrackResponse, ListPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal,
+    Station, Track, TrackMinimal,
 };
 use radiojournal::crud::station::CRUDStation;
 
@@ -33,6 +33,7 @@ use radiojournal::crud::station::CRUDStation;
             NextToken,
             ListPlaysResponse,
             ListTracksResponse,
+            ListPlaysOfTrackResponse,
             APIErrorDetail,
             APIErrorResponse
         ),

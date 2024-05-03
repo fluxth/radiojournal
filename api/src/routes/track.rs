@@ -6,7 +6,9 @@ use ulid::Ulid;
 
 use crate::{
     errors::APIError,
-    models::{APIJson, ListTracksResponse, NextToken, PlayMinimal, Track},
+    models::{
+        APIJson, ListPlaysOfTrackResponse, ListTracksResponse, NextToken, PlayMinimal, Track,
+    },
 };
 use radiojournal::crud::station::CRUDStation;
 
@@ -35,33 +37,51 @@ pub(crate) async fn get_track(
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub(crate) struct ListPlaysOfTrackQuery {
+    next_token: Option<NextToken>,
+}
+
 #[utoipa::path(
     get,
     path = "/station/{station_id}/track/{track_id}/plays",
     params(
         ("station_id" = Ulid, Path, deprecated = false),
         ("track_id" = Ulid, Path, deprecated = false),
+        ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
-        (status = 200, description = "Plays of track returned successfully", body = Vec<PlayMinimal>),
+        (status = 200, description = "Plays of track returned successfully", body = ListPlaysOfTrackResponse),
         (status = 404, description = "Station or track not found", body = APIErrorResponse),
     )
 )]
 pub(crate) async fn list_plays_of_track(
     Path((station_id, track_id)): Path<(Ulid, Ulid)>,
+    Query(query): Query<ListPlaysOfTrackQuery>,
     State(crud_station): State<Arc<CRUDStation>>,
-) -> Result<APIJson<Vec<PlayMinimal>>, APIError> {
-    let track_plays_internal = crud_station
-        .list_plays_of_track(station_id, track_id, 50)
+) -> Result<APIJson<ListPlaysOfTrackResponse>, APIError> {
+    let next_key = if let Some(next_token) = query.next_token {
+        Some(
+            Ulid::from_string(&next_token).or(Err(APIError::ValidationFailed {
+                message: Some("Invalid next_token"),
+            }))?,
+        )
+    } else {
+        None
+    };
+
+    let (track_plays_internal, next_key) = crud_station
+        .list_plays_of_track(station_id, track_id, 50, next_key)
         .await
         .unwrap();
 
-    Ok(APIJson(
-        track_plays_internal
+    Ok(APIJson(ListPlaysOfTrackResponse {
+        plays: track_plays_internal
             .into_iter()
             .map(PlayMinimal::from)
             .collect(),
-    ))
+        next_token: next_key.map(NextToken::from),
+    }))
 }
 
 #[derive(Debug, Deserialize)]
