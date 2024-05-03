@@ -21,7 +21,8 @@ use radiojournal::models::id::{StationId, TrackId};
     responses(
         (status = 200, description = "Track returned successfully", body = Track),
         (status = 404, description = "Station or track not found", body = APIErrorResponse),
-    )
+    ),
+    tag = "track"
 )]
 pub(crate) async fn get_track(
     Path((station_id, track_id)): Path<(StationId, TrackId)>,
@@ -56,7 +57,8 @@ pub(crate) struct ListTrackPlaysQuery {
     responses(
         (status = 200, description = "Plays of track returned successfully", body = ListTrackPlaysResponse),
         (status = 404, description = "Station or track not found", body = APIErrorResponse),
-    )
+    ),
+    tag = "track"
 )]
 pub(crate) async fn list_plays_of_track(
     Path((station_id, track_id)): Path<(StationId, TrackId)>,
@@ -105,7 +107,8 @@ pub(crate) struct ListTracksQuery {
     responses(
         (status = 200, description = "Tracks listed successfully", body = Vec<Track>),
         (status = 404, description = "Station not found", body = APIErrorResponse),
-    )
+    ),
+    tag = "track"
 )]
 pub(crate) async fn list_tracks(
     Path(station_id): Path<StationId>,

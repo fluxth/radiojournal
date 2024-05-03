@@ -34,7 +34,8 @@ pub(crate) struct ListPlaysQuery {
     responses(
         (status = 200, description = "Plays listed successfully", body = ListPlaysResponse),
         (status = 404, description = "Station not found", body = APIErrorResponse),
-    )
+    ),
+    tag = "play"
 )]
 pub(crate) async fn list_plays(
     Path(station_id): Path<StationId>,

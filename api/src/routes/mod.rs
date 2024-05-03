@@ -6,44 +6,13 @@ use std::sync::Arc;
 
 use axum::{routing::get, Router};
 use utoipa::{openapi::Server, Modify, OpenApi};
+use utoipauto::utoipauto;
 
-use crate::errors::{APIErrorDetail, APIErrorResponse};
-use crate::models::{
-    ListPlaysResponse, ListTrackPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal,
-    Station, Track, TrackMinimal,
-};
 use crate::AppState;
-use radiojournal::models::id::{PlayId, StationId, TrackId};
 
+#[utoipauto(paths = "api/src, lib/src/models/id.rs from radiojournal")]
 #[derive(OpenApi)]
-#[openapi(
-    paths(
-        station::list_stations,
-        play::list_plays,
-        track::get_track,
-        track::list_plays_of_track,
-        track::list_tracks,
-    ),
-    components(
-        schemas(
-            Station,
-            StationId,
-            Play,
-            PlayMinimal,
-            PlayId,
-            Track,
-            TrackMinimal,
-            TrackId,
-            NextToken,
-            ListPlaysResponse,
-            ListTracksResponse,
-            ListTrackPlaysResponse,
-            APIErrorDetail,
-            APIErrorResponse
-        ),
-    ),
-    modifiers(&ServerAddon),
-)]
+#[openapi(modifiers(&ServerAddon))]
 pub(crate) struct APIDoc;
 
 struct ServerAddon;
