@@ -60,7 +60,7 @@ export const listPlays = async ({
   stationId: string;
   start?: Dayjs;
   end?: Dayjs;
-  nextToken?: string;
+  nextToken?: string | null;
 }): Promise<PlayResponse> => {
   if (!fetch) fetch = window.fetch;
 
@@ -115,6 +115,7 @@ export type TrackPlay = {
 
 export type TrackPlayResponse = {
   plays: TrackPlay[];
+  nextToken: string | null;
   invalidate: () => Promise<void>;
 };
 
@@ -122,19 +123,28 @@ export const listTrackPlays = async ({
   fetch,
   stationId,
   trackId,
+  nextToken,
 }: {
   fetch?: typeof window.fetch;
   stationId: string;
   trackId: string;
+  nextToken?: string | null;
 }): Promise<TrackPlayResponse> => {
   if (!fetch) fetch = window.fetch;
 
-  const url = `${API_BASE_URL}/v1/station/${stationId}/track/${trackId}/plays`;
+  const params = new URLSearchParams();
+
+  if (nextToken) params.append("next_token", nextToken);
+
+  const paramsEncoded = params.size ? `?${params.toString()}` : "";
+
+  const url = `${API_BASE_URL}/v1/station/${stationId}/track/${trackId}/plays${paramsEncoded}`;
   const res = await fetch(url);
 
-  const plays: TrackPlay[] = await res.json();
+  const { plays, next_token } = await res.json();
   return {
     plays,
+    nextToken: next_token,
     invalidate: async () => await invalidate(url),
   };
 };

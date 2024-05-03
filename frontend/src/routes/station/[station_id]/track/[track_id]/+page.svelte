@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import type { Track } from "$lib/api";
+  import { listTrackPlays, type Track } from "$lib/api";
   import dayjs from "$lib/dayjs";
   import { toHourId } from "$lib/helpers";
 
@@ -9,32 +9,41 @@
 
   export let data: PageData;
 
+  $: track = data.trackData.track;
+
+  $: playsData = data.playsData;
+  $: plays = playsData.plays;
+
   const numberFormat = new Intl.NumberFormat();
 
   let chartCanvas: HTMLCanvasElement;
-  $: chartData = (() => {
+
+  let chart: Chart | null = null;
+
+  $: if (chart) {
     const chartData: number[] = [];
-    data.track.plays.reduce((prev, val) => {
+    playsData.plays.reduce((prev, val) => {
       const diff = dayjs(prev.played_at).diff(val.played_at);
       chartData.push(diff / 1000 / 60 / 60);
 
       return val;
     });
+    const chartLabels = chartData.map((_val, idx) => `${-1 * (idx + 1)} play`);
 
-    return chartData;
-  })();
-
-  let chart: Chart | null = null;
+    chart.data.labels = chartLabels;
+    chart.data.datasets[0].data = chartData;
+    chart.update();
+  }
 
   onMount(() => {
     chart = new Chart(chartCanvas, {
       type: "line",
       data: {
-        labels: chartData.map((_val, idx) => `${-1 * (idx + 1)} play`),
+        labels: [],
         datasets: [
           {
             label: "Play gap in hours",
-            data: chartData,
+            data: [],
             tension: 0.1,
           },
         ],
@@ -69,16 +78,29 @@
   });
 
   const refresh = async () => {
-    await data.invalidate();
+    await Promise.allSettled([data.trackData.invalidate(), playsData.invalidate()]);
   };
 
   const getTrackType = (track: Track): string => {
     return track.is_song ? "Music" : "Other";
   };
+
+  const loadMorePlays = async () => {
+    const { plays, ...rest } = await listTrackPlays({
+      stationId: data.station.id,
+      trackId: track.id,
+      nextToken: playsData.nextToken,
+    });
+
+    playsData = {
+      plays: [...playsData.plays, ...plays],
+      ...rest,
+    };
+  };
 </script>
 
 <svelte:head>
-  <title>{data.track.artist} / {data.track.title} - {data.station.name} - radiojournal</title>
+  <title>{track.artist} / {track.title} - {data.station.name} - radiojournal</title>
 </svelte:head>
 
 <div class="px-2 py-6 flex flex-wrap gap-4">
@@ -90,35 +112,35 @@
   <ul>
     <li><a href="/">Stations</a></li>
     <li>{data.station.name}</li>
-    <li>{data.track.artist}</li>
-    <li>{data.track.title}</li>
+    <li>{track.artist}</li>
+    <li>{track.title}</li>
   </ul>
 </div>
 
 <div class="lg:flex gap-4 my-4">
   <div class="flex-1">
-    <div class="absolute sticky top-4">
+    <div>
       <h2 class="font-bold text-2xl truncate mx-2 mt-2 mb-4">Track Details</h2>
 
       <div class="stats stats-vertical lg:stats-horizontal shadow-lg mb-4">
         <div class="stat">
           <div class="stat-title">Play Count</div>
-          <div class="stat-value">{numberFormat.format(data.track.play_count)}</div>
+          <div class="stat-value">{numberFormat.format(track.play_count)}</div>
         </div>
 
         <div class="stat">
           <div class="stat-title">First Played</div>
-          <div class="stat-value">{dayjs(data.track.created_at).fromNow()}</div>
+          <div class="stat-value">{dayjs(track.created_at).fromNow()}</div>
           <div class="stat-desc">
-            {dayjs(data.track.created_at).format("ddd MMM DD, YYYY [at] HH:mm")}
+            {dayjs(track.created_at).format("ddd MMM DD, YYYY [at] HH:mm")}
           </div>
         </div>
 
         <div class="stat">
           <div class="stat-title">Last Played</div>
-          <div class="stat-value">{dayjs(data.track.updated_at).fromNow()}</div>
+          <div class="stat-value">{dayjs(track.updated_at).fromNow()}</div>
           <div class="stat-desc">
-            {dayjs(data.track.updated_at).format("ddd MMM DD, YYYY [at] HH:mm")}
+            {dayjs(track.updated_at).format("ddd MMM DD, YYYY [at] HH:mm")}
           </div>
         </div>
       </div>
@@ -129,25 +151,25 @@
             <tr>
               <td class="font-bold w-24">Track ID</td>
               <td>
-                {data.track.id}
+                {track.id}
               </td>
             </tr>
             <tr>
               <td class="font-bold w-24">Artist</td>
               <td>
-                {data.track.artist}
+                {track.artist}
               </td>
             </tr>
             <tr>
               <td class="font-bold w-24">Title</td>
               <td>
-                {data.track.title}
+                {track.title}
               </td>
             </tr>
             <tr>
               <td class="font-bold w-24">Type</td>
               <td>
-                {getTrackType(data.track)}
+                {getTrackType(track)}
               </td>
             </tr>
           </tbody>
@@ -155,21 +177,25 @@
       </div>
 
       <canvas class="mb-4" bind:this={chartCanvas}></canvas>
+
+      <div class="text-right">
+        <button class="btn btn-sm" disabled={!playsData.nextToken} on:click={loadMorePlays}>
+          Load More
+        </button>
+      </div>
     </div>
   </div>
 
   <div class="flex-initial">
     <ul class="timeline timeline-vertical max-md:-ml-20">
-      {#each data.track.plays as play, i}
+      {#each plays as play, i}
         <li>
           {#if i > 0}
             <hr />
           {/if}
           <div class="timeline-end text-sm italic mx-4 my-2 text-neutral-300 dark:text-neutral-600">
             {#if i > 0}
-              {dayjs
-                .duration(dayjs(data.track.plays[i - 1].played_at).diff(play.played_at))
-                .humanize()}
+              {dayjs.duration(dayjs(plays[i - 1].played_at).diff(play.played_at)).humanize()}
               apart
             {/if}
           </div>
