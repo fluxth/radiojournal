@@ -59,7 +59,7 @@ pub(crate) async fn list_plays(
     }
 
     let (plays, next_key) = state
-        .crud_station
+        .crud_play
         .list_plays(station_id, 50, query.start, query.end, next_key)
         .await
         .unwrap();

@@ -13,7 +13,7 @@ use axum::{
 };
 use errors::APIError;
 use lambda_http::{request::RequestContext, run, Error, RequestExt};
-use radiojournal::crud::{station::CRUDStation, track::CRUDTrack, Context};
+use radiojournal::crud::{play::CRUDPlay, station::CRUDStation, track::CRUDTrack, Context};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 use tracing::{info, info_span, Span};
 use utoipa::OpenApi;
@@ -30,8 +30,9 @@ fn use_localstack() -> bool {
 }
 
 struct AppState {
-    crud_station: CRUDStation,
+    crud_play: CRUDPlay,
     crud_track: CRUDTrack,
+    crud_station: CRUDStation,
 }
 
 #[tokio::main]
@@ -67,12 +68,14 @@ async fn main() -> Result<(), Error> {
 
     let context = Arc::new(Context::new(db_client, table_name));
 
+    let crud_play = CRUDPlay::new(context.clone());
     let crud_track = CRUDTrack::new(context.clone());
     let crud_station = CRUDStation::new(context);
 
     let app_state = Arc::new(AppState {
-        crud_station,
+        crud_play,
         crud_track,
+        crud_station,
     });
 
     let compression_layer: CompressionLayer = CompressionLayer::new()
