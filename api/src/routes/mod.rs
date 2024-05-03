@@ -12,7 +12,7 @@ use crate::models::{
     ListPlaysOfTrackResponse, ListPlaysResponse, ListTracksResponse, NextToken, Play, PlayMinimal,
     Station, Track, TrackMinimal,
 };
-use radiojournal::crud::station::CRUDStation;
+use crate::AppState;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -49,7 +49,7 @@ impl Modify for ServerAddon {
     }
 }
 
-pub(crate) fn get_router() -> Router<Arc<CRUDStation>> {
+pub(crate) fn get_router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/stations", get(station::list_stations))
         .route("/station/:station_id/plays", get(play::list_plays))

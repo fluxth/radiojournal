@@ -11,8 +11,8 @@ use ulid::Ulid;
 use crate::{
     errors::APIError,
     models::{APIJson, ListPlaysResponse, NextToken, Play, TrackMinimal},
+    AppState,
 };
-use radiojournal::crud::station::CRUDStation;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListPlaysQuery {
@@ -38,7 +38,7 @@ pub(crate) struct ListPlaysQuery {
 pub(crate) async fn list_plays(
     Path(station_id): Path<Ulid>,
     Query(query): Query<ListPlaysQuery>,
-    State(crud_station): State<Arc<CRUDStation>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListPlaysResponse>, APIError> {
     let next_key = if let Some(next_token) = query.next_token {
         Some(
@@ -58,7 +58,8 @@ pub(crate) async fn list_plays(
         }
     }
 
-    let (plays, next_key) = crud_station
+    let (plays, next_key) = state
+        .crud_station
         .list_plays(station_id, 50, query.start, query.end, next_key)
         .await
         .unwrap();
@@ -72,7 +73,8 @@ pub(crate) async fn list_plays(
         }));
     }
 
-    let tracks: HashMap<Ulid, TrackMinimal> = crud_station
+    let tracks: HashMap<Ulid, TrackMinimal> = state
+        .crud_track
         .batch_get_tracks_minimal(station_id, track_ids.iter())
         .await
         .unwrap()

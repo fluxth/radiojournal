@@ -9,8 +9,8 @@ use crate::{
     models::{
         APIJson, ListPlaysOfTrackResponse, ListTracksResponse, NextToken, PlayMinimal, Track,
     },
+    AppState,
 };
-use radiojournal::crud::station::CRUDStation;
 
 #[utoipa::path(
     get,
@@ -26,9 +26,13 @@ use radiojournal::crud::station::CRUDStation;
 )]
 pub(crate) async fn get_track(
     Path((station_id, track_id)): Path<(Ulid, Ulid)>,
-    State(crud_station): State<Arc<CRUDStation>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<Track>, APIError> {
-    let maybe_track_internal = crud_station.get_track(station_id, track_id).await.unwrap();
+    let maybe_track_internal = state
+        .crud_track
+        .get_track(station_id, track_id)
+        .await
+        .unwrap();
 
     if let Some(track) = maybe_track_internal.map(Track::from) {
         Ok(APIJson(track))
@@ -58,7 +62,7 @@ pub(crate) struct ListPlaysOfTrackQuery {
 pub(crate) async fn list_plays_of_track(
     Path((station_id, track_id)): Path<(Ulid, Ulid)>,
     Query(query): Query<ListPlaysOfTrackQuery>,
-    State(crud_station): State<Arc<CRUDStation>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListPlaysOfTrackResponse>, APIError> {
     let next_key = if let Some(next_token) = query.next_token {
         Some(
@@ -70,7 +74,8 @@ pub(crate) async fn list_plays_of_track(
         None
     };
 
-    let (track_plays_internal, next_key) = crud_station
+    let (track_plays_internal, next_key) = state
+        .crud_track
         .list_plays_of_track(station_id, track_id, 50, next_key)
         .await
         .unwrap();
@@ -106,10 +111,11 @@ pub(crate) struct ListTracksQuery {
 pub(crate) async fn list_tracks(
     Path(station_id): Path<Ulid>,
     Query(query): Query<ListTracksQuery>,
-    State(crud_station): State<Arc<CRUDStation>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListTracksResponse>, APIError> {
     let (tracks_internal, next_key) = if let Some(artist) = query.artist {
-        crud_station
+        state
+            .crud_track
             .list_tracks_by_artist(station_id, &artist, 50, query.next_token.as_deref())
             .await
             .unwrap()
@@ -124,7 +130,8 @@ pub(crate) async fn list_tracks(
             None
         };
 
-        let (tracks_internal, next_key) = crud_station
+        let (tracks_internal, next_key) = state
+            .crud_track
             .list_tracks(station_id, 50, next_key)
             .await
             .unwrap();

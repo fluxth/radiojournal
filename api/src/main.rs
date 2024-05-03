@@ -13,7 +13,7 @@ use axum::{
 };
 use errors::APIError;
 use lambda_http::{request::RequestContext, run, Error, RequestExt};
-use radiojournal::crud::{station::CRUDStation, Context};
+use radiojournal::crud::{station::CRUDStation, track::CRUDTrack, Context};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 use tracing::{info, info_span, Span};
 use utoipa::OpenApi;
@@ -27,6 +27,11 @@ const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
 /// You can use your own method for determining whether to use LocalStack endpoints.
 fn use_localstack() -> bool {
     std::env::var("LOCALSTACK").unwrap_or_default() == "true"
+}
+
+struct AppState {
+    crud_station: CRUDStation,
+    crud_track: CRUDTrack,
 }
 
 #[tokio::main]
@@ -61,7 +66,14 @@ async fn main() -> Result<(), Error> {
     let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
 
     let context = Arc::new(Context::new(db_client, table_name));
-    let crud_station = Arc::new(CRUDStation::new(context));
+
+    let crud_track = CRUDTrack::new(context.clone());
+    let crud_station = CRUDStation::new(context);
+
+    let app_state = Arc::new(AppState {
+        crud_station,
+        crud_track,
+    });
 
     let compression_layer: CompressionLayer = CompressionLayer::new()
         .br(true)
@@ -99,7 +111,7 @@ async fn main() -> Result<(), Error> {
         });
 
     let app = Router::new()
-        .nest("/v1", routes::get_router().with_state(crud_station))
+        .nest("/v1", routes::get_router().with_state(app_state))
         .merge(SwaggerUi::new("/apidocs").url("/openapi/v1.json", APIDoc::openapi()))
         .layer(compression_layer)
         .fallback(handle_404)

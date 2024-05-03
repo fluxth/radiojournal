@@ -1,6 +1,7 @@
 use aws_sdk_dynamodb::Client;
 
 pub mod station;
+pub mod track;
 
 pub struct Context {
     pub(crate) db_client: Client,
