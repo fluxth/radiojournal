@@ -2,13 +2,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
-use super::id::StationId;
+use crate::models::id::{StationId, TrackId};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrackInDB {
     pk: String,
     sk: String,
-    pub id: Ulid,
+    pub id: TrackId,
     pub title: String,
     pub artist: String,
     pub is_song: bool,
@@ -23,8 +23,8 @@ impl TrackInDB {
         format!("STATION#{}#TRACKS", station_id.0)
     }
 
-    pub(crate) fn get_sk(track_id: Ulid) -> String {
-        format!("TRACK#{}", track_id)
+    pub(crate) fn get_sk(track_id: TrackId) -> String {
+        format!("TRACK#{}", track_id.0)
     }
 
     pub(crate) fn get_sk_prefix() -> String {
@@ -48,7 +48,7 @@ impl TrackInDB {
         is_song: bool,
     ) -> Self {
         let now = Utc::now();
-        let track_id = Ulid::new();
+        let track_id = Ulid::new().into();
 
         let title = title.into();
         let artist = artist.into();
@@ -78,9 +78,9 @@ pub struct TrackPlayInDB {
 }
 
 impl TrackPlayInDB {
-    pub(crate) fn get_gsi1pk(track_id: Ulid, datetime: &DateTime<Utc>) -> String {
+    pub(crate) fn get_gsi1pk(track_id: TrackId, datetime: &DateTime<Utc>) -> String {
         let track_partition = datetime.format("%Y-%m").to_string();
-        format!("TRACK#{}#{}", track_id, track_partition)
+        format!("TRACK#{}#{}", track_id.0, track_partition)
     }
 
     pub(crate) fn get_sk_prefix() -> String {
@@ -105,7 +105,7 @@ pub(crate) trait TrackMetadataKeys {
 #[derive(Debug, Serialize, Deserialize)]
 /// Query variant of track item used for lookup using metadata
 pub struct TrackMetadataInDB {
-    pub track_id: Ulid,
+    pub track_id: TrackId,
 }
 
 impl TrackMetadataKeys for TrackMetadataInDB {}
@@ -115,7 +115,7 @@ impl TrackMetadataKeys for TrackMetadataInDB {}
 pub struct TrackMetadataCreateInDB {
     pk: String,
     sk: String,
-    pub track_id: Ulid,
+    pub track_id: TrackId,
 }
 
 impl TrackMetadataKeys for TrackMetadataCreateInDB {}

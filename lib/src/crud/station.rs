@@ -10,7 +10,7 @@ use crate::{
     crud::{track::CRUDTrack, Context},
     helpers::ziso_timestamp,
     models::{
-        id::StationId,
+        id::{StationId, TrackId},
         play::PlayInDB,
         station::{LatestPlay, StationInDB},
         track::{TrackInDB, TrackMetadataCreateInDB},
@@ -28,7 +28,7 @@ pub struct AddPlayResult {
     #[serde(flatten)]
     pub add_type: AddPlayType,
     pub play_id: Ulid,
-    pub track_id: Ulid,
+    pub track_id: TrackId,
     metadata: AddPlayMetadata,
 }
 
@@ -52,8 +52,8 @@ impl From<AddPlayTypeInternal> for AddPlayType {
 
 #[derive(Debug)]
 enum AddPlayTypeInternal {
-    ExistingPlay { track_id: Ulid, play_id: Ulid },
-    NewPlay { track_id: Ulid },
+    ExistingPlay { track_id: TrackId, play_id: Ulid },
+    NewPlay { track_id: TrackId },
     NewTrack,
 }
 
@@ -176,7 +176,7 @@ impl CRUDStation {
     async fn add_play_with_existing_play(
         &self,
         station_id: StationId,
-        track_id: Ulid,
+        track_id: TrackId,
         play_id: Ulid,
     ) -> Result<()> {
         let play_datetime: DateTime<Utc> = play_id.datetime().into();

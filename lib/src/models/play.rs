@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
-use super::id::StationId;
+use crate::models::id::{StationId, TrackId};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PlayInDB {
@@ -10,7 +10,7 @@ pub struct PlayInDB {
     sk: String,
     gsi1pk: String,
     pub id: Ulid,
-    pub track_id: Ulid,
+    pub track_id: TrackId,
     pub created_ts: DateTime<Utc>,
     pub updated_ts: DateTime<Utc>,
 }
@@ -33,12 +33,12 @@ impl PlayInDB {
         "PLAY#".to_owned()
     }
 
-    pub(crate) fn get_gsi1pk(track_id: Ulid, datetime: &DateTime<Utc>) -> String {
+    pub(crate) fn get_gsi1pk(track_id: TrackId, datetime: &DateTime<Utc>) -> String {
         let track_partition = datetime.format("%Y-%m").to_string();
-        format!("TRACK#{}#{}", track_id, track_partition)
+        format!("TRACK#{}#{}", track_id.0, track_partition)
     }
 
-    pub fn new(station_id: StationId, track_id: Ulid) -> Self {
+    pub fn new(station_id: StationId, track_id: TrackId) -> Self {
         let now = Utc::now();
         let play_id = Ulid::new();
 

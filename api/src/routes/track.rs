@@ -9,14 +9,14 @@ use crate::{
     models::{APIJson, ListTrackPlaysResponse, ListTracksResponse, NextToken, PlayMinimal, Track},
     AppState,
 };
-use radiojournal::models::id::StationId;
+use radiojournal::models::id::{StationId, TrackId};
 
 #[utoipa::path(
     get,
     path = "/station/{station_id}/track/{track_id}",
     params(
-        ("station_id" = Ulid, Path, deprecated = false),
-        ("track_id" = Ulid, Path, deprecated = false),
+        ("station_id" = StationId, Path, deprecated = false),
+        ("track_id" = TrackId, Path, deprecated = false),
     ),
     responses(
         (status = 200, description = "Track returned successfully", body = Track),
@@ -24,7 +24,7 @@ use radiojournal::models::id::StationId;
     )
 )]
 pub(crate) async fn get_track(
-    Path((station_id, track_id)): Path<(StationId, Ulid)>,
+    Path((station_id, track_id)): Path<(StationId, TrackId)>,
     State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<Track>, APIError> {
     let maybe_track_internal = state
@@ -49,8 +49,8 @@ pub(crate) struct ListTrackPlaysQuery {
     get,
     path = "/station/{station_id}/track/{track_id}/plays",
     params(
-        ("station_id" = Ulid, Path, deprecated = false),
-        ("track_id" = Ulid, Path, deprecated = false),
+        ("station_id" = StationId, Path, deprecated = false),
+        ("track_id" = TrackId, Path, deprecated = false),
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
@@ -59,7 +59,7 @@ pub(crate) struct ListTrackPlaysQuery {
     )
 )]
 pub(crate) async fn list_plays_of_track(
-    Path((station_id, track_id)): Path<(StationId, Ulid)>,
+    Path((station_id, track_id)): Path<(StationId, TrackId)>,
     Query(query): Query<ListTrackPlaysQuery>,
     State(state): State<Arc<AppState>>,
 ) -> Result<APIJson<ListTrackPlaysResponse>, APIError> {
@@ -98,7 +98,7 @@ pub(crate) struct ListTracksQuery {
     get,
     path = "/station/{station_id}/tracks",
     params(
-        ("station_id" = Ulid, Path, deprecated = false),
+        ("station_id" = StationId, Path, deprecated = false),
         ("artist" = Option<String>, Query, deprecated = false),
         ("next_token" = Option<String>, Query, deprecated = false),
     ),

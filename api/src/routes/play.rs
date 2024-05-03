@@ -13,7 +13,7 @@ use crate::{
     models::{APIJson, ListPlaysResponse, NextToken, Play, TrackMinimal},
     AppState,
 };
-use radiojournal::models::id::StationId;
+use radiojournal::models::id::{StationId, TrackId};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListPlaysQuery {
@@ -26,7 +26,7 @@ pub(crate) struct ListPlaysQuery {
     get,
     path = "/station/{station_id}/plays",
     params(
-        ("station_id" = Ulid, Path, deprecated = false),
+        ("station_id" = StationId, Path, deprecated = false),
         ("start" = Option<DateTime<Utc>>, Query, deprecated = false),
         ("end" = Option<DateTime<Utc>>, Query, deprecated = false),
         ("next_token" = Option<String>, Query, deprecated = false),
@@ -65,7 +65,7 @@ pub(crate) async fn list_plays(
         .await
         .unwrap();
 
-    let track_ids: HashSet<Ulid> = plays_internal.iter().map(|play| play.track_id).collect();
+    let track_ids: HashSet<TrackId> = plays_internal.iter().map(|play| play.track_id).collect();
     if track_ids.is_empty() {
         // FIXME actually return 404 if station id in pk not found
         return Ok(APIJson(ListPlaysResponse {

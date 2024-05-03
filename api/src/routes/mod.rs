@@ -13,6 +13,7 @@ use crate::models::{
     Station, Track, TrackMinimal,
 };
 use crate::AppState;
+use radiojournal::models::id::{StationId, TrackId};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -26,10 +27,12 @@ use crate::AppState;
     components(
         schemas(
             Station,
+            StationId,
             Play,
             PlayMinimal,
             Track,
             TrackMinimal,
+            TrackId,
             NextToken,
             ListPlaysResponse,
             ListTracksResponse,

@@ -10,7 +10,7 @@ use crate::{
     crud::Context,
     helpers::truncate_datetime_to_months,
     models::{
-        id::StationId,
+        id::{StationId, TrackId},
         play::PlayInDB,
         station::StationInDB,
         track::{TrackInDB, TrackMetadataInDB, TrackMetadataKeys, TrackMinimalInDB, TrackPlayInDB},
@@ -32,7 +32,7 @@ impl CRUDTrack {
     pub async fn get_track(
         &self,
         station_id: StationId,
-        track_id: Ulid,
+        track_id: TrackId,
     ) -> Result<Option<TrackInDB>> {
         let resp = self
             .context
@@ -98,9 +98,10 @@ impl CRUDTrack {
             .limit(limit);
 
         if let Some(next_key) = next_key {
+            let track_id = next_key.into();
             query = query
                 .exclusive_start_key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-                .exclusive_start_key("sk", AttributeValue::S(TrackInDB::get_sk(next_key)));
+                .exclusive_start_key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)));
         };
 
         let resp = query.send().await?;
@@ -192,7 +193,7 @@ impl CRUDTrack {
     pub async fn batch_get_tracks(
         &self,
         station_id: StationId,
-        track_ids: impl Iterator<Item = &Ulid>,
+        track_ids: impl Iterator<Item = &TrackId>,
     ) -> Result<Vec<TrackInDB>> {
         self.batch_get_tracks_internal(station_id, track_ids, None)
             .await
@@ -201,7 +202,7 @@ impl CRUDTrack {
     pub async fn batch_get_tracks_minimal(
         &self,
         station_id: StationId,
-        track_ids: impl Iterator<Item = &Ulid>,
+        track_ids: impl Iterator<Item = &TrackId>,
     ) -> Result<Vec<TrackMinimalInDB>> {
         self.batch_get_tracks_internal(station_id, track_ids, Some("id, title, artist, is_song"))
             .await
@@ -210,7 +211,7 @@ impl CRUDTrack {
     async fn batch_get_tracks_internal<'a, O>(
         &self,
         station_id: StationId,
-        track_ids: impl Iterator<Item = &Ulid>,
+        track_ids: impl Iterator<Item = &TrackId>,
         projection_expression: Option<&str>,
     ) -> Result<Vec<O>>
     where
@@ -256,7 +257,7 @@ impl CRUDTrack {
     pub async fn list_plays_of_track(
         &self,
         station_id: StationId,
-        track_id: Ulid,
+        track_id: TrackId,
         limit: i32,
         next_key: Option<Ulid>,
     ) -> Result<(Vec<TrackPlayInDB>, Option<String>)> {
