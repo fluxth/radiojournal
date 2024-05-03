@@ -8,7 +8,7 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "3.12.3"
-boto3 = "1.34.96"
+boto3 = "1.34.97"
 ulid-py = "1.1.0"
 aiodynamo = {version = "24.1", extras = ["httpx"]}
 yarl = "1.9.4"
