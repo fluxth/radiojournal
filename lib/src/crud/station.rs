@@ -74,6 +74,23 @@ impl CRUDStation {
             context,
         }
     }
+    pub async fn get_station(&self, station_id: StationId) -> Result<Option<StationInDB>> {
+        let resp = self
+            .context
+            .db_client
+            .get_item()
+            .table_name(&self.context.db_table)
+            .key("pk", AttributeValue::S(StationInDB::get_pk()))
+            .key("sk", AttributeValue::S(StationInDB::get_sk(station_id)))
+            .send()
+            .await?;
+
+        if let Some(item) = resp.item {
+            Ok(Some(serde_dynamo::from_item(item)?))
+        } else {
+            Ok(None)
+        }
+    }
 
     pub async fn list_stations(&self, limit: i32) -> Result<Vec<StationInDB>> {
         let resp = self

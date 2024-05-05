@@ -24,6 +24,7 @@ impl Modify for ServerAddon {
 
 pub(crate) fn get_router() -> Router<Arc<AppState>> {
     Router::new()
+        .route("/station/:station_id", get(station::get_station))
         .route("/stations", get(station::list_stations))
         .route("/station/:station_id/plays", get(play::list_plays))
         .route(
