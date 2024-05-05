@@ -73,13 +73,13 @@ pub(crate) async fn list_plays(
         }));
     }
 
-    let tracks: HashMap<Ulid, TrackMinimal> = state
+    let tracks: HashMap<TrackId, TrackMinimal> = state
         .crud_track
         .batch_get_tracks_minimal(station_id, track_ids.iter())
         .await
         .unwrap()
         .into_iter()
-        .map(|track_internal| (track_internal.id, TrackMinimal::from(track_internal)))
+        .map(|track_internal| (track_internal.id.into(), TrackMinimal::from(track_internal)))
         .collect();
 
     Ok(APIJson(ListPlaysResponse {
