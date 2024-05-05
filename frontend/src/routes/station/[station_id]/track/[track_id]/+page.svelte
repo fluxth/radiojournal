@@ -112,8 +112,8 @@
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
   <ul>
     <li><a href="/">Stations</a></li>
-    <li>{data.station.name}</li>
-    <li>Tracks</li>
+    <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
+    <li><a href={`/station/${data.station.id}/tracks`}>Tracks</a></li>
     <li>{track.artist}</li>
     <li>{track.title}</li>
   </ul>
@@ -122,7 +122,7 @@
 <div class="lg:flex gap-4 my-4">
   <div class="flex-1">
     <div>
-      <h2 class="font-bold text-2xl truncate mx-2 mt-2 mb-4">Track Details</h2>
+      <h2 class="font-bold text-2xl truncate mx-2 mb-4">Track Details</h2>
 
       <div class="stats stats-vertical lg:stats-horizontal shadow-lg mb-4">
         <div class="stat">

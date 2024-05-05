@@ -147,3 +147,37 @@ export const listTrackPlays = async ({
     invalidate: async () => await invalidate(url),
   };
 };
+
+export type TrackListResponse = {
+  tracks: Track[];
+  nextToken: string | null;
+  invalidate: () => Promise<void>;
+};
+
+export const listTracks = async ({
+  fetch,
+  stationId,
+  nextToken,
+}: {
+  fetch?: typeof window.fetch;
+  stationId: string;
+  nextToken?: string | null;
+}): Promise<TrackListResponse> => {
+  if (!fetch) fetch = window.fetch;
+
+  const params = new URLSearchParams();
+
+  if (nextToken) params.append("next_token", nextToken);
+
+  const paramsEncoded = params.size ? `?${params.toString()}` : "";
+
+  const url = `${API_BASE_URL}/v1/station/${stationId}/tracks${paramsEncoded}`;
+  const res = await fetch(url);
+
+  const { tracks, next_token } = await res.json();
+  return {
+    tracks,
+    nextToken: next_token,
+    invalidate: async () => await invalidate(url),
+  };
+};

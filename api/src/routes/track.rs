@@ -106,7 +106,7 @@ pub(crate) struct ListTracksQuery {
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
-        (status = 200, description = "Tracks listed successfully", body = Vec<Track>),
+        (status = 200, description = "Tracks listed successfully", body = ListTracksResponse),
         (status = 404, description = "Station not found", body = APIErrorResponse),
     ),
     tag = "track"

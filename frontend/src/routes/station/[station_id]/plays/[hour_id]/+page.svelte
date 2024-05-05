@@ -85,7 +85,7 @@
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
   <ul>
     <li><a href="/">Stations</a></li>
-    <li>{data.station.name}</li>
+    <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
     <li>Play History</li>
   </ul>
 </div>

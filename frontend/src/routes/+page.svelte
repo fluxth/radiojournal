@@ -36,6 +36,7 @@
           {numberFormat.format(station.track_count)} tracks
         </p>
         <div class="card-actions justify-end mt-2">
+          <a class="btn btn-neutral" href={`/station/${station.id}/tracks`}>Track List</a>
           <a class="btn btn-primary" href={`/station/${station.id}/plays`}>Play History</a>
         </div>
       </div>
