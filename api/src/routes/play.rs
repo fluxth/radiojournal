@@ -3,13 +3,14 @@ use std::{
     sync::Arc,
 };
 
-use axum::extract::{Path, Query, State};
+use axum::extract::State;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use ulid::Ulid;
 
 use crate::{
     errors::APIError,
+    extractors::{Path, Query},
     models::{APIJson, ListPlaysResponse, NextToken, Play, TrackMinimal},
     AppState,
 };

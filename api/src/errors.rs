@@ -13,7 +13,7 @@ use crate::models::APIJson;
 pub(crate) enum APIError {
     NotFound,
     ValidationFailed { message: Option<&'static str> },
-    InputRejection { status: StatusCode, message: String },
+    InputRejection { message: String },
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -55,8 +55,8 @@ impl IntoResponse for APIError {
             )
                 .into_response(),
 
-            Self::InputRejection { status, message } => (
-                status,
+            Self::InputRejection { message } => (
+                StatusCode::BAD_REQUEST,
                 APIJson(APIErrorResponse {
                     error: APIErrorDetail {
                         code: "BAD_REQUEST",
@@ -72,7 +72,6 @@ impl IntoResponse for APIError {
 impl From<JsonRejection> for APIError {
     fn from(rejection: JsonRejection) -> Self {
         Self::InputRejection {
-            status: rejection.status(),
             message: rejection.body_text(),
         }
     }
@@ -81,7 +80,6 @@ impl From<JsonRejection> for APIError {
 impl From<QueryRejection> for APIError {
     fn from(rejection: QueryRejection) -> Self {
         Self::InputRejection {
-            status: rejection.status(),
             message: rejection.body_text(),
         }
     }
@@ -90,7 +88,6 @@ impl From<QueryRejection> for APIError {
 impl From<PathRejection> for APIError {
     fn from(rejection: PathRejection) -> Self {
         Self::InputRejection {
-            status: rejection.status(),
             message: rejection.body_text(),
         }
     }

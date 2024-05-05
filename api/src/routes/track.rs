@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
-use axum::extract::{Path, Query, State};
+use axum::extract::State;
 use serde::Deserialize;
 use ulid::Ulid;
 
 use crate::{
     errors::APIError,
+    extractors::{Path, Query},
     models::{APIJson, ListTrackPlaysResponse, ListTracksResponse, NextToken, PlayMinimal, Track},
     AppState,
 };

@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
-use axum::extract::{Path, State};
+use axum::extract::State;
 use radiojournal::models::id::StationId;
 
 use crate::{
     errors::APIError,
+    extractors::Path,
     models::{APIJson, Station},
     AppState,
 };
