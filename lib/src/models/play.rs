@@ -17,8 +17,11 @@ pub struct PlayInDB {
 
 impl PlayInDB {
     pub(crate) fn get_pk(station_id: StationId, datetime: &DateTime<Utc>) -> String {
-        let play_partition = datetime.format("%Y-%m-%d").to_string();
-        format!("STATION#{}#PLAYS#{}", station_id.0, play_partition)
+        format!(
+            "STATION#{}#PLAYS#{}",
+            station_id.0,
+            Self::get_partition(datetime)
+        )
     }
 
     pub(crate) fn get_pk_station_prefix(station_id: StationId) -> String {
@@ -36,6 +39,17 @@ impl PlayInDB {
     pub(crate) fn get_gsi1pk(track_id: TrackId, datetime: &DateTime<Utc>) -> String {
         let track_partition = datetime.format("%Y-%m").to_string();
         format!("TRACK#{}#{}", track_id.0, track_partition)
+    }
+
+    pub(crate) fn get_partition(datetime: &DateTime<Utc>) -> String {
+        datetime.format("%Y-%m-%d").to_string()
+    }
+
+    pub(crate) fn is_same_partition(left: &DateTime<Utc>, right: &DateTime<Utc>) -> bool {
+        let left_partition = Self::get_partition(left);
+        let right_partition = Self::get_partition(right);
+
+        left_partition == right_partition
     }
 
     pub fn new(station_id: StationId, track_id: TrackId) -> Self {

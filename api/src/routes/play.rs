@@ -17,8 +17,8 @@ use radiojournal::models::id::{StationId, TrackId};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListPlaysQuery {
-    start: Option<DateTime<Utc>>,
-    end: Option<DateTime<Utc>>,
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
     next_token: Option<NextToken>,
 }
 
@@ -27,8 +27,8 @@ pub(crate) struct ListPlaysQuery {
     path = "/station/{station_id}/plays",
     params(
         ("station_id" = StationId, Path, deprecated = false),
-        ("start" = Option<DateTime<Utc>>, Query, deprecated = false),
-        ("end" = Option<DateTime<Utc>>, Query, deprecated = false),
+        ("start" = DateTime<Utc>, Query, deprecated = false),
+        ("end" = DateTime<Utc>, Query, deprecated = false),
         ("next_token" = Option<String>, Query, deprecated = false),
     ),
     responses(
@@ -52,12 +52,10 @@ pub(crate) async fn list_plays(
         None
     };
 
-    if let (Some(start), Some(end)) = (query.start, query.end) {
-        if end <= start {
-            return Err(APIError::ValidationFailed {
-                message: Some("`end` must be more than `start`"),
-            });
-        }
+    if query.end <= query.start {
+        return Err(APIError::ValidationFailed {
+            message: Some("`end` must be later than `start`"),
+        });
     }
 
     let (plays_internal, next_key) = state

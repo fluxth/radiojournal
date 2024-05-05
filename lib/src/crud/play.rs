@@ -2,11 +2,12 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use aws_sdk_dynamodb::types::{AttributeValue, Select};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use ulid::Ulid;
 
 use crate::{
     crud::Context,
+    helpers::truncate_datetime_to_days,
     models::{id::StationId, play::PlayInDB, PaginateKey},
 };
 
@@ -19,20 +20,22 @@ impl CRUDPlay {
         Self { context }
     }
 
-    // todo: traverse play partitions
     pub async fn list_plays(
         &self,
         station_id: StationId,
         limit: i32,
-        start: Option<DateTime<Utc>>,
-        end: Option<DateTime<Utc>>,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
         next_key: Option<Ulid>,
     ) -> Result<(Vec<PlayInDB>, Option<Ulid>)> {
-        let play_datetime = if let Some(start) = start {
-            start
+        let partition_datetime = if let Some(next_key) = next_key {
+            next_key.datetime().into()
         } else {
-            Utc::now()
+            start
         };
+
+        let start_ulid = Ulid::from_parts(start.timestamp_millis().try_into()?, 0);
+        let end_ulid = Ulid::from_parts(end.timestamp_millis().try_into()?, u128::MAX);
 
         let mut query = self
             .context
@@ -42,54 +45,37 @@ impl CRUDPlay {
             .key_condition_expression("pk = :pk AND sk BETWEEN :start_sk AND :end_sk")
             .expression_attribute_values(
                 ":pk",
-                AttributeValue::S(PlayInDB::get_pk(station_id, &play_datetime)),
+                AttributeValue::S(PlayInDB::get_pk(station_id, &partition_datetime)),
             )
             .expression_attribute_values(
                 ":start_sk",
-                AttributeValue::S(
-                    PlayInDB::get_sk_prefix()
-                        + &{
-                            if let Some(start) = start {
-                                Ulid::from_parts(start.timestamp_millis().try_into()?, 0)
-                                    .to_string()
-                            } else {
-                                Ulid::nil().to_string()
-                            }
-                        },
-                ),
+                AttributeValue::S(PlayInDB::get_sk_prefix() + &start_ulid.to_string()),
             )
             .expression_attribute_values(
                 ":end_sk",
-                AttributeValue::S(
-                    PlayInDB::get_sk_prefix()
-                        + &{
-                            if let Some(end) = end {
-                                Ulid::from_parts(end.timestamp_millis().try_into()?, u128::MAX)
-                                    .to_string()
-                            } else {
-                                Ulid::from_parts(u64::MAX, u128::MAX).to_string()
-                            }
-                        },
-                ),
+                AttributeValue::S(PlayInDB::get_sk_prefix() + &end_ulid.to_string()),
             )
             .select(Select::AllAttributes)
             .limit(limit);
 
         if let Some(next_key) = next_key {
-            let next_key_datetime: DateTime<Utc> = next_key.datetime().into();
-            let play_id = next_key.into();
+            // assume no exclusive_start_key if next_key random part is 0
+            if next_key.random() != 0 {
+                let next_key_datetime: DateTime<Utc> = next_key.datetime().into();
+                let play_id = next_key.into();
 
-            query = query
-                .exclusive_start_key(
-                    "pk",
-                    AttributeValue::S(PlayInDB::get_pk(station_id, &next_key_datetime)),
-                )
-                .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)));
+                query = query
+                    .exclusive_start_key(
+                        "pk",
+                        AttributeValue::S(PlayInDB::get_pk(station_id, &next_key_datetime)),
+                    )
+                    .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)));
+            }
         }
 
         let resp = query.send().await?;
 
-        let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
+        let new_next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
             let paginate_key: PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
             Some(
                 Ulid::from_string(
@@ -100,14 +86,26 @@ impl CRUDPlay {
                 )
                 .expect("next key into ulid"),
             )
+        } else if !PlayInDB::is_same_partition(&partition_datetime, &end_ulid.datetime().into()) {
+            let next_partition_datetime = truncate_datetime_to_days(partition_datetime)
+                .expect("truncate partition datetime to days")
+                + Duration::days(1);
+
+            Some(Ulid::from_parts(
+                truncate_datetime_to_days(next_partition_datetime)
+                    .expect("truncate partition datetime to days")
+                    .timestamp_millis()
+                    .try_into()?,
+                0,
+            ))
         } else {
             None
         };
 
         if let Some(items) = resp.items {
-            Ok((serde_dynamo::from_items(items.to_vec())?, next_key))
+            Ok((serde_dynamo::from_items(items.to_vec())?, new_next_key))
         } else {
-            Ok((vec![], next_key))
+            Ok((vec![], new_next_key))
         }
     }
 }

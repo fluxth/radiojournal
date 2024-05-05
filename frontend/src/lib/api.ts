@@ -58,20 +58,19 @@ export const listPlays = async ({
 }: {
   fetch?: typeof window.fetch;
   stationId: string;
-  start?: Dayjs;
-  end?: Dayjs;
+  start: Dayjs;
+  end: Dayjs;
   nextToken?: string | null;
 }): Promise<PlayResponse> => {
   if (!fetch) fetch = window.fetch;
 
   const params = new URLSearchParams();
 
-  if (start) params.append("start", start.toISOString());
-  if (end) params.append("end", end.toISOString());
+  params.append("start", start.toISOString());
+  params.append("end", end.toISOString());
   if (nextToken) params.append("next_token", nextToken);
 
-  const paramsEncoded = params.size ? `?${params.toString()}` : "";
-  const url = `${API_BASE_URL}/v1/station/${stationId}/plays${paramsEncoded}`;
+  const url = `${API_BASE_URL}/v1/station/${stationId}/plays?${params.toString()}`;
 
   const res = await fetch(url);
   const data = await res.json();
