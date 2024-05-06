@@ -11,7 +11,7 @@ use crate::{
     models::{
         id::{PlayId, StationId, TrackId},
         play::PlayInDB,
-        station::{LatestPlay, StationInDB},
+        station::{LatestPlay, StationInDB, StationInDBCreate},
         track::{TrackInDB, TrackMetadataCreateInDB},
     },
 };
@@ -111,6 +111,20 @@ impl CRUDStation {
         let stations: Vec<StationInDB> = serde_dynamo::from_items(items)?;
 
         Ok(stations)
+    }
+
+    pub async fn create_station(&self, station_create: StationInDBCreate) -> Result<StationInDB> {
+        let station_internal: StationInDB = station_create.into();
+
+        self.context
+            .db_client
+            .put_item()
+            .table_name(&self.context.db_table)
+            .set_item(Some(serde_dynamo::to_item(station_internal.clone())?))
+            .send()
+            .await?;
+
+        Ok(station_internal)
     }
 
     pub async fn add_play(
