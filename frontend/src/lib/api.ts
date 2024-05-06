@@ -158,16 +158,19 @@ export const listTracks = async ({
   fetch,
   stationId,
   nextToken,
+  artist,
 }: {
   fetch?: typeof window.fetch;
   stationId: string;
   nextToken?: string | null;
+  artist?: string;
 }): Promise<TrackListResponse> => {
   if (!fetch) fetch = window.fetch;
 
   const params = new URLSearchParams();
 
   if (nextToken) params.append("next_token", nextToken);
+  if (artist) params.append("artist", artist);
 
   const paramsEncoded = params.size ? `?${params.toString()}` : "";
 

@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import { listTracks } from "$lib/api";
   import TracksTable from "$lib/components/TracksTable.svelte";
+  import { listTracks } from "$lib/api";
 
   const numberFormat = new Intl.NumberFormat();
 
   export let data: PageData;
   $: tracksData = data.tracksData;
 
-  let isLoading: boolean = false;
+  let isLoading = false;
 
   const loadMore = async () => {
     isLoading = true;
@@ -17,6 +17,7 @@
       const { tracks, ...rest } = await listTracks({
         stationId: data.station.id,
         nextToken: tracksData.nextToken,
+        artist: data.artist.name,
       });
 
       tracksData = { tracks: [...tracksData.tracks, ...tracks], ...rest };
@@ -27,7 +28,7 @@
 </script>
 
 <svelte:head>
-  <title>Tracks - {data.station.name} - radiojournal</title>
+  <title>{data.artist.name} - {data.station.name} - radiojournal</title>
 </svelte:head>
 
 <div class="px-2 py-6 flex flex-wrap gap-4">
@@ -38,15 +39,17 @@
   <ul>
     <li><a href="/">Stations</a></li>
     <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
-    <li>Tracks</li>
+    <li><a href={`/station/${data.station.id}/tracks`}>Tracks</a></li>
+    <li>{data.artist.name}</li>
   </ul>
 </div>
 
 <h2 class="text-2xl truncate mx-2 my-4">
-  <span class="font-bold">Tracks</span> ({numberFormat.format(data.station.track_count)})
+  <span class="font-bold">Tracks: {data.artist.name}</span>
+  ({numberFormat.format(data.tracksData.tracks.length)}{data.tracksData.nextToken ? "+" : ""})
 </h2>
 
-<TracksTable station={data.station} tracks={tracksData.tracks} />
+<TracksTable station={data.station} tracks={tracksData.tracks} artistLink={false} />
 
 <div class="mb-8 h-8 text-center">
   {#if isLoading}

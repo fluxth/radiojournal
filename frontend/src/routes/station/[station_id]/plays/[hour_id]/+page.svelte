@@ -169,7 +169,14 @@
               : dayjs(play.played_at)
             ).format("HH:mm:ss")}
           </td>
-          <td>{play.track.artist}</td>
+          <td>
+            <a
+              class="link"
+              href={`/station/${data.station.id}/artist/${encodeURIComponent(play.track.artist)}`}
+            >
+              {play.track.artist}
+            </a>
+          </td>
           <td>
             <a class="link" href="/station/{data.station.id}/track/{play.track.id}">
               {play.track.title}

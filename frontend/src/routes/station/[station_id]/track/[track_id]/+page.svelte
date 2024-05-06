@@ -114,7 +114,11 @@
     <li><a href="/">Stations</a></li>
     <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
     <li><a href={`/station/${data.station.id}/tracks`}>Tracks</a></li>
-    <li>{track.artist}</li>
+    <li>
+      <a href={`/station/${data.station.id}/artist/${encodeURIComponent(track.artist)}`}>
+        {track.artist}
+      </a>
+    </li>
     <li>{track.title}</li>
   </ul>
 </div>
@@ -159,7 +163,12 @@
             <tr>
               <td class="font-bold w-24">Artist</td>
               <td>
-                {track.artist}
+                <a
+                  class="link"
+                  href={`/station/${data.station.id}/artist/${encodeURIComponent(track.artist)}`}
+                >
+                  {track.artist}
+                </a>
               </td>
             </tr>
             <tr>
