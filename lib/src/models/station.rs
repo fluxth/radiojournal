@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use ulid::Ulid;
 
 use crate::models::id::{PlayId, StationId, TrackId};
 
@@ -13,7 +12,7 @@ pub struct StationInDB {
     pub name: String,
     pub location: Option<String>,
     pub fetcher: Option<FetcherConfig>,
-    pub first_play_id: Option<Ulid>,
+    pub first_play_id: Option<PlayId>,
     pub latest_play: Option<LatestPlay>,
     pub track_count: usize,
     pub play_count: usize,
@@ -35,7 +34,7 @@ impl StationInDB {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LatestPlay {
     pub id: PlayId,
     pub track_id: TrackId,
