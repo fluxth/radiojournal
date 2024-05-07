@@ -18,5 +18,5 @@ tracing = "=0.1.40"
 tracing-subscriber = { version = "=0.3.18", features = ["json"] }
 ulid = { version = "=1.1.2", features = ["serde"] }
 utoipa = { version = "=4.2.2", features = ["ulid", "chrono", "axum_extras"] }
-utoipa-swagger-ui = { version = "=7.0.0", features = ["axum"] }
+utoipa-swagger-ui = { version = "=7.0.1", features = ["axum"] }
 utoipauto = "=0.1.10"
