@@ -1755,6 +1755,7 @@ dependencies = [
  "chrono",
  "serde",
  "serde_dynamo",
+ "tracing",
  "ulid",
  "utoipa",
 ]
@@ -1779,6 +1780,19 @@ dependencies = [
  "utoipa",
  "utoipa-swagger-ui",
  "utoipauto",
+]
+
+[[package]]
+name = "radiojournal-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "radiojournal",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

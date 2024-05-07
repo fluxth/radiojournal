@@ -175,7 +175,7 @@ async fn get_fetcher<'a, 'b>(
 async fn process_station(
     state: Arc<State>,
     crud_station: Arc<CRUDStation>,
-    station: StationInDB,
+    mut station: StationInDB,
 ) -> anyhow::Result<StationResult> {
     let maybe_fetcher = get_fetcher(&state, &station).await;
 
@@ -190,7 +190,7 @@ async fn process_station(
 
         info!(title = play.title, artist = play.artist, "Fetched play");
 
-        let result = crud_station.add_play(&station, play).await?;
+        let result = crud_station.add_play(&mut station, play).await?;
 
         info!(
             add_type = ?result.add_type,

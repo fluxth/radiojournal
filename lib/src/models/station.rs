@@ -4,8 +4,7 @@ use ulid::Ulid;
 
 use crate::models::id::{PlayId, StationId, TrackId};
 
-#[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StationInDB {
     pk: String,
     sk: String,
@@ -13,7 +12,7 @@ pub struct StationInDB {
     pub name: String,
     pub location: Option<String>,
     pub fetcher: Option<FetcherConfig>,
-    pub first_play_id: Option<Ulid>,
+    pub first_play_id: Option<PlayId>,
     pub latest_play: Option<LatestPlay>,
     pub track_count: usize,
     pub play_count: usize,
@@ -35,7 +34,7 @@ impl StationInDB {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LatestPlay {
     pub id: PlayId,
     pub track_id: TrackId,
@@ -43,7 +42,7 @@ pub struct LatestPlay {
     pub title: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AtimeStation {
     EFM,
@@ -51,10 +50,39 @@ pub enum AtimeStation {
     Chill,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "id")]
 pub enum FetcherConfig {
     Coolism,
     Iheart { slug: String },
     Atime { station: AtimeStation },
+}
+
+#[derive(Debug)]
+pub struct StationInDBCreate {
+    pub name: String,
+    pub location: Option<String>,
+    pub fetcher: Option<FetcherConfig>,
+}
+
+impl From<StationInDBCreate> for StationInDB {
+    fn from(value: StationInDBCreate) -> Self {
+        let now = Utc::now();
+        let id = Ulid::from_datetime(now.into()).into();
+
+        Self {
+            pk: Self::get_pk(),
+            sk: Self::get_sk(id),
+            id,
+            name: value.name,
+            location: value.location,
+            fetcher: value.fetcher,
+            first_play_id: None,
+            latest_play: None,
+            track_count: 0,
+            play_count: 0,
+            created_ts: now,
+            updated_ts: now,
+        }
+    }
 }
