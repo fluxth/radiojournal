@@ -4,9 +4,6 @@ use radiojournal::models::id::StationId;
 
 use std::sync::Arc;
 
-use aws_config::meta::region::RegionProviderChain;
-use aws_config::BehaviorVersion;
-use aws_sdk_dynamodb::Client;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use serde::Serialize;
 use serde_json::Value;
@@ -15,20 +12,10 @@ use tracing::error;
 use tracing::info;
 
 use radiojournal::{
-    crud::{
-        station::{AddPlayResult, CRUDStation},
-        Context,
-    },
+    crud::station::{AddPlayResult, CRUDStation},
+    init,
     models::station::{FetcherConfig, StationInDB},
 };
-
-const LOCALSTACK_ENDPOINT: &str = "http://localhost:4566";
-
-/// If LOCALSTACK environment variable is true, use LocalStack endpoints.
-/// You can use your own method for determining whether to use LocalStack endpoints.
-fn use_localstack() -> bool {
-    std::env::var("LOCALSTACK").unwrap_or_default() == "true"
-}
 
 #[derive(Debug)]
 struct State {
@@ -62,7 +49,7 @@ impl Fetchers {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    if use_localstack() {
+    if init::use_localstack() {
         tracing_subscriber::fmt().compact().init();
     } else {
         tracing_subscriber::fmt()
@@ -78,18 +65,10 @@ async fn main() -> Result<(), Error> {
         env!("CARGO_PKG_VERSION")
     );
 
-    let region_provider = RegionProviderChain::default_provider().or_else("ap-southeast-1");
+    let context = init::initialize()
+        .await
+        .expect("initialize radiojournal app");
 
-    let mut config = aws_config::defaults(BehaviorVersion::latest()).region(region_provider);
-    if use_localstack() {
-        config = config.endpoint_url(LOCALSTACK_ENDPOINT);
-    };
-
-    let config = config.load().await;
-    let db_client = Client::new(&config);
-    let table_name = std::env::var("DB_TABLE_NAME").expect("env DB_TABLE_NAME to be set");
-
-    let context = Arc::new(Context::new(db_client, table_name));
     let crud_station = Arc::new(CRUDStation::new(context));
 
     let state = Arc::new(State::new());

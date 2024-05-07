@@ -1751,6 +1751,7 @@ name = "radiojournal"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "aws-config",
  "aws-sdk-dynamodb",
  "chrono",
  "serde",
@@ -1764,8 +1765,6 @@ dependencies = [
 name = "radiojournal-api"
 version = "0.1.0"
 dependencies = [
- "aws-config",
- "aws-sdk-dynamodb",
  "axum",
  "chrono",
  "lambda_http",
@@ -1787,8 +1786,6 @@ name = "radiojournal-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "aws-config",
- "aws-sdk-dynamodb",
  "radiojournal",
  "tokio",
  "tracing",
@@ -1801,8 +1798,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "aws-config",
- "aws-sdk-dynamodb",
  "chrono",
  "lambda_runtime",
  "moka",
