@@ -7,7 +7,7 @@ edition = "2021"
 local = []
 
 [dependencies]
-anyhow = "=1.0.82"
+anyhow = "=1.0.83"
 aws-sdk-dynamodb = "=1.25.0"
 chrono = { version = "=0.4.38", features = ["serde"] }
 serde = { version = "=1.0.200", features = ["derive"] }
