@@ -1770,7 +1770,6 @@ dependencies = [
  "lambda_http",
  "radiojournal",
  "serde",
- "serde_json",
  "tokio",
  "tower-http",
  "tracing",
@@ -1804,12 +1803,10 @@ dependencies = [
  "radiojournal",
  "reqwest",
  "serde",
- "serde_dynamo",
  "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
- "ulid",
 ]
 
 [[package]]
