@@ -7,7 +7,7 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "3.12.3"
+python = "3.12.4"
 aiodynamo = {version = "24.1", extras = ["httpx"]}
 yarl = "1.9.4"
 
