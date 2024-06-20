@@ -8,8 +8,8 @@ local = []
 
 [dependencies]
 anyhow = "=1.0.86"
-aws-config = "=1.5.2"
-aws-sdk-dynamodb = "=1.35.0"
+aws-config = "=1.5.3"
+aws-sdk-dynamodb = "=1.36.0"
 chrono = { version = "=0.4.38", features = ["serde"] }
 serde = { version = "=1.0.203", features = ["derive"] }
 serde_dynamo = { version = "=4.2.14", features = ["aws-sdk-dynamodb+1"] }
