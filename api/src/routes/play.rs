@@ -14,7 +14,8 @@ use crate::{
     models::{APIJson, ListPlaysResponse, NextToken, Play, TrackMinimal},
     AppState,
 };
-use radiojournal::models::id::{StationId, TrackId};
+use radiojournal::crud::station::models::StationId;
+use radiojournal::crud::track::models::TrackId;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ListPlaysQuery {

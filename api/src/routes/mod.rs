@@ -10,7 +10,7 @@ use utoipauto::utoipauto;
 
 use crate::AppState;
 
-#[utoipauto(paths = "api/src, lib/src/models/id.rs from radiojournal")]
+#[utoipauto(paths = "api/src, lib/src/crud from radiojournal")]
 #[derive(OpenApi)]
 #[openapi(modifiers(&ServerAddon))]
 pub(crate) struct APIDoc;

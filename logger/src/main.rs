@@ -1,6 +1,4 @@
 mod fetchers;
-use fetchers::Fetcher;
-use radiojournal::models::id::StationId;
 
 use std::sync::Arc;
 
@@ -11,11 +9,10 @@ use tokio::task::JoinSet;
 use tracing::error;
 use tracing::info;
 
-use radiojournal::{
-    crud::station::{AddPlayResult, CRUDStation},
-    init,
-    models::station::{FetcherConfig, StationInDB},
-};
+use fetchers::Fetcher;
+use radiojournal::crud::station::models::{FetcherConfig, StationId, StationInDB};
+use radiojournal::crud::station::{AddPlayResult, CRUDStation};
+use radiojournal::init;
 
 #[derive(Debug)]
 struct State {

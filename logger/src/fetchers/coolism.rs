@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 use tracing::{info, warn};
 
 use super::{Fetcher, Play};
-use radiojournal::models::station::FetcherConfig;
+use radiojournal::crud::station::models::FetcherConfig;
 
 #[derive(Debug)]
 struct CoolismToken {

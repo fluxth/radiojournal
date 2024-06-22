@@ -1,3 +1,5 @@
+pub mod models;
+
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -5,16 +7,12 @@ use aws_sdk_dynamodb::types::{AttributeValue, Put, Select, TransactWriteItem, Up
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-use crate::{
-    crud::{track::CRUDTrack, Context},
-    helpers::ziso_timestamp,
-    models::{
-        id::{PlayId, StationId, TrackId},
-        play::PlayInDB,
-        station::{LatestPlay, StationInDB, StationInDBCreate},
-        track::{TrackInDB, TrackMetadataCreateInDB},
-    },
-};
+use crate::crud::play::models::{PlayId, PlayInDB};
+use crate::crud::track::models::{TrackId, TrackInDB, TrackMetadataCreateInDB};
+use crate::crud::track::CRUDTrack;
+use crate::crud::Context;
+use crate::helpers::ziso_timestamp;
+use models::{LatestPlay, StationId, StationInDB, StationInDBCreate};
 
 pub trait Play {
     fn get_title(&self) -> &str;

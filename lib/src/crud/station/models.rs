@@ -1,8 +1,31 @@
+use std::ops::Deref;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
+use utoipa::ToSchema;
 
-use crate::models::id::{PlayId, StationId, TrackId};
+use crate::crud::play::models::PlayId;
+use crate::crud::track::models::TrackId;
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(transparent)]
+#[repr(transparent)]
+pub struct StationId(pub Ulid);
+
+impl From<Ulid> for StationId {
+    fn from(val: Ulid) -> Self {
+        Self(val)
+    }
+}
+
+impl Deref for StationId {
+    type Target = Ulid;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StationInDB {

@@ -11,13 +11,10 @@ use ulid::Ulid;
 use utoipa::ToSchema;
 
 use crate::errors::APIError;
-use radiojournal::models::{
-    id::{PlayId, TrackId},
-    play::PlayInDB,
-    station::StationInDB,
-    track::{TrackInDB, TrackMinimalInDB, TrackPlayInDB},
-};
-use radiojournal::{helpers::truncate_datetime_to_minutes, models::id::StationId};
+use radiojournal::crud::play::models::{PlayId, PlayInDB};
+use radiojournal::crud::station::models::{StationId, StationInDB};
+use radiojournal::crud::track::models::{TrackId, TrackInDB, TrackMinimalInDB, TrackPlayInDB};
+use radiojournal::helpers::truncate_datetime_to_minutes;
 
 #[derive(FromRequest)]
 #[from_request(via(axum::Json), rejection(APIError))]

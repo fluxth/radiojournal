@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::extract::State;
-use radiojournal::models::id::StationId;
+use radiojournal::crud::station::models::StationId;
 
 use crate::{
     errors::APIError,

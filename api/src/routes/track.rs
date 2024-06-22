@@ -10,7 +10,8 @@ use crate::{
     models::{APIJson, ListTrackPlaysResponse, ListTracksResponse, NextToken, PlayMinimal, Track},
     AppState,
 };
-use radiojournal::models::id::{StationId, TrackId};
+use radiojournal::crud::station::models::StationId;
+use radiojournal::crud::track::models::TrackId;
 
 #[utoipa::path(
     get,

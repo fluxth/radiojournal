@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 use tracing::info;
 
 use super::{Fetcher, Play};
-use radiojournal::models::station::{AtimeStation, FetcherConfig};
+use radiojournal::crud::station::models::{AtimeStation, FetcherConfig};
 
 #[derive(Debug)]
 pub(crate) struct Atime {

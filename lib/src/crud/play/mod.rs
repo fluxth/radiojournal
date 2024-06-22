@@ -1,3 +1,5 @@
+pub mod models;
+
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -5,11 +7,11 @@ use aws_sdk_dynamodb::types::{AttributeValue, Select};
 use chrono::{DateTime, Duration, Utc};
 use ulid::Ulid;
 
-use crate::{
-    crud::Context,
-    helpers::truncate_datetime_to_days,
-    models::{id::StationId, play::PlayInDB, PaginateKey},
-};
+use crate::crud::shared::models::PaginateKey;
+use crate::crud::station::models::StationId;
+use crate::crud::Context;
+use crate::helpers::truncate_datetime_to_days;
+use models::PlayInDB;
 
 pub struct CRUDPlay {
     context: Arc<Context>,

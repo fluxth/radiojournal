@@ -1,6 +1,7 @@
 use aws_sdk_dynamodb::Client;
 
 pub mod play;
+pub mod shared;
 pub mod station;
 pub mod track;
 

@@ -7,7 +7,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use super::{Fetcher, Play};
-use radiojournal::models::station::FetcherConfig;
+use radiojournal::crud::station::models::FetcherConfig;
 
 #[derive(Debug)]
 pub(crate) struct Iheart {

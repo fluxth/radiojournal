@@ -3,13 +3,9 @@ use std::sync::Arc;
 use anyhow::Result;
 use tracing::info;
 
-use radiojournal::{
-    crud::{
-        station::{CRUDStation, Play as PlayTrait},
-        Context,
-    },
-    models::station::{AtimeStation, FetcherConfig, StationInDBCreate},
-};
+use radiojournal::crud::station::models::{AtimeStation, FetcherConfig, StationInDBCreate};
+use radiojournal::crud::station::{CRUDStation, Play as PlayTrait};
+use radiojournal::crud::Context;
 
 #[derive(Clone)]
 struct Play {
