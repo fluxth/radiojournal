@@ -29,8 +29,8 @@ impl Deref for TrackId {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrackInDB {
-    pk: String,
-    sk: String,
+    pub(super) pk: String,
+    pub(super) sk: String,
     pub id: TrackId,
     pub title: String,
     pub artist: String,
@@ -93,9 +93,9 @@ impl TrackInDB {
 
 #[derive(Debug, Deserialize)]
 pub struct TrackPlayInDB {
-    // pk: String,
-    // sk: String,
-    // gsi1pk: String,
+    pub(super) pk: String,
+    pub(super) sk: String,
+    pub(super) gsi1pk: String,
     pub id: Ulid,
     pub track_id: Ulid,
 }
@@ -135,9 +135,10 @@ impl TrackMetadataKeys for TrackMetadataInDB {}
 
 #[derive(Debug, Serialize, Deserialize)]
 /// Insert variant of track item used for lookup using metadata
+// TODO: Rename this to be default variant (maybe without Create suffix)
 pub struct TrackMetadataCreateInDB {
-    pk: String,
-    sk: String,
+    pub(super) pk: String,
+    pub(super) sk: String,
     pub track_id: TrackId,
 }
 

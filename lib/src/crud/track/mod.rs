@@ -5,6 +5,7 @@ use std::{collections::HashMap, sync::Arc};
 use anyhow::Result;
 use aws_sdk_dynamodb::types::{AttributeValue, KeysAndAttributes, Select};
 use chrono::{DateTime, Duration, Utc};
+use field::field;
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
@@ -13,7 +14,8 @@ use crate::crud::shared::models::{Gsi1PaginateKey, PaginateKey};
 use crate::crud::station::models::{StationId, StationInDB};
 use crate::crud::track::models::TrackId;
 use crate::crud::track::models::{
-    TrackInDB, TrackMetadataInDB, TrackMetadataKeys, TrackMinimalInDB, TrackPlayInDB,
+    TrackInDB, TrackMetadataCreateInDB, TrackMetadataInDB, TrackMetadataKeys, TrackMinimalInDB,
+    TrackPlayInDB,
 };
 use crate::crud::Context;
 use crate::helpers::truncate_datetime_to_months;
@@ -39,8 +41,14 @@ impl CRUDTrack {
             .db_client
             .get_item()
             .table_name(&self.context.db_table)
-            .key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-            .key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)))
+            .key(
+                field!(pk @ TrackInDB),
+                AttributeValue::S(TrackInDB::get_pk(station_id)),
+            )
+            .key(
+                field!(sk @ TrackInDB),
+                AttributeValue::S(TrackInDB::get_sk(track_id)),
+            )
             .send()
             .await?;
 
@@ -63,11 +71,14 @@ impl CRUDTrack {
             .get_item()
             .table_name(&self.context.db_table)
             .key(
-                "pk",
+                field!(pk @ TrackMetadataCreateInDB),
                 AttributeValue::S(TrackMetadataInDB::get_pk(station.id, artist)),
             )
-            .key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(title)))
-            .projection_expression("track_id")
+            .key(
+                field!(sk @ TrackMetadataCreateInDB),
+                AttributeValue::S(TrackMetadataInDB::get_sk(title)),
+            )
+            .projection_expression(field!(track_id @ TrackMetadataInDB))
             .consistent_read(true)
             .send()
             .await?;
@@ -90,9 +101,14 @@ impl CRUDTrack {
             .db_client
             .query()
             .table_name(&self.context.db_table)
-            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
+            .key_condition_expression("#pk = :pk AND begins_with(#sk, :sk_prefix)")
+            .expression_attribute_names("#pk", field!(pk @ TrackInDB))
+            .expression_attribute_names("#sk", field!(sk @ TrackInDB))
             .expression_attribute_values(":pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-            .expression_attribute_values(":sk", AttributeValue::S(TrackInDB::get_sk_prefix()))
+            .expression_attribute_values(
+                ":sk_prefix",
+                AttributeValue::S(TrackInDB::get_sk_prefix()),
+            )
             .scan_index_forward(false)
             .select(Select::AllAttributes)
             .limit(limit);
@@ -100,8 +116,14 @@ impl CRUDTrack {
         if let Some(next_key) = next_key {
             let track_id = next_key.into();
             query = query
-                .exclusive_start_key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-                .exclusive_start_key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)));
+                .exclusive_start_key(
+                    field!(pk @ TrackInDB),
+                    AttributeValue::S(TrackInDB::get_pk(station_id)),
+                )
+                .exclusive_start_key(
+                    field!(sk @ TrackInDB),
+                    AttributeValue::S(TrackInDB::get_sk(track_id)),
+                );
         };
 
         let resp = query.send().await?;
@@ -139,27 +161,32 @@ impl CRUDTrack {
             .db_client
             .query()
             .table_name(&self.context.db_table)
-            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
+            .key_condition_expression("#pk = :pk AND begins_with(#sk, :sk_prefix)")
+            .expression_attribute_names("#pk", field!(pk @ TrackMetadataCreateInDB))
+            .expression_attribute_names("#sk", field!(sk @ TrackMetadataCreateInDB))
             .expression_attribute_values(
                 ":pk",
                 AttributeValue::S(TrackMetadataInDB::get_pk(station_id, artist)),
             )
             .expression_attribute_values(
-                ":sk",
+                ":sk_prefix",
                 AttributeValue::S(TrackMetadataInDB::get_sk_prefix()),
             )
             .scan_index_forward(false)
             .select(Select::SpecificAttributes)
-            .projection_expression("track_id")
+            .projection_expression(field!(track_id @ TrackMetadataInDB))
             .limit(limit);
 
         if let Some(next_key) = next_key {
             query = query
                 .exclusive_start_key(
-                    "pk",
+                    field!(pk @ TrackMetadataCreateInDB),
                     AttributeValue::S(TrackMetadataInDB::get_pk(station_id, artist)),
                 )
-                .exclusive_start_key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(next_key)));
+                .exclusive_start_key(
+                    field!(sk @ TrackMetadataCreateInDB),
+                    AttributeValue::S(TrackMetadataInDB::get_sk(next_key)),
+                );
         };
 
         let resp = query.send().await?;
@@ -195,8 +222,14 @@ impl CRUDTrack {
         station_id: StationId,
         track_ids: impl Iterator<Item = &TrackId>,
     ) -> Result<Vec<TrackInDB>> {
-        self.batch_get_tracks_internal(station_id, track_ids, None)
-            .await
+        self.batch_get_tracks_internal(
+            station_id,
+            track_ids,
+            field!(pk @ TrackInDB),
+            field!(sk @ TrackInDB),
+            None,
+        )
+        .await
     }
 
     pub async fn batch_get_tracks_minimal(
@@ -204,34 +237,48 @@ impl CRUDTrack {
         station_id: StationId,
         track_ids: impl Iterator<Item = &TrackId>,
     ) -> Result<Vec<TrackMinimalInDB>> {
-        self.batch_get_tracks_internal(station_id, track_ids, Some("id, title, artist, is_song"))
-            .await
+        self.batch_get_tracks_internal(
+            station_id,
+            track_ids,
+            field!(pk @ TrackInDB),
+            field!(sk @ TrackInDB),
+            Some(&[
+                field!(id @ TrackMinimalInDB),
+                field!(title @ TrackMinimalInDB),
+                field!(artist @ TrackMinimalInDB),
+                field!(is_song @ TrackMinimalInDB),
+            ]),
+        )
+        .await
     }
 
     async fn batch_get_tracks_internal<'a, O>(
         &self,
         station_id: StationId,
         track_ids: impl Iterator<Item = &TrackId>,
-        projection_expression: Option<&str>,
+        pk_key_name: &'static str,
+        sk_key_name: &'static str,
+        projection_fields: Option<&'static [&'static str]>,
     ) -> Result<Vec<O>>
     where
         O: Serialize + Deserialize<'a>,
     {
         let mut request_keys = KeysAndAttributes::builder();
 
-        if let Some(expression) = projection_expression {
+        if let Some(fields) = projection_fields {
+            let expression = fields.join(", ");
             request_keys = request_keys.projection_expression(expression);
         }
 
-        // TODO do multiple batches if id count > 100
+        // TODO: do multiple batches if id count > 100
         for track_id in track_ids {
             request_keys = request_keys.keys(HashMap::from([
                 (
-                    "pk".to_owned(),
+                    pk_key_name.to_owned(),
                     AttributeValue::S(TrackInDB::get_pk(station_id)),
                 ),
                 (
-                    "sk".to_owned(),
+                    sk_key_name.to_owned(),
                     AttributeValue::S(TrackInDB::get_sk(*track_id)),
                 ),
             ]))
@@ -273,16 +320,22 @@ impl CRUDTrack {
             .query()
             .table_name(&self.context.db_table)
             .index_name("gsi1")
-            .key_condition_expression("gsi1pk = :gsi1pk AND begins_with(sk, :sk)")
-            .filter_expression("begins_with(pk, :pk)")
+            .key_condition_expression("#gsi1pk = :gsi1pk AND begins_with(#sk, :sk_prefix)")
+            .filter_expression("begins_with(#pk, :pk_prefix)")
+            .expression_attribute_names("#gsi1pk", field!(gsi1pk @ TrackPlayInDB))
+            .expression_attribute_names("#sk", field!(sk @ TrackPlayInDB))
+            .expression_attribute_names("#pk", field!(pk @ TrackPlayInDB))
             .expression_attribute_values(
                 ":gsi1pk",
                 AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime)),
             )
-            .expression_attribute_values(":sk", AttributeValue::S(TrackPlayInDB::get_sk_prefix()))
+            .expression_attribute_values(
+                ":sk_prefix",
+                AttributeValue::S(TrackPlayInDB::get_sk_prefix()),
+            )
             // double check if it's the same station we're looking for
             .expression_attribute_values(
-                ":pk",
+                ":pk_prefix",
                 AttributeValue::S(PlayInDB::get_pk_station_prefix(station_id)),
             )
             .scan_index_forward(false)

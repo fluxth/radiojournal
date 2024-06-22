@@ -13,7 +13,7 @@
   const loadMore = async () => {
     isLoading = true;
     try {
-      // TODO handle invalidate
+      // TODO: handle invalidate
       const { tracks, ...rest } = await listTracks({
         stationId: data.station.id,
         nextToken: tracksData.nextToken,

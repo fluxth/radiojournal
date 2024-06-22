@@ -3,7 +3,7 @@ import type { Dayjs } from "dayjs";
 
 const API_BASE_URL = "https://nna6sr3v62fsk5oauz37tnzuvm0lvtfl.lambda-url.ap-southeast-1.on.aws";
 
-// TODO import from openapi
+// TODO: import from openapi
 export type Station = {
   id: string;
   name: string;

@@ -5,6 +5,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use aws_sdk_dynamodb::types::{AttributeValue, Select};
 use chrono::{DateTime, Duration, Utc};
+use field::field;
 use ulid::Ulid;
 
 use crate::crud::shared::models::PaginateKey;
@@ -44,7 +45,9 @@ impl CRUDPlay {
             .db_client
             .query()
             .table_name(&self.context.db_table)
-            .key_condition_expression("pk = :pk AND sk BETWEEN :start_sk AND :end_sk")
+            .key_condition_expression("#pk = :pk AND #sk BETWEEN :start_sk AND :end_sk")
+            .expression_attribute_names("#pk", field!(pk @ PlayInDB))
+            .expression_attribute_names("#sk", field!(sk @ PlayInDB))
             .expression_attribute_values(
                 ":pk",
                 AttributeValue::S(PlayInDB::get_pk(station_id, &partition_datetime)),
@@ -68,10 +71,13 @@ impl CRUDPlay {
 
                 query = query
                     .exclusive_start_key(
-                        "pk",
+                        field!(pk @ PlayInDB),
                         AttributeValue::S(PlayInDB::get_pk(station_id, &next_key_datetime)),
                     )
-                    .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)));
+                    .exclusive_start_key(
+                        field!(sk @ PlayInDB),
+                        AttributeValue::S(PlayInDB::get_sk(play_id)),
+                    );
             }
         }
 
