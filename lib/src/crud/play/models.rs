@@ -28,9 +28,9 @@ impl Deref for PlayId {
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PlayInDB {
-    pk: String,
-    sk: String,
-    gsi1pk: String,
+    pub(super) pk: String,
+    pub(super) sk: String,
+    pub gsi1pk: String,
     pub id: PlayId,
     pub track_id: TrackId,
     pub created_ts: DateTime<Utc>,
