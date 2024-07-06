@@ -1,3 +1,4 @@
+use radiojournal::crud::logger::CRUDLogger;
 use radiojournal::crud::station::CRUDStation;
 
 mod mock;
@@ -11,6 +12,7 @@ async fn main() {
         .expect("initialize radiojournal app");
 
     let crud_station = CRUDStation::new(context.clone());
+    let crud_logger = CRUDLogger::new(context.clone());
 
-    mock::mock_database(context, &crud_station).await;
+    mock::mock_database(context, &crud_station, &crud_logger).await;
 }
