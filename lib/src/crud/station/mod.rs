@@ -1,31 +1,32 @@
 pub mod models;
+mod provider;
 
 use std::sync::Arc;
 
 use anyhow::Result;
-use aws_sdk_dynamodb::types::{AttributeValue, Select};
 
 use crate::crud::Context;
 use models::{StationId, StationInDB, StationInDBCreate};
+use provider::{DynamoDBProvider, GetItemInput, PutItemInput, QueryPrefixConfig, QueryPrefixInput};
 
 pub struct CRUDStation {
-    context: Arc<Context>,
+    provider: DynamoDBProvider,
 }
 
 impl CRUDStation {
     pub fn new(context: Arc<Context>) -> Self {
-        Self { context }
+        Self {
+            provider: DynamoDBProvider::new(context),
+        }
     }
 
     pub async fn get_station(&self, station_id: StationId) -> Result<Option<StationInDB>> {
         let resp = self
-            .context
-            .db_client
-            .get_item()
-            .table_name(&self.context.db_table)
-            .key("pk", AttributeValue::S(StationInDB::get_pk()))
-            .key("sk", AttributeValue::S(StationInDB::get_sk(station_id)))
-            .send()
+            .provider
+            .get_item(GetItemInput {
+                pk: StationInDB::get_pk(),
+                sk: StationInDB::get_sk(station_id),
+            })
             .await?;
 
         if let Some(item) = resp.item {
@@ -37,16 +38,14 @@ impl CRUDStation {
 
     pub async fn list_stations(&self, limit: i32) -> Result<Vec<StationInDB>> {
         let resp = self
-            .context
-            .db_client
-            .query()
-            .table_name(&self.context.db_table)
-            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
-            .expression_attribute_values(":pk", AttributeValue::S(StationInDB::get_pk()))
-            .expression_attribute_values(":sk", AttributeValue::S(StationInDB::get_sk_prefix()))
-            .select(Select::AllAttributes)
-            .limit(limit)
-            .send()
+            .provider
+            .query_prefix(
+                QueryPrefixInput {
+                    pk: StationInDB::get_pk(),
+                    sk_prefix: StationInDB::get_sk_prefix(),
+                },
+                QueryPrefixConfig { limit },
+            )
             .await?;
 
         let items = resp.items().to_vec();
@@ -56,16 +55,14 @@ impl CRUDStation {
     }
 
     pub async fn create_station(&self, station_create: StationInDBCreate) -> Result<StationInDB> {
-        let station_internal: StationInDB = station_create.into();
+        let station: StationInDB = station_create.into();
 
-        self.context
-            .db_client
-            .put_item()
-            .table_name(&self.context.db_table)
-            .set_item(Some(serde_dynamo::to_item(station_internal.clone())?))
-            .send()
+        self.provider
+            .put_item(PutItemInput {
+                item: serde_dynamo::to_item(station.clone())?,
+            })
             .await?;
 
-        Ok(station_internal)
+        Ok(station)
     }
 }
