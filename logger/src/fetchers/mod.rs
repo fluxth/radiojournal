@@ -5,8 +5,8 @@ pub(crate) mod iheart;
 use anyhow::Result;
 use async_trait::async_trait;
 
+use radiojournal::crud::logger::Play as PlayTrait;
 use radiojournal::crud::station::models::FetcherConfig;
-use radiojournal::crud::station::Play as PlayTrait;
 
 #[derive(Debug)]
 pub(crate) struct Play {

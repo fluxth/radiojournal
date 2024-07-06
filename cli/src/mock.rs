@@ -3,8 +3,9 @@ use std::sync::Arc;
 use anyhow::Result;
 use tracing::info;
 
+use radiojournal::crud::logger::{CRUDLogger, Play as PlayTrait};
 use radiojournal::crud::station::models::{AtimeStation, FetcherConfig, StationInDBCreate};
-use radiojournal::crud::station::{CRUDStation, Play as PlayTrait};
+use radiojournal::crud::station::CRUDStation;
 use radiojournal::crud::Context;
 
 #[derive(Clone)]
@@ -28,7 +29,11 @@ impl PlayTrait for Play {
     }
 }
 
-pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStation) {
+pub(crate) async fn mock_database(
+    context: Arc<Context>,
+    crud_station: &CRUDStation,
+    crud_logger: &CRUDLogger,
+) {
     info!("Initializing DynamoDB table");
     radiojournal::mock::table::delete_then_create_table(context)
         .await
@@ -40,7 +45,9 @@ pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStat
         fetcher: Some(FetcherConfig::Coolism),
     };
 
-    mock_station(crud_station, coolism).await.unwrap();
+    mock_station(crud_station, crud_logger, coolism)
+        .await
+        .unwrap();
 
     let efm = StationInDBCreate {
         name: "efm".to_string(),
@@ -50,7 +57,7 @@ pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStat
         }),
     };
 
-    mock_station(crud_station, efm).await.unwrap();
+    mock_station(crud_station, crud_logger, efm).await.unwrap();
 
     let greenwave = StationInDBCreate {
         name: "greenwave".to_string(),
@@ -60,7 +67,9 @@ pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStat
         }),
     };
 
-    mock_station(crud_station, greenwave).await.unwrap();
+    mock_station(crud_station, crud_logger, greenwave)
+        .await
+        .unwrap();
 
     let chill = StationInDBCreate {
         name: "chill".to_string(),
@@ -70,7 +79,9 @@ pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStat
         }),
     };
 
-    mock_station(crud_station, chill).await.unwrap();
+    mock_station(crud_station, crud_logger, chill)
+        .await
+        .unwrap();
 
     let z100 = StationInDBCreate {
         name: "z100".to_string(),
@@ -80,7 +91,7 @@ pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStat
         }),
     };
 
-    mock_station(crud_station, z100).await.unwrap();
+    mock_station(crud_station, crud_logger, z100).await.unwrap();
 
     let kiis = StationInDBCreate {
         name: "kiis".to_string(),
@@ -90,10 +101,14 @@ pub(crate) async fn mock_database(context: Arc<Context>, crud_station: &CRUDStat
         }),
     };
 
-    mock_station(crud_station, kiis).await.unwrap();
+    mock_station(crud_station, crud_logger, kiis).await.unwrap();
 }
 
-async fn mock_station(crud_station: &CRUDStation, station_create: StationInDBCreate) -> Result<()> {
+async fn mock_station(
+    crud_station: &CRUDStation,
+    crud_logger: &CRUDLogger,
+    station_create: StationInDBCreate,
+) -> Result<()> {
     info!(station_name = station_create.name, "Creating station");
     let mut station = crud_station.create_station(station_create).await?;
 
@@ -120,10 +135,10 @@ async fn mock_station(crud_station: &CRUDStation, station_create: StationInDBCre
         is_song: true,
     };
 
-    crud_station.add_play(&mut station, play1).await?;
-    crud_station.add_play(&mut station, play2.clone()).await?;
-    crud_station.add_play(&mut station, play3).await?;
-    crud_station.add_play(&mut station, play2).await?;
+    crud_logger.add_play(&mut station, play1).await?;
+    crud_logger.add_play(&mut station, play2.clone()).await?;
+    crud_logger.add_play(&mut station, play3).await?;
+    crud_logger.add_play(&mut station, play2).await?;
 
     Ok(())
 }

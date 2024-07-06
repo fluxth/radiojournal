@@ -3,6 +3,7 @@ mod fetchers;
 use std::sync::Arc;
 
 use lambda_runtime::{service_fn, Error, LambdaEvent};
+use radiojournal::crud::logger::CRUDLogger;
 use serde::Serialize;
 use serde_json::Value;
 use tokio::task::JoinSet;
@@ -10,8 +11,9 @@ use tracing::error;
 use tracing::info;
 
 use fetchers::Fetcher;
+use radiojournal::crud::logger::AddPlayResult;
 use radiojournal::crud::station::models::{FetcherConfig, StationId, StationInDB};
-use radiojournal::crud::station::{AddPlayResult, CRUDStation};
+use radiojournal::crud::station::CRUDStation;
 use radiojournal::init;
 
 #[derive(Debug)]
@@ -66,11 +68,19 @@ async fn main() -> Result<(), Error> {
         .await
         .expect("initialize radiojournal app");
 
-    let crud_station = Arc::new(CRUDStation::new(context));
+    let crud_station = Arc::new(CRUDStation::new(context.clone()));
+    let crud_logger = Arc::new(CRUDLogger::new(context));
 
     let state = Arc::new(State::new());
 
-    let func = service_fn(|event| invoke(event, state.clone(), crud_station.clone()));
+    let func = service_fn(|event| {
+        invoke(
+            event,
+            state.clone(),
+            crud_station.clone(),
+            crud_logger.clone(),
+        )
+    });
     info!("Initialization complete, now listening for events");
 
     lambda_runtime::run(func).await?;
@@ -94,6 +104,7 @@ async fn invoke(
     _event: LambdaEvent<Value>,
     state: Arc<State>,
     crud_station: Arc<CRUDStation>,
+    crud_logger: Arc<CRUDLogger>,
 ) -> Result<InvokeOutput, Error> {
     let mut join_set = JoinSet::new();
 
@@ -104,9 +115,9 @@ async fn invoke(
         .into_iter()
         .filter(|station| station.fetcher.is_some())
         .for_each(|station| {
-            let crud_station = crud_station.clone();
+            let crud_logger = crud_logger.clone();
             let state = state.clone();
-            join_set.spawn(async move { process_station(state, crud_station, station).await });
+            join_set.spawn(async move { process_station(state, crud_logger, station).await });
         });
 
     let mut stations = vec![];
@@ -150,7 +161,7 @@ async fn get_fetcher<'a, 'b>(
 #[tracing::instrument(skip_all, fields(station.id = station.id.to_string(), station.name = station.name))]
 async fn process_station(
     state: Arc<State>,
-    crud_station: Arc<CRUDStation>,
+    crud_logger: Arc<CRUDLogger>,
     mut station: StationInDB,
 ) -> anyhow::Result<StationResult> {
     let maybe_fetcher = get_fetcher(&state, &station).await;
@@ -166,7 +177,7 @@ async fn process_station(
 
         info!(title = play.title, artist = play.artist, "Fetched play");
 
-        let result = crud_station.add_play(&mut station, play).await?;
+        let result = crud_logger.add_play(&mut station, play).await?;
 
         info!(
             add_type = ?result.add_type,

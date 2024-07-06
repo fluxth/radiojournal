@@ -1,5 +1,6 @@
 use aws_sdk_dynamodb::Client;
 
+pub mod logger;
 pub mod play;
 pub mod shared;
 pub mod station;
