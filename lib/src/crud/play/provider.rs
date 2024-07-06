@@ -20,8 +20,11 @@ pub(super) struct QueryRangeInput {
     pub pk: String,
     pub start_sk: String,
     pub end_sk: String,
-    pub limit: i32,
     pub exclusive_start_key: Option<ExclusiveStartKey>,
+}
+
+pub(super) struct QueryRangeConfig {
+    pub limit: i32,
 }
 
 impl DynamoDBProvider {
@@ -32,6 +35,7 @@ impl DynamoDBProvider {
     pub async fn query_range(
         &self,
         input: QueryRangeInput,
+        config: QueryRangeConfig,
     ) -> Result<QueryOutput, SdkError<QueryError, HttpResponse>> {
         let mut query = self
             .context
@@ -43,7 +47,7 @@ impl DynamoDBProvider {
             .expression_attribute_values(":start_sk", AttributeValue::S(input.start_sk))
             .expression_attribute_values(":end_sk", AttributeValue::S(input.end_sk))
             .select(Select::AllAttributes)
-            .limit(input.limit);
+            .limit(config.limit);
 
         if let Some(exclusive_start_key) = input.exclusive_start_key {
             query = query
