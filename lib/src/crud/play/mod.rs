@@ -12,7 +12,7 @@ use crate::crud::station::models::StationId;
 use crate::crud::Context;
 use crate::helpers::truncate_datetime_to_days;
 use models::PlayInDB;
-use provider::{DynamoDBProvider, ExclusiveStartKey, QueryRangeInput};
+use provider::{DynamoDBProvider, ExclusiveStartKey, QueryRangeConfig, QueryRangeInput};
 
 pub struct CRUDPlay {
     provider: DynamoDBProvider,
@@ -61,13 +61,15 @@ impl CRUDPlay {
 
         let query_result = self
             .provider
-            .query_range(QueryRangeInput {
-                pk: PlayInDB::get_pk(station_id, &partition_datetime),
-                start_sk: PlayInDB::get_sk_prefix() + &start_ulid.to_string(),
-                end_sk: PlayInDB::get_sk_prefix() + &end_ulid.to_string(),
-                limit,
-                exclusive_start_key,
-            })
+            .query_range(
+                QueryRangeInput {
+                    pk: PlayInDB::get_pk(station_id, &partition_datetime),
+                    start_sk: PlayInDB::get_sk_prefix() + &start_ulid.to_string(),
+                    end_sk: PlayInDB::get_sk_prefix() + &end_ulid.to_string(),
+                    exclusive_start_key,
+                },
+                QueryRangeConfig { limit },
+            )
             .await?;
 
         let new_next_key = if let Some(last_evaluated_key) = query_result.last_evaluated_key {
