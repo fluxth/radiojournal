@@ -1,9 +1,9 @@
 pub mod models;
+mod provider;
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::Result;
-use aws_sdk_dynamodb::types::{AttributeValue, KeysAndAttributes, Select};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
@@ -17,16 +17,27 @@ use crate::crud::track::models::{
 };
 use crate::crud::Context;
 use crate::helpers::truncate_datetime_to_months;
+use provider::{
+    BatchGetItemInput, DynamoDBProvider, ExclusiveStartKey, GetItemConfig, GetItemInput,
+    ProjectedFields, QueryPrefixConfig, QueryPrefixInput,
+};
+
+use self::provider::{
+    BatchGetItemConfig, BatchGetItemKey, Gsi1ExclusiveStartKey, QueryPrefixGsi1Config,
+    QueryPrefixGsi1Input,
+};
 
 const ULID_RANDOM_MAX: u128 = (1 << 80) - 1;
 
 pub struct CRUDTrack {
-    context: Arc<Context>,
+    provider: DynamoDBProvider,
 }
 
 impl CRUDTrack {
     pub fn new(context: Arc<Context>) -> Self {
-        Self { context }
+        Self {
+            provider: DynamoDBProvider::new(context),
+        }
     }
 
     pub async fn get_track(
@@ -35,13 +46,17 @@ impl CRUDTrack {
         track_id: TrackId,
     ) -> Result<Option<TrackInDB>> {
         let resp = self
-            .context
-            .db_client
-            .get_item()
-            .table_name(&self.context.db_table)
-            .key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-            .key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)))
-            .send()
+            .provider
+            .get_item(
+                GetItemInput {
+                    pk: TrackInDB::get_pk(station_id),
+                    sk: TrackInDB::get_sk(track_id),
+                },
+                GetItemConfig {
+                    consistent_read: false,
+                    projected_fields: ProjectedFields::All,
+                },
+            )
             .await?;
 
         if let Some(item) = resp.item {
@@ -58,18 +73,17 @@ impl CRUDTrack {
         title: &str,
     ) -> Result<Option<TrackMetadataInDB>> {
         let resp = self
-            .context
-            .db_client
-            .get_item()
-            .table_name(&self.context.db_table)
-            .key(
-                "pk",
-                AttributeValue::S(TrackMetadataInDB::get_pk(station.id, artist)),
+            .provider
+            .get_item(
+                GetItemInput {
+                    pk: TrackMetadataInDB::get_pk(station.id, artist),
+                    sk: TrackMetadataInDB::get_sk(title),
+                },
+                GetItemConfig {
+                    consistent_read: true,
+                    projected_fields: ProjectedFields::Some(&["track_id"]),
+                },
             )
-            .key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(title)))
-            .projection_expression("track_id")
-            .consistent_read(true)
-            .send()
             .await?;
 
         if let Some(item) = resp.item {
@@ -85,26 +99,31 @@ impl CRUDTrack {
         limit: i32,
         next_key: Option<Ulid>,
     ) -> Result<(Vec<TrackInDB>, Option<Ulid>)> {
-        let mut query = self
-            .context
-            .db_client
-            .query()
-            .table_name(&self.context.db_table)
-            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
-            .expression_attribute_values(":pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-            .expression_attribute_values(":sk", AttributeValue::S(TrackInDB::get_sk_prefix()))
-            .scan_index_forward(false)
-            .select(Select::AllAttributes)
-            .limit(limit);
-
-        if let Some(next_key) = next_key {
+        let exclusive_start_key = if let Some(next_key) = next_key {
             let track_id = next_key.into();
-            query = query
-                .exclusive_start_key("pk", AttributeValue::S(TrackInDB::get_pk(station_id)))
-                .exclusive_start_key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)));
+            Some(ExclusiveStartKey {
+                pk: TrackInDB::get_pk(station_id),
+                sk: TrackInDB::get_sk(track_id),
+            })
+        } else {
+            None
         };
 
-        let resp = query.send().await?;
+        let resp = self
+            .provider
+            .query_prefix(
+                QueryPrefixInput {
+                    pk: TrackInDB::get_pk(station_id),
+                    sk_prefix: TrackInDB::get_sk_prefix(),
+                    scan_forward: false,
+                    exclusive_start_key,
+                },
+                QueryPrefixConfig {
+                    limit,
+                    projected_fields: ProjectedFields::All,
+                },
+            )
+            .await?;
 
         let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
             let paginate_key: PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
@@ -134,35 +153,26 @@ impl CRUDTrack {
         limit: i32,
         next_key: Option<&str>,
     ) -> Result<(Vec<TrackInDB>, Option<String>)> {
-        let mut query = self
-            .context
-            .db_client
-            .query()
-            .table_name(&self.context.db_table)
-            .key_condition_expression("pk = :pk AND begins_with(sk, :sk)")
-            .expression_attribute_values(
-                ":pk",
-                AttributeValue::S(TrackMetadataInDB::get_pk(station_id, artist)),
-            )
-            .expression_attribute_values(
-                ":sk",
-                AttributeValue::S(TrackMetadataInDB::get_sk_prefix()),
-            )
-            .scan_index_forward(false)
-            .select(Select::SpecificAttributes)
-            .projection_expression("track_id")
-            .limit(limit);
+        let exclusive_start_key = next_key.map(|next_key| ExclusiveStartKey {
+            pk: TrackMetadataInDB::get_pk(station_id, artist),
+            sk: TrackMetadataInDB::get_sk(next_key),
+        });
 
-        if let Some(next_key) = next_key {
-            query = query
-                .exclusive_start_key(
-                    "pk",
-                    AttributeValue::S(TrackMetadataInDB::get_pk(station_id, artist)),
-                )
-                .exclusive_start_key("sk", AttributeValue::S(TrackMetadataInDB::get_sk(next_key)));
-        };
-
-        let resp = query.send().await?;
+        let resp = self
+            .provider
+            .query_prefix(
+                QueryPrefixInput {
+                    pk: TrackMetadataInDB::get_pk(station_id, artist),
+                    sk_prefix: TrackMetadataInDB::get_sk_prefix(),
+                    scan_forward: false,
+                    exclusive_start_key,
+                },
+                QueryPrefixConfig {
+                    limit,
+                    projected_fields: ProjectedFields::Some(&["track_id"]),
+                },
+            )
+            .await?;
 
         let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
             let paginate_key: PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
@@ -195,7 +205,7 @@ impl CRUDTrack {
         station_id: StationId,
         track_ids: impl Iterator<Item = &TrackId>,
     ) -> Result<Vec<TrackInDB>> {
-        self.batch_get_tracks_internal(station_id, track_ids, None)
+        self.batch_get_tracks_internal(station_id, track_ids, ProjectedFields::All)
             .await
     }
 
@@ -204,51 +214,40 @@ impl CRUDTrack {
         station_id: StationId,
         track_ids: impl Iterator<Item = &TrackId>,
     ) -> Result<Vec<TrackMinimalInDB>> {
-        self.batch_get_tracks_internal(station_id, track_ids, Some("id, title, artist, is_song"))
-            .await
+        self.batch_get_tracks_internal(
+            station_id,
+            track_ids,
+            ProjectedFields::Some(&["id", "title", "artist", "is_song"]),
+        )
+        .await
     }
 
     async fn batch_get_tracks_internal<'a, O>(
         &self,
         station_id: StationId,
         track_ids: impl Iterator<Item = &TrackId>,
-        projection_expression: Option<&str>,
+        projected_fields: ProjectedFields,
     ) -> Result<Vec<O>>
     where
         O: Serialize + Deserialize<'a>,
     {
-        let mut request_keys = KeysAndAttributes::builder();
-
-        if let Some(expression) = projection_expression {
-            request_keys = request_keys.projection_expression(expression);
-        }
-
-        // TODO do multiple batches if id count > 100
-        for track_id in track_ids {
-            request_keys = request_keys.keys(HashMap::from([
-                (
-                    "pk".to_owned(),
-                    AttributeValue::S(TrackInDB::get_pk(station_id)),
-                ),
-                (
-                    "sk".to_owned(),
-                    AttributeValue::S(TrackInDB::get_sk(*track_id)),
-                ),
-            ]))
-        }
-
         let resp = self
-            .context
-            .db_client
-            .batch_get_item()
-            .request_items(&self.context.db_table, request_keys.build()?)
-            .send()
+            .provider
+            .batch_get_item(
+                BatchGetItemInput {
+                    keys: track_ids.map(|id| BatchGetItemKey {
+                        pk: TrackInDB::get_pk(station_id),
+                        sk: TrackInDB::get_sk(*id),
+                    }),
+                },
+                BatchGetItemConfig { projected_fields },
+            )
             .await?;
 
         Ok(serde_dynamo::from_items(
             resp.responses
                 .expect("responses key must be present")
-                .get(&self.context.db_table)
+                .get(self.provider.table_name())
                 .expect("response with table name must be present")
                 .to_vec(),
         )?)
@@ -267,45 +266,36 @@ impl CRUDTrack {
             Utc::now()
         };
 
-        let mut query = self
-            .context
-            .db_client
-            .query()
-            .table_name(&self.context.db_table)
-            .index_name("gsi1")
-            .key_condition_expression("gsi1pk = :gsi1pk AND begins_with(sk, :sk)")
-            .filter_expression("begins_with(pk, :pk)")
-            .expression_attribute_values(
-                ":gsi1pk",
-                AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime)),
-            )
-            .expression_attribute_values(":sk", AttributeValue::S(TrackPlayInDB::get_sk_prefix()))
-            // double check if it's the same station we're looking for
-            .expression_attribute_values(
-                ":pk",
-                AttributeValue::S(PlayInDB::get_pk_station_prefix(station_id)),
-            )
-            .scan_index_forward(false)
-            .limit(limit);
-
-        if let Some(next_key) = next_key {
+        let exclusive_start_key = if let Some(next_key) = next_key {
             // if random < (2 ** 80) - 1, assume no exclusive_start_key
             if next_key.random() < ULID_RANDOM_MAX {
                 let play_id = next_key.into();
-                query = query
-                    .exclusive_start_key(
-                        "pk",
-                        AttributeValue::S(PlayInDB::get_pk(station_id, &partition_datetime)),
-                    )
-                    .exclusive_start_key(
-                        "gsi1pk",
-                        AttributeValue::S(TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime)),
-                    )
-                    .exclusive_start_key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)));
+                Some(Gsi1ExclusiveStartKey {
+                    gsi1pk: TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime),
+                    sk: PlayInDB::get_sk(play_id),
+                    pk: PlayInDB::get_pk(station_id, &partition_datetime),
+                })
+            } else {
+                None
             }
-        }
+        } else {
+            None
+        };
 
-        let resp = query.send().await?;
+        let resp = self
+            .provider
+            .query_prefix_gsi1(
+                QueryPrefixGsi1Input {
+                    gsi1pk: TrackPlayInDB::get_gsi1pk(track_id, &partition_datetime),
+                    sk_prefix: TrackPlayInDB::get_sk_prefix(),
+                    // double check if it's the same station we're looking for
+                    pk_prefix: Some(PlayInDB::get_pk_station_prefix(station_id)),
+                    scan_forward: false,
+                    exclusive_start_key,
+                },
+                QueryPrefixGsi1Config { limit },
+            )
+            .await?;
 
         let next_key = if let Some(last_evaluated_key) = resp.last_evaluated_key {
             let paginate_key: Gsi1PaginateKey = serde_dynamo::from_item(last_evaluated_key)?;
