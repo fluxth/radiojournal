@@ -1,4 +1,4 @@
-name: Lint codebase
+name: Lint and test radiojournal codebase
 
 on:
   pull_request:
@@ -56,8 +56,27 @@ jobs:
         working-directory: frontend
         run: pnpm install --frozen-lockfile
 
-      - name: Install Rust linting dependencies
-        run: rustup component add rustfmt clippy
+      - name: Install rust toolchain
+        run: cargo version
 
       - name: Run pre-commit
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+
+  test-rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Install rust toolchain
+        run: cargo version
+
+      - name: Cache rust artifacts
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          shared-key: tests
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Test rust code
+        run: cargo test
