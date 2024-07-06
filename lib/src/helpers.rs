@@ -31,28 +31,23 @@ pub fn truncate_datetime_to_months(dt: DateTime<Utc>) -> Option<DateTime<Utc>> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_ziso_timestamp_secs() {
-        let input_dt = DateTime::from_timestamp_nanos(981173106000000000);
-        assert_eq!(ziso_timestamp(&input_dt), "2001-02-03T04:05:06Z");
-    }
+    use rstest::rstest;
 
-    #[test]
-    fn test_ziso_timestamp_millis() {
-        let input_dt = DateTime::from_timestamp_nanos(981173106789000000);
-        assert_eq!(ziso_timestamp(&input_dt), "2001-02-03T04:05:06.789Z");
-    }
-
-    #[test]
-    fn test_ziso_timestamp_micros() {
-        let input_dt = DateTime::from_timestamp_nanos(981173106789012000);
-        assert_eq!(ziso_timestamp(&input_dt), "2001-02-03T04:05:06.789012Z");
-    }
-
-    #[test]
-    fn test_ziso_timestamp_nanos() {
-        let input_dt = DateTime::from_timestamp_nanos(981173106789012345);
-        assert_eq!(ziso_timestamp(&input_dt), "2001-02-03T04:05:06.789012345Z");
+    #[rstest]
+    #[case(981173100000000000, "2001-02-03T04:05:00Z")] // minutes
+    #[case(981173106000000000, "2001-02-03T04:05:06Z")] // seconds
+    #[case(981173106700000000, "2001-02-03T04:05:06.700Z")] // milliseconds
+    #[case(981173106780000000, "2001-02-03T04:05:06.780Z")]
+    #[case(981173106789000000, "2001-02-03T04:05:06.789Z")]
+    #[case(981173106789100000, "2001-02-03T04:05:06.789100Z")] // microseconds
+    #[case(981173106789120000, "2001-02-03T04:05:06.789120Z")]
+    #[case(981173106789123000, "2001-02-03T04:05:06.789123Z")]
+    #[case(981173106789123400, "2001-02-03T04:05:06.789123400Z")] // nanoseconds
+    #[case(981173106789123450, "2001-02-03T04:05:06.789123450Z")]
+    #[case(981173106789123456, "2001-02-03T04:05:06.789123456Z")]
+    fn test_ziso_timestamp_success(#[case] input: i64, #[case] expected: &str) {
+        let input_dt = DateTime::from_timestamp_nanos(input);
+        assert_eq!(ziso_timestamp(&input_dt), expected);
     }
 
     #[test]
