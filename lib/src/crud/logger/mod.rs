@@ -1,9 +1,10 @@
+pub mod models;
+
 use std::sync::Arc;
 
 use anyhow::Result;
 use aws_sdk_dynamodb::types::{AttributeValue, Put, TransactWriteItem, Update};
 use chrono::{DateTime, Utc};
-use serde::Serialize;
 
 use crate::crud::play::models::{PlayId, PlayInDB};
 use crate::crud::station::models::{LatestPlay, StationId, StationInDB};
@@ -11,52 +12,7 @@ use crate::crud::track::models::{TrackId, TrackInDB, TrackMetadataCreateInDB};
 use crate::crud::track::CRUDTrack;
 use crate::crud::Context;
 use crate::helpers::ziso_timestamp;
-
-pub trait Play {
-    fn get_title(&self) -> &str;
-    fn get_artist(&self) -> &str;
-    fn is_song(&self) -> bool;
-}
-
-#[derive(Debug, Serialize)]
-pub struct AddPlayResult {
-    #[serde(flatten)]
-    pub add_type: AddPlayType,
-    pub play_id: PlayId,
-    pub track_id: TrackId,
-    metadata: AddPlayMetadata,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "snake_case", tag = "type")]
-pub enum AddPlayType {
-    ExistingPlay,
-    NewPlay,
-    NewTrack,
-}
-
-impl From<AddPlayTypeInternal> for AddPlayType {
-    fn from(value: AddPlayTypeInternal) -> Self {
-        match value {
-            AddPlayTypeInternal::ExistingPlay { .. } => AddPlayType::ExistingPlay,
-            AddPlayTypeInternal::NewPlay { .. } => AddPlayType::NewPlay,
-            AddPlayTypeInternal::NewTrack => AddPlayType::NewTrack,
-        }
-    }
-}
-
-#[derive(Debug)]
-enum AddPlayTypeInternal {
-    ExistingPlay { track_id: TrackId, play_id: PlayId },
-    NewPlay { track_id: TrackId },
-    NewTrack,
-}
-
-#[derive(Debug, Serialize)]
-pub struct AddPlayMetadata {
-    title: String,
-    artist: String,
-}
+use models::{AddPlayMetadata, AddPlayResult, AddPlayTypeInternal, Play};
 
 pub struct CRUDLogger {
     context: Arc<Context>,

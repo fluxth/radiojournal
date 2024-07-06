@@ -11,7 +11,7 @@ use tracing::error;
 use tracing::info;
 
 use fetchers::Fetcher;
-use radiojournal::crud::logger::AddPlayResult;
+use radiojournal::crud::logger::models::AddPlayResult;
 use radiojournal::crud::station::models::{FetcherConfig, StationId, StationInDB};
 use radiojournal::crud::station::CRUDStation;
 use radiojournal::init;
