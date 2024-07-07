@@ -8,7 +8,7 @@ radiojournal = { path = "../lib" }
 axum = { version = "=0.7.5", features = ["macros"] }
 chrono = { version = "=0.4.38", features = ["serde"] }
 lambda_http = "=0.12.0"
-serde = { version = "=1.0.203", features = ["derive"] }
+serde = { version = "=1.0.204", features = ["derive"] }
 tokio = { version = "=1.38.0", features = ["full"] }
 tower-http = { version = "=0.5.2", features = ["compression-full", "trace"] }
 tracing = "=0.1.40"
