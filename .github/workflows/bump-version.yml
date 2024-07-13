@@ -25,7 +25,7 @@ jobs:
       contents: write
       pull-requests: write
     env:
-      # renovate: datasource=github-releases depName=terraform-linters/tflint
+      # renovate: datasource=github-releases depName=python-poetry/poetry
       POETRY_VERSION: '1.8.3'
     steps:
       - name: Checkout repository
@@ -73,6 +73,6 @@ jobs:
           commit-message: 'release: ${{ env.NEXT_VERSION }}'
           title: 'release: ${{ env.NEXT_VERSION }}'
           body: 'Bump radiojournal packages to version ${{ env.NEXT_VERSION }}'
-          branch: release-v${{ env.NEXT_VERSION }}
+          branch: release-${{ env.NEXT_VERSION }}
           reviewers: |
             fluxth
