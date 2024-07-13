@@ -1791,7 +1791,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "aws-config",
@@ -1808,7 +1808,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal-api"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "axum",
  "chrono",
@@ -1827,7 +1827,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal-cli"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "radiojournal",
@@ -1838,7 +1838,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal-logger"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
