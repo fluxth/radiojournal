@@ -24,9 +24,15 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    env:
+      # renovate: datasource=github-releases depName=terraform-linters/tflint
+      POETRY_VERSION: '1.8.3'
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Install poetry
+        run: python -m pip install "poetry==${{ env.POETRY_VERSION }}"
 
       - name: Setup python
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
@@ -34,11 +40,32 @@ jobs:
           python-version-file: '.python-version'
           cache: 'poetry'
 
+      - name: Setup PNPM
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+          cache-dependency-path: "frontend/pnpm-lock.yaml"
+
+      - name: Install rust toolchain
+        run: cargo version
+
+      - name: Cache rust artifacts
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          shared-key: tests
+          save-if: false
+
       - name: Bump packages to new version number
         env:
           BUMP_TYPE: ${{ inputs.bump-type }}
           VERSION: ${{ inputs.version }}
-        run: ./bin/bump-version.sh "$BUMP_TYPE" "$VERSION"
+        run: ./scripts/bump_version.sh "$BUMP_TYPE" "$VERSION"
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
