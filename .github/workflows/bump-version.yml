@@ -44,7 +44,7 @@ jobs:
         env:
           BUMP_TYPE: ${{ inputs.bump-type }}
           VERSION: ${{ inputs.version }}
-        run: ./bin/bump-version.sh "$BUMP_TYPE" "$VERSION"
+        run: ./scripts/bump_version.sh "$BUMP_TYPE" "$VERSION"
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
