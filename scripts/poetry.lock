@@ -2,13 +2,13 @@
 
 [[package]]
 name = "aiodynamo"
-version = "24.1"
+version = "24.7"
 description = "Asyncio DynamoDB client"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "aiodynamo-24.1-py3-none-any.whl", hash = "sha256:3824eb683cea58f8ba7c98cbb2ecdb35e2c5734949f632555879488d9274a1e5"},
-    {file = "aiodynamo-24.1.tar.gz", hash = "sha256:1ea5b659b1516db5c8c9f8ecceb4e7a6862e2390c062793d989224b1b01cfb85"},
+    {file = "aiodynamo-24.7-py3-none-any.whl", hash = "sha256:4749855dad14e0fe96b09e2d3604582f4bad156b18da90f9612260fd06523913"},
+    {file = "aiodynamo-24.7.tar.gz", hash = "sha256:6b34c1505a4aca372d60d140b9cbe7934650d1daa360e55a1e090d86af871dbb"},
 ]
 
 [package.dependencies]
@@ -333,4 +333,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.4"
-content-hash = "04622631161733dac6985fb7275c2b21b61d2cf1aa8aab4f08d4a9ceafc93faa"
+content-hash = "a796303672ad10d87fe11b2fdcf1c4410be7bb45f913609b851697166292a0ed"
