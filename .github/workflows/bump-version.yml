@@ -1,0 +1,51 @@
+name: Bump version
+on:
+  workflow_dispatch:
+    inputs:
+      bump-type:
+        description: 'The bump type for new release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - version
+      version:
+        type: string
+        description:
+          'Explicit version to bump to, if `bump-type` is set to `version`'
+
+jobs:
+  bump-version:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+        with:
+          python-version-file: '.python-version'
+          cache: 'poetry'
+
+      - name: Bump packages to new version number
+        env:
+          BUMP_TYPE: ${{ inputs.bump-type }}
+          VERSION: ${{ inputs.version }}
+        run: ./bin/bump-version.sh "$BUMP_TYPE" "$VERSION"
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
+        with:
+          commit-message: 'release: ${{ env.NEXT_VERSION }}'
+          title: 'release: ${{ env.NEXT_VERSION }}'
+          body: 'Bump radiojournal packages to version ${{ env.NEXT_VERSION }}'
+          branch: release-v${{ env.NEXT_VERSION }}
+          reviewers: |
+            fluxth
