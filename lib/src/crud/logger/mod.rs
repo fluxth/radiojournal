@@ -4,7 +4,7 @@ mod provider;
 use std::sync::Arc;
 
 use anyhow::Result;
-use aws_sdk_dynamodb::types::{AttributeValue, Put, TransactWriteItem, Update};
+use aws_sdk_dynamodb::types::TransactWriteItem;
 use chrono::{DateTime, Utc};
 
 use crate::crud::play::models::{PlayId, PlayInDB};
@@ -14,7 +14,10 @@ use crate::crud::track::CRUDTrack;
 use crate::crud::Context;
 use crate::helpers::ziso_timestamp;
 use models::{AddPlayMetadata, AddPlayResult, AddPlayTypeInternal, Play};
-use provider::{DynamoDBProvider, UpdatePlayInput};
+use provider::{
+    build_put, build_station_update, build_track_update, BuildStationUpdateInput,
+    BuildTrackUpdateInput, DynamoDBProvider, StationUpdateIncrementType, UpdatePlayInput,
+};
 
 pub struct CRUDLogger {
     context: Arc<Context>, // FIXME: Remove this
@@ -152,43 +155,31 @@ impl CRUDLogger {
 
         let now = Utc::now();
 
-        let play_put = Put::builder()
-            .table_name(&self.context.db_table)
-            .set_item(Some(serde_dynamo::to_item(play)?))
-            .build()?;
+        let play_put = build_put(&self.context.db_table, serde_dynamo::to_item(play)?)?;
 
-        let track_update = Update::builder()
-            .table_name(&self.context.db_table)
-            .key("pk", AttributeValue::S(TrackInDB::get_pk(station.id)))
-            .key("sk", AttributeValue::S(TrackInDB::get_sk(track_id)))
-            .update_expression(
-                "SET updated_ts = :ts, latest_play_id = :play_id, play_count = play_count + :inc",
-            )
-            .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&now)))
-            .expression_attribute_values(":play_id", AttributeValue::S(play_id.to_string()))
-            .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
-            .build()?;
+        let track_update = build_track_update(
+            &self.context.db_table,
+            BuildTrackUpdateInput {
+                pk: TrackInDB::get_pk(station.id),
+                sk: TrackInDB::get_sk(track_id),
+                play_id: play_id.to_string(),
+                update_timestamp: ziso_timestamp(&now),
+            },
+        )?;
 
         // update station with latest play
-        let station_update = Update::builder()
-            .table_name(&self.context.db_table)
-            .key("pk", AttributeValue::S(StationInDB::get_pk()))
-            .key("sk", AttributeValue::S(StationInDB::get_sk(station.id)))
-            .update_expression(
-                "SET updated_ts = :ts, latest_play = :latest_play, play_count = play_count + :inc",
-            )
-            .condition_expression("updated_ts = :station_locked_ts")
-            .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&now)))
-            .expression_attribute_values(
-                ":latest_play",
-                AttributeValue::M(serde_dynamo::to_item(latest_play.clone())?),
-            )
-            .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
-            .expression_attribute_values(
-                ":station_locked_ts",
-                AttributeValue::S(ziso_timestamp(&station.updated_ts)),
-            )
-            .build()?;
+        let station_update = build_station_update(
+            &self.context.db_table,
+            BuildStationUpdateInput {
+                pk: StationInDB::get_pk(),
+                sk: StationInDB::get_sk(station.id),
+                increment: StationUpdateIncrementType::Play,
+                latest_play: serde_dynamo::to_item(latest_play.clone())?,
+                first_play_id: None, // first play will always create new track
+                update_timestamp: ziso_timestamp(&now),
+                locked_timestamp: Some(ziso_timestamp(&station.updated_ts)),
+            },
+        )?;
 
         // TODO handle errors
         let _resp = self
@@ -231,53 +222,29 @@ impl CRUDLogger {
 
         let now = Utc::now();
 
-        let track_put = Put::builder()
-            .table_name(&self.context.db_table)
-            .set_item(Some(serde_dynamo::to_item(track)?))
-            .build()?;
-
-        let track_metadata_put = Put::builder()
-            .table_name(&self.context.db_table)
-            .set_item(Some(serde_dynamo::to_item(track_metadata)?))
-            .build()?;
-
-        let play_put = Put::builder()
-            .table_name(&self.context.db_table)
-            .set_item(Some(serde_dynamo::to_item(play)?))
-            .build()?;
+        let track_put = build_put(&self.context.db_table, serde_dynamo::to_item(track)?)?;
+        let track_metadata_put = build_put(
+            &self.context.db_table,
+            serde_dynamo::to_item(track_metadata)?,
+        )?;
+        let play_put = build_put(&self.context.db_table, serde_dynamo::to_item(play)?)?;
 
         // update station with latest play and track
-        let station_update_base = Update::builder()
-            .table_name(&self.context.db_table)
-            .key("pk", AttributeValue::S(StationInDB::get_pk()))
-            .key("sk", AttributeValue::S(StationInDB::get_sk(station.id)))
-            .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&now)))
-            .expression_attribute_values(
-                ":latest_play",
-                AttributeValue::M(serde_dynamo::to_item(latest_play.clone())?),
-            )
-            .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
-            .expression_attribute_values(
-                ":station_locked_ts",
-                AttributeValue::S(ziso_timestamp(&station.updated_ts)),
-            );
-
-        let station_update = if station.first_play_id.is_none() {
-            // update first play id as well if this is the first play
-            station_update_base
-                .expression_attribute_values(":play_id", AttributeValue::S(play_id.to_string()))
-                .update_expression(
-                "SET updated_ts = :ts, first_play_id = :play_id, latest_play = :latest_play, play_count = play_count + :inc, track_count = track_count + :inc"
-            )
-            .condition_expression("updated_ts = :station_locked_ts AND first_play_id = :null")
-            .expression_attribute_values(":null", AttributeValue::Null(true))
-        } else {
-            station_update_base.update_expression(
-                "SET updated_ts = :ts, latest_play = :latest_play, play_count = play_count + :inc, track_count = track_count + :inc"
-            )
-            .condition_expression("updated_ts = :station_locked_ts")
-        }
-        .build()?;
+        let station_update = build_station_update(
+            &self.context.db_table,
+            BuildStationUpdateInput {
+                pk: StationInDB::get_pk(),
+                sk: StationInDB::get_sk(station.id),
+                increment: StationUpdateIncrementType::PlayAndTrack,
+                latest_play: serde_dynamo::to_item(latest_play.clone())?,
+                first_play_id: match station.first_play_id {
+                    None => Some(play_id.to_string()),
+                    Some(_) => None,
+                },
+                update_timestamp: ziso_timestamp(&now),
+                locked_timestamp: Some(ziso_timestamp(&station.updated_ts)),
+            },
+        )?;
 
         // TODO handle errors
         let _resp = self
