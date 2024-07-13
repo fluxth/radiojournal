@@ -1,4 +1,5 @@
 pub mod models;
+mod provider;
 
 use std::sync::Arc;
 
@@ -13,9 +14,11 @@ use crate::crud::track::CRUDTrack;
 use crate::crud::Context;
 use crate::helpers::ziso_timestamp;
 use models::{AddPlayMetadata, AddPlayResult, AddPlayTypeInternal, Play};
+use provider::{DynamoDBProvider, UpdatePlayInput};
 
 pub struct CRUDLogger {
-    context: Arc<Context>,
+    context: Arc<Context>, // FIXME: Remove this
+    provider: DynamoDBProvider,
     crud_track: CRUDTrack,
 }
 
@@ -23,6 +26,7 @@ impl CRUDLogger {
     pub fn new(context: Arc<Context>) -> Self {
         Self {
             crud_track: CRUDTrack::new(context.clone()),
+            provider: DynamoDBProvider::new(context.clone()),
             context,
         }
     }
@@ -116,21 +120,14 @@ impl CRUDLogger {
     ) -> Result<()> {
         let play_datetime: DateTime<Utc> = play_id.datetime().into();
 
-        self.context
-            .db_client
-            .update_item()
-            .table_name(&self.context.db_table)
-            .key(
-                "pk",
-                AttributeValue::S(PlayInDB::get_pk(station_id, &play_datetime)),
-            )
-            .key("sk", AttributeValue::S(PlayInDB::get_sk(play_id)))
-            .condition_expression("id = :play_id AND track_id = :track_id")
-            .update_expression("SET updated_ts = :ts")
-            .expression_attribute_values(":play_id", AttributeValue::S(play_id.to_string()))
-            .expression_attribute_values(":track_id", AttributeValue::S(track_id.to_string()))
-            .expression_attribute_values(":ts", AttributeValue::S(ziso_timestamp(&Utc::now())))
-            .send()
+        self.provider
+            .update_play(UpdatePlayInput {
+                pk: PlayInDB::get_pk(station_id, &play_datetime),
+                sk: PlayInDB::get_sk(play_id),
+                play_id: play_id.to_string(),
+                track_id: track_id.to_string(),
+                update_timestamp: ziso_timestamp(&Utc::now()),
+            })
             .await?;
 
         Ok(())
