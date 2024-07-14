@@ -111,6 +111,7 @@ pub fn build_track_update(
         .build()
 }
 
+#[derive(Clone, Copy)]
 pub(super) enum StationUpdateIncrementType {
     Play,
     PlayAndTrack,
@@ -174,4 +175,202 @@ pub fn build_station_update(
     }
 
     update_builder.build()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use rstest::rstest;
+
+    #[test]
+    fn test_build_put_success() {
+        let put = build_put(
+            "tablename",
+            HashMap::from([
+                ("pk".to_owned(), AttributeValue::S("pkvalue".to_owned())),
+                ("sk".to_owned(), AttributeValue::S("skvalue".to_owned())),
+            ]),
+        )
+        .unwrap();
+
+        assert_eq!(
+            put,
+            Put::builder()
+                .table_name("tablename")
+                .item("pk", AttributeValue::S("pkvalue".to_owned()))
+                .item("sk", AttributeValue::S("skvalue".to_owned()))
+                .build()
+                .unwrap()
+        )
+    }
+
+    #[test]
+    fn test_build_track_update_success() {
+        let update = build_track_update(
+            "tablename",
+            BuildTrackUpdateInput {
+                pk: "pkvalue".to_owned(),
+                sk: "skvalue".to_owned(),
+                play_id: "playid".to_owned(),
+                update_timestamp: "12345".to_owned(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            update,
+            Update::builder()
+                .table_name("tablename")
+                .key("pk", AttributeValue::S("pkvalue".to_owned()))
+                .key("sk", AttributeValue::S("skvalue".to_owned()))
+                .update_expression(
+                    "SET updated_ts = :ts, latest_play_id = :play_id, play_count = play_count + :inc",
+                )
+                .expression_attribute_values(":ts", AttributeValue::S("12345".to_owned()))
+                .expression_attribute_values(":play_id", AttributeValue::S("playid".to_owned()))
+                .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
+                .build()
+                .unwrap()
+        );
+    }
+
+    fn base_build_station_update_input() -> BuildStationUpdateInput {
+        BuildStationUpdateInput {
+            pk: "pkvalue".to_owned(),
+            sk: "skvalue".to_owned(),
+            increment: StationUpdateIncrementType::Play,
+            latest_play: HashMap::from_iter([("a".to_owned(), AttributeValue::S("b".to_owned()))]),
+            first_play_id: Some("firstplayid".to_owned()),
+            update_timestamp: "12345".to_owned(),
+            locked_timestamp: Some("67890".to_owned()),
+        }
+    }
+
+    #[test]
+    fn test_build_station_update_base() {
+        assert_eq!(
+            build_station_update("tablename", base_build_station_update_input()).unwrap(),
+            Update::builder()
+                .table_name("tablename")
+                .key("pk", AttributeValue::S("pkvalue".to_owned()))
+                .key("sk", AttributeValue::S("skvalue".to_owned()))
+                .update_expression(
+                    "SET updated_ts = :ts, latest_play = :latest_play, play_count = play_count + :inc, first_play_id = :play_id"
+                )
+                .condition_expression("first_play_id = :null AND updated_ts = :station_locked_ts")
+                .expression_attribute_values(":ts", AttributeValue::S("12345".to_owned()))
+                .expression_attribute_values(
+                    ":latest_play",
+                    AttributeValue::M(
+                        HashMap::from_iter([
+                            ("a".to_owned(), AttributeValue::S("b".to_owned()))
+                        ])
+                    )
+                )
+                .expression_attribute_values(":station_locked_ts", AttributeValue::S("67890".to_owned()))
+                .expression_attribute_values(":play_id", AttributeValue::S("firstplayid".to_owned()))
+                .expression_attribute_values(":inc", AttributeValue::N("1".to_string()))
+                .expression_attribute_values(":null", AttributeValue::Null(true))
+                .build()
+                .unwrap()
+        );
+    }
+
+    #[rstest]
+    fn test_build_station_update_matrix(
+        #[values(
+            StationUpdateIncrementType::Play,
+            StationUpdateIncrementType::PlayAndTrack
+        )]
+        increment: StationUpdateIncrementType,
+        #[values(
+            None,
+            Some("firstplayid".to_owned()),
+        )]
+        first_play_id: Option<String>,
+        #[values(
+            None,
+            Some("lockedtimestamp".to_owned()),
+        )]
+        locked_timestamp: Option<String>,
+    ) {
+        let update = build_station_update(
+            "tablename",
+            BuildStationUpdateInput {
+                increment,
+                first_play_id: first_play_id.clone(),
+                locked_timestamp: locked_timestamp.clone(),
+                ..base_build_station_update_input()
+            },
+        )
+        .unwrap();
+
+        assert!(update.update_expression().starts_with("SET "));
+        let update_expression_parts: Vec<&str> = update
+            .update_expression()
+            .trim_start_matches("SET ")
+            .split(", ")
+            .collect();
+
+        let condition_expression_parts: Vec<&str> = update
+            .condition_expression()
+            .unwrap_or("")
+            .split(" AND ")
+            .collect();
+
+        let expression_attribute_values = update.expression_attribute_values().unwrap();
+
+        match increment {
+            StationUpdateIncrementType::Play => {
+                assert!(update_expression_parts.contains(&"play_count = play_count + :inc"));
+            }
+            StationUpdateIncrementType::PlayAndTrack => {
+                assert!(update_expression_parts.contains(&"play_count = play_count + :inc"));
+                assert!(update_expression_parts.contains(&"track_count = track_count + :inc"));
+            }
+        }
+
+        assert_eq!(
+            expression_attribute_values.get(":inc").unwrap(),
+            &AttributeValue::N("1".to_owned())
+        );
+
+        match first_play_id {
+            Some(play_id) => {
+                assert!(update_expression_parts.contains(&"first_play_id = :play_id"));
+                assert!(condition_expression_parts.contains(&"first_play_id = :null"));
+                assert_eq!(
+                    expression_attribute_values.get(":play_id").unwrap(),
+                    &AttributeValue::S(play_id),
+                );
+                assert_eq!(
+                    expression_attribute_values.get(":null").unwrap(),
+                    &AttributeValue::Null(true),
+                );
+            }
+            None => {
+                assert!(!update_expression_parts.contains(&"first_play_id = :play_id"));
+                assert!(!condition_expression_parts.contains(&"first_play_id = :null"));
+                assert!(!expression_attribute_values.contains_key(":play_id"));
+                assert!(!expression_attribute_values.contains_key(":null"));
+            }
+        }
+
+        match locked_timestamp {
+            Some(locked_timestamp) => {
+                assert!(condition_expression_parts.contains(&"updated_ts = :station_locked_ts"));
+                assert_eq!(
+                    expression_attribute_values
+                        .get(":station_locked_ts")
+                        .unwrap(),
+                    &AttributeValue::S(locked_timestamp),
+                );
+            }
+            None => {
+                assert!(!condition_expression_parts.contains(&"updated_ts = :station_locked_ts"));
+                assert!(!expression_attribute_values.contains_key(":station_locked_ts"));
+            }
+        }
+    }
 }
