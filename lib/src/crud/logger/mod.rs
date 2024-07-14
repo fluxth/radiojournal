@@ -4,8 +4,8 @@ mod provider;
 use std::sync::Arc;
 
 use anyhow::Result;
-use aws_sdk_dynamodb::types::TransactWriteItem;
 use chrono::{DateTime, Utc};
+use thiserror::Error;
 
 use crate::crud::play::models::{PlayId, PlayInDB};
 use crate::crud::station::models::{LatestPlay, StationId, StationInDB};
@@ -16,11 +16,11 @@ use crate::helpers::ziso_timestamp;
 use models::{AddPlayMetadata, AddPlayResult, AddPlayTypeInternal, Play};
 use provider::{
     build_put, build_station_update, build_track_update, BuildStationUpdateInput,
-    BuildTrackUpdateInput, DynamoDBProvider, StationUpdateIncrementType, UpdatePlayInput,
+    BuildTrackUpdateInput, DynamoDBProvider, StationUpdateIncrementType, TransactWriteItem,
+    UpdatePlayInput,
 };
 
 pub struct CRUDLogger {
-    context: Arc<Context>, // FIXME: Remove this
     provider: DynamoDBProvider,
     crud_track: CRUDTrack,
 }
@@ -30,7 +30,6 @@ impl CRUDLogger {
         Self {
             crud_track: CRUDTrack::new(context.clone()),
             provider: DynamoDBProvider::new(context.clone()),
-            context,
         }
     }
 
@@ -143,58 +142,27 @@ impl CRUDLogger {
         artist: &str,
         title: &str,
     ) -> Result<()> {
-        let play_id = play.id;
-        let track_id = play.track_id;
-
         let latest_play = LatestPlay {
-            id: play_id,
-            track_id,
+            id: play.id,
+            track_id: play.track_id,
             artist: artist.to_owned(),
             title: title.to_owned(),
         };
 
         let now = Utc::now();
 
-        let play_put = build_put(&self.context.db_table, serde_dynamo::to_item(play)?)?;
-
-        let track_update = build_track_update(
-            &self.context.db_table,
-            BuildTrackUpdateInput {
-                pk: TrackInDB::get_pk(station.id),
-                sk: TrackInDB::get_sk(track_id),
-                play_id: play_id.to_string(),
-                update_timestamp: ziso_timestamp(&now),
-            },
-        )?;
-
-        // update station with latest play
-        let station_update = build_station_update(
-            &self.context.db_table,
-            BuildStationUpdateInput {
-                pk: StationInDB::get_pk(),
-                sk: StationInDB::get_sk(station.id),
-                increment: StationUpdateIncrementType::Play,
-                latest_play: serde_dynamo::to_item(latest_play.clone())?,
-                first_play_id: None, // first play will always create new track
-                update_timestamp: ziso_timestamp(&now),
-                locked_timestamp: Some(ziso_timestamp(&station.updated_ts)),
-            },
+        let (items, update_structs) = build_new_play_transaction(
+            self.provider.table_name(),
+            station,
+            &play,
+            latest_play,
+            now,
         )?;
 
         // TODO handle errors
-        let _resp = self
-            .context
-            .db_client
-            .transact_write_items()
-            .transact_items(TransactWriteItem::builder().put(play_put).build())
-            .transact_items(TransactWriteItem::builder().update(track_update).build())
-            .transact_items(TransactWriteItem::builder().update(station_update).build())
-            .send()
-            .await?;
+        self.provider.transact_write_items(items).await?;
 
-        station.updated_ts = now;
-        station.latest_play = Some(latest_play);
-        station.play_count += 1;
+        update_structs(station, None);
 
         Ok(())
     }
@@ -205,67 +173,158 @@ impl CRUDLogger {
         mut track: TrackInDB,
         play: PlayInDB,
     ) -> Result<()> {
-        let play_id = play.id;
-        let track_id = track.id;
-
-        track.latest_play_id = Some(play_id);
+        track.latest_play_id = Some(play.id);
         track.play_count += 1;
 
         let track_metadata = TrackMetadataCreateInDB::from(&track);
 
         let latest_play = LatestPlay {
-            id: play_id,
-            track_id,
+            id: play.id,
+            track_id: track.id,
             artist: track.artist.clone(),
             title: track.title.clone(),
         };
 
         let now = Utc::now();
 
-        let track_put = build_put(&self.context.db_table, serde_dynamo::to_item(track)?)?;
-        let track_metadata_put = build_put(
-            &self.context.db_table,
-            serde_dynamo::to_item(track_metadata)?,
-        )?;
-        let play_put = build_put(&self.context.db_table, serde_dynamo::to_item(play)?)?;
-
-        // update station with latest play and track
-        let station_update = build_station_update(
-            &self.context.db_table,
-            BuildStationUpdateInput {
-                pk: StationInDB::get_pk(),
-                sk: StationInDB::get_sk(station.id),
-                increment: StationUpdateIncrementType::PlayAndTrack,
-                latest_play: serde_dynamo::to_item(latest_play.clone())?,
-                first_play_id: match station.first_play_id {
-                    None => Some(play_id.to_string()),
-                    Some(_) => None,
-                },
-                update_timestamp: ziso_timestamp(&now),
-                locked_timestamp: Some(ziso_timestamp(&station.updated_ts)),
-            },
+        let (items, update_structs) = build_new_track_and_play_transaction(
+            self.provider.table_name(),
+            station,
+            &track,
+            &track_metadata,
+            &play,
+            latest_play,
+            now,
         )?;
 
         // TODO handle errors
-        let _resp = self
-            .context
-            .db_client
-            .transact_write_items()
-            .transact_items(TransactWriteItem::builder().put(track_put).build())
-            .transact_items(TransactWriteItem::builder().put(track_metadata_put).build())
-            .transact_items(TransactWriteItem::builder().put(play_put).build())
-            .transact_items(TransactWriteItem::builder().update(station_update).build())
-            .send()
-            .await?;
+        self.provider.transact_write_items(items).await?;
 
-        station.updated_ts = now;
+        update_structs(station);
+
+        Ok(())
+    }
+}
+
+#[derive(Error, Debug)]
+enum BuildTransactionError {
+    #[error("Failed to build transaction item: {0:?}")]
+    BuildError(#[from] aws_sdk_dynamodb::error::BuildError),
+    #[error("Failed to serialize into transaction item: {0:?}")]
+    SerializeError(#[from] serde_dynamo::Error),
+}
+
+fn build_new_play_transaction<'i, 'cb>(
+    table_name: &'i str,
+    station: &'i StationInDB,
+    play: &'i PlayInDB,
+    latest_play: LatestPlay,
+    timestamp: DateTime<Utc>,
+) -> Result<
+    (
+        Vec<TransactWriteItem>,
+        impl FnOnce(&'cb mut StationInDB, Option<&'cb mut TrackInDB>),
+    ),
+    BuildTransactionError,
+> {
+    let play_put = build_put(table_name, serde_dynamo::to_item(play)?)?;
+
+    let track_update = build_track_update(
+        table_name,
+        BuildTrackUpdateInput {
+            pk: TrackInDB::get_pk(station.id),
+            sk: TrackInDB::get_sk(play.track_id),
+            play_id: play.id.to_string(),
+            update_timestamp: ziso_timestamp(&timestamp),
+        },
+    )?;
+
+    // update station with latest play
+    let station_update = build_station_update(
+        table_name,
+        BuildStationUpdateInput {
+            pk: StationInDB::get_pk(),
+            sk: StationInDB::get_sk(station.id),
+            increment: StationUpdateIncrementType::Play,
+            latest_play: serde_dynamo::to_item(latest_play.clone())?,
+            first_play_id: None, // first play will always create new track
+            update_timestamp: ziso_timestamp(&timestamp),
+            locked_timestamp: Some(ziso_timestamp(&station.updated_ts)),
+        },
+    )?;
+
+    let play_id = play.id;
+    let update_structs_callback =
+        move |station: &mut StationInDB, track: Option<&mut TrackInDB>| {
+            station.updated_ts = timestamp;
+            station.latest_play = Some(latest_play);
+            station.play_count += 1;
+
+            if let Some(track) = track {
+                track.updated_ts = timestamp;
+                track.latest_play_id = Some(play_id);
+                track.play_count += 1;
+            }
+        };
+
+    Ok((
+        vec![
+            TransactWriteItem::Put(play_put),
+            TransactWriteItem::Update(track_update),
+            TransactWriteItem::Update(station_update),
+        ],
+        update_structs_callback,
+    ))
+}
+
+fn build_new_track_and_play_transaction<'i, 'cb>(
+    table_name: &'i str,
+    station: &'i StationInDB,
+    track: &'i TrackInDB,
+    track_metadata: &'i TrackMetadataCreateInDB,
+    play: &'i PlayInDB,
+    latest_play: LatestPlay,
+    timestamp: DateTime<Utc>,
+) -> Result<(Vec<TransactWriteItem>, impl FnOnce(&'cb mut StationInDB)), BuildTransactionError> {
+    let track_put = build_put(table_name, serde_dynamo::to_item(track)?)?;
+    let track_metadata_put = build_put(table_name, serde_dynamo::to_item(track_metadata)?)?;
+    let play_put = build_put(table_name, serde_dynamo::to_item(play)?)?;
+
+    // update station with latest play and track
+    let station_update = build_station_update(
+        table_name,
+        BuildStationUpdateInput {
+            pk: StationInDB::get_pk(),
+            sk: StationInDB::get_sk(station.id),
+            increment: StationUpdateIncrementType::PlayAndTrack,
+            latest_play: serde_dynamo::to_item(latest_play.clone())?,
+            first_play_id: match station.first_play_id {
+                None => Some(play.id.to_string()),
+                Some(_) => None,
+            },
+            update_timestamp: ziso_timestamp(&timestamp),
+            locked_timestamp: Some(ziso_timestamp(&station.updated_ts)),
+        },
+    )?;
+
+    let play_id = play.id;
+    let update_structs_callback = move |station: &mut StationInDB| {
+        station.updated_ts = timestamp;
         station.latest_play = Some(latest_play);
         station.play_count += 1;
         station.track_count += 1;
         if station.first_play_id.is_none() {
             station.first_play_id = Some(play_id)
         }
+    };
 
-        Ok(())
-    }
+    Ok((
+        vec![
+            TransactWriteItem::Put(track_put),
+            TransactWriteItem::Put(track_metadata_put),
+            TransactWriteItem::Put(play_put),
+            TransactWriteItem::Update(station_update),
+        ],
+        update_structs_callback,
+    ))
 }

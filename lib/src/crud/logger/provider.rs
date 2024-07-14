@@ -2,8 +2,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use aws_sdk_dynamodb::error::{BuildError, SdkError};
+use aws_sdk_dynamodb::operation::transact_write_items::{
+    TransactWriteItemsError, TransactWriteItemsOutput,
+};
 use aws_sdk_dynamodb::operation::update_item::{UpdateItemError, UpdateItemOutput};
-use aws_sdk_dynamodb::types::{AttributeValue, Put, Update};
+use aws_sdk_dynamodb::types::{
+    AttributeValue, Put, TransactWriteItem as DDBTransactWriteItem, Update,
+};
 use aws_smithy_runtime_api::client::orchestrator::HttpResponse;
 
 use crate::crud::Context;
@@ -20,9 +25,18 @@ pub(super) struct UpdatePlayInput {
     pub update_timestamp: String,
 }
 
+pub(super) enum TransactWriteItem {
+    Put(Put),
+    Update(Update),
+}
+
 impl DynamoDBProvider {
     pub fn new(context: Arc<Context>) -> Self {
         Self { context }
+    }
+
+    pub fn table_name(&self) -> &str {
+        &self.context.db_table
     }
 
     pub async fn update_play(
@@ -42,6 +56,24 @@ impl DynamoDBProvider {
             .expression_attribute_values(":ts", AttributeValue::S(input.update_timestamp))
             .send()
             .await
+    }
+
+    pub async fn transact_write_items(
+        &self,
+        items: impl IntoIterator<Item = TransactWriteItem>,
+    ) -> Result<TransactWriteItemsOutput, SdkError<TransactWriteItemsError, HttpResponse>> {
+        let mut transaction = self.context.db_client.transact_write_items();
+
+        for item in items.into_iter() {
+            transaction = transaction.transact_items(match item {
+                TransactWriteItem::Put(put) => DDBTransactWriteItem::builder().put(put).build(),
+                TransactWriteItem::Update(update) => {
+                    DDBTransactWriteItem::builder().update(update).build()
+                }
+            });
+        }
+
+        transaction.send().await
     }
 }
 
