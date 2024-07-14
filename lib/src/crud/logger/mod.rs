@@ -328,3 +328,132 @@ fn build_new_track_and_play_transaction<'i, 'cb>(
         update_structs_callback,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::collections::HashMap;
+
+    use aws_sdk_dynamodb::types::AttributeValue;
+    use ulid::Ulid;
+
+    #[test]
+    fn test_build_new_play_transaction() {
+        let mut station = StationInDB::new_for_test();
+        let track_id = Ulid::from_parts(1, 1).into();
+
+        let new_play = PlayInDB::new(station.id, track_id);
+
+        let latest_play = LatestPlay {
+            id: Ulid::from_parts(2, 99).into(),
+            track_id: Ulid::from_parts(1, 99).into(),
+            artist: "artist".to_owned(),
+            title: "title".to_owned(),
+        };
+
+        let timestamp = DateTime::from_timestamp(1, 0).unwrap();
+
+        let (items, callback) = build_new_play_transaction(
+            "tablename",
+            &mut station,
+            &new_play,
+            latest_play.clone(),
+            timestamp,
+        )
+        .unwrap();
+
+        assert_eq!(items.len(), 3);
+
+        match &items[0] {
+            TransactWriteItem::Put(play_put) => {
+                assert_eq!(play_put.table_name(), "tablename");
+                let expected_item = serde_dynamo::to_item(new_play.clone()).unwrap();
+                assert_eq!(play_put.item(), &expected_item);
+            }
+            _ => unreachable!(),
+        };
+
+        match &items[1] {
+            TransactWriteItem::Update(track_update) => {
+                assert_eq!(track_update.table_name(), "tablename");
+                assert_eq!(
+                    track_update.key(),
+                    &HashMap::from_iter([
+                        (
+                            "pk".to_owned(),
+                            AttributeValue::S(TrackInDB::get_pk(station.id))
+                        ),
+                        (
+                            "sk".to_owned(),
+                            AttributeValue::S(TrackInDB::get_sk(track_id))
+                        )
+                    ])
+                );
+
+                let values = track_update.expression_attribute_values().unwrap();
+                assert_eq!(
+                    values.get(":play_id").unwrap().as_s().unwrap(),
+                    new_play.id.to_string().as_str()
+                );
+                assert_eq!(
+                    values.get(":ts").unwrap().as_s().unwrap(),
+                    &ziso_timestamp(&timestamp)
+                );
+            }
+            _ => unreachable!(),
+        }
+
+        match &items[2] {
+            TransactWriteItem::Update(station_update) => {
+                assert_eq!(station_update.table_name(), "tablename");
+                assert_eq!(
+                    station_update.key(),
+                    &HashMap::from_iter([
+                        ("pk".to_owned(), AttributeValue::S(StationInDB::get_pk())),
+                        (
+                            "sk".to_owned(),
+                            AttributeValue::S(StationInDB::get_sk(station.id))
+                        )
+                    ])
+                );
+
+                assert!(!station_update.update_expression().contains("track_count"));
+
+                let values = station_update.expression_attribute_values().unwrap();
+
+                let expected_item = serde_dynamo::to_item(latest_play.clone()).unwrap();
+                assert_eq!(
+                    values.get(":latest_play").unwrap().as_m().unwrap(),
+                    &expected_item
+                );
+
+                assert!(!values.contains_key(":first_play_id"));
+                assert_eq!(
+                    values.get(":ts").unwrap().as_s().unwrap(),
+                    &ziso_timestamp(&timestamp)
+                );
+                assert_eq!(
+                    values.get(":station_locked_ts").unwrap().as_s().unwrap(),
+                    &ziso_timestamp(&station.updated_ts)
+                );
+            }
+            _ => unreachable!(),
+        }
+
+        let expected_new_station = {
+            let mut new_station = station.clone();
+
+            new_station.updated_ts = timestamp;
+            new_station.latest_play = Some(latest_play);
+            new_station.play_count += 1;
+
+            new_station
+        };
+
+        // FIXME: Test track struct update as well
+        callback(&mut station, None);
+
+        assert_eq!(station, expected_new_station);
+    }
+}

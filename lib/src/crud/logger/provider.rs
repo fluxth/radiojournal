@@ -25,6 +25,7 @@ pub(super) struct UpdatePlayInput {
     pub update_timestamp: String,
 }
 
+#[derive(Debug, PartialEq)]
 pub(super) enum TransactWriteItem {
     Put(Put),
     Update(Update),
