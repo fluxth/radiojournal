@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     container:
-      image: xd009642/tarpaulin:latest-slim
+      image: xd009642/tarpaulin:latest
       options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout repository
@@ -17,7 +17,7 @@ jobs:
         run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.0.1
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
