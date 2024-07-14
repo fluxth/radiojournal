@@ -27,7 +27,7 @@ impl Deref for StationId {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StationInDB {
     pk: String,
     sk: String,
@@ -55,9 +55,30 @@ impl StationInDB {
     pub(crate) fn get_sk_prefix() -> String {
         "STATION#".to_owned()
     }
+
+    #[cfg(test)]
+    pub(crate) fn new_for_test() -> Self {
+        let ts = DateTime::from_timestamp(0, 0).unwrap();
+        let id = Ulid::from_parts(0, 0).into();
+
+        Self {
+            pk: Self::get_pk(),
+            sk: Self::get_sk(id),
+            id,
+            name: "teststation".to_owned(),
+            location: Some("testlocation".to_owned()),
+            fetcher: None,
+            first_play_id: None,
+            latest_play: None,
+            track_count: 0,
+            play_count: 0,
+            created_ts: ts,
+            updated_ts: ts,
+        }
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LatestPlay {
     pub id: PlayId,
     pub track_id: TrackId,
@@ -65,7 +86,7 @@ pub struct LatestPlay {
     pub title: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum AtimeStation {
     EFM,
@@ -73,7 +94,7 @@ pub enum AtimeStation {
     Chill,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case", tag = "id")]
 pub enum FetcherConfig {
     Coolism,
