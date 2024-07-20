@@ -48,6 +48,11 @@
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
+    },
+    {
+      "description": "Schedule NPM updates to once a week",
+      "matchManagers": ["npm"],
+      "schedule": ["before 7am every saturday"]
     }
   ]
 }
