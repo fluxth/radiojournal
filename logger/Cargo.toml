@@ -8,7 +8,7 @@ radiojournal = { path = "../lib" }
 anyhow = "=1.0.86"
 async-trait = "=0.1.81"
 chrono = { version = "=0.4.38", features = ["serde"] }
-lambda_runtime = "=0.12.0"
+lambda_runtime = "=0.13.0"
 moka = { version = "=0.12.8", features = ["future"] }
 reqwest = { version = "=0.12.5", features = ["json", "rustls-tls"], default-features = false }
 serde = { version = "=1.0.204", features = ["derive"] }
