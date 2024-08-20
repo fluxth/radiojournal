@@ -11,7 +11,7 @@ resource "aws_lambda_function" "this" {
   runtime       = "provided.al2023"
 
   memory_size = 128
-  timeout     = 15
+  timeout     = 20
 
   environment {
     variables = {
