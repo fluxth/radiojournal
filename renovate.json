@@ -14,17 +14,14 @@
   },
   "reviewers": ["fluxth"],
   "timezone": "Asia/Tokyo",
-  "schedule": [
-    "after 7pm every weekday",
-    "before 7am every weekday",
-    "every weekend"
-  ],
+  "schedule": ["before 7am"],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
   "packageRules": [
     {
       "description": "Auto-merge GitHub Actions patch and digest updates",
       "matchUpdateTypes": ["patch", "digest"],
       "matchManagers": ["github-actions"],
-      "schedule": ["before 6am"],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
@@ -33,7 +30,6 @@
       "description": "Auto-merge pre-commit patch and digest updates",
       "matchUpdateTypes": ["patch", "digest"],
       "matchManagers": ["pre-commit"],
-      "schedule": ["before 6am"],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
@@ -44,7 +40,6 @@
       "matchManagers": ["npm"],
       "matchPackagePrefixes": ["eslint", "@typescript-eslint", "prettier", "@types/"],
       "matchPackageNames": ["vitest", "svelte-check", "typescript", "tslib"],
-      "schedule": ["before 7am"],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
