@@ -40,7 +40,7 @@
   "packageManager": "pnpm@9.7.1",
   "type": "module",
   "dependencies": {
-    "chart.js": "4.4.3",
+    "chart.js": "4.4.4",
     "dayjs": "1.11.13",
     "nprogress": "0.2.0"
   }
