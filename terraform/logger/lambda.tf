@@ -24,7 +24,7 @@ resource "aws_lambda_function" "this" {
   }
 
   layers = [
-    "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:19"
+    "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:20"
   ]
 }
 
