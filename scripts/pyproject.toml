@@ -9,7 +9,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "3.12.5"
 aiodynamo = {version = "24.7", extras = ["httpx"]}
-yarl = "1.10.0"
+yarl = "1.11.0"
 
 [build-system]
 requires = ["poetry-core"]
