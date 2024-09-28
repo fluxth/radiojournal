@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 radiojournal = { path = "../lib" }
-axum = { version = "=0.7.6", features = ["macros"] }
+axum = { version = "=0.7.7", features = ["macros"] }
 chrono = { version = "=0.4.38", features = ["serde"] }
 lambda_http = "=0.13.0"
 serde = { version = "=1.0.210", features = ["derive"] }
