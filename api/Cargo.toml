@@ -9,7 +9,7 @@ axum = { version = "=0.7.7", features = ["macros"] }
 chrono = { version = "=0.4.38", features = ["serde"] }
 lambda_http = "=0.13.0"
 serde = { version = "=1.0.212", features = ["derive"] }
-tokio = { version = "=1.40.0", features = ["full"] }
+tokio = { version = "=1.41.0", features = ["full"] }
 tower-http = { version = "=0.6.1", features = ["compression-full", "trace"] }
 tracing = "=0.1.40"
 tracing-subscriber = { version = "=0.3.18", features = ["json"] }
