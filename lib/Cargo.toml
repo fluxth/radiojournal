@@ -7,7 +7,7 @@ edition = "2021"
 local = []
 
 [dependencies]
-anyhow = "=1.0.90"
+anyhow = "=1.0.91"
 aws-config = "=1.5.8"
 aws-sdk-dynamodb = "=1.50.0"
 aws-smithy-runtime-api = "=1.7.2"
