@@ -3,11 +3,17 @@
 
   import { invalidateAll } from "$app/navigation";
 
-  export let data: PageData;
+  type Props = {
+    data: PageData;
+  };
+
+  let { data }: Props = $props();
 
   const numberFormat = new Intl.NumberFormat();
 
-  const refresh = async () => {
+  const refresh = async (event: MouseEvent) => {
+    event.preventDefault();
+
     await invalidateAll();
   };
 </script>
@@ -18,7 +24,7 @@
 
 <div class="px-2 py-6 flex flex-wrap gap-4">
   <h2 class="font-bold text-2xl truncate">Stations</h2>
-  <button class="btn btn-sm" on:click|preventDefault={refresh}>Refresh</button>
+  <button class="btn btn-sm" onclick={refresh}>Refresh</button>
 </div>
 
 <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">

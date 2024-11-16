@@ -1,16 +1,22 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+
   import TracksTable from "$lib/components/TracksTable.svelte";
   import { listTracks } from "$lib/api";
 
   const numberFormat = new Intl.NumberFormat();
 
-  export let data: PageData;
-  $: tracksData = data.tracksData;
+  type Props = {
+    data: PageData;
+  };
 
-  let isLoading = false;
+  let { data }: Props = $props();
+  let tracksData = $state(data.tracksData);
+  let isLoading = $state(false);
 
-  const loadMore = async () => {
+  const loadMore = async (event: MouseEvent) => {
+    event.preventDefault();
+
     isLoading = true;
     try {
       // TODO handle invalidate
@@ -55,7 +61,7 @@
   {#if isLoading}
     <span class="loading loading-spinner loading-sm"></span>
   {:else if tracksData.nextToken}
-    <button class="btn btn-sm" on:click|preventDefault={loadMore}>Load More</button>
+    <button class="btn btn-sm" onclick={loadMore}>Load More</button>
   {:else}
     <div class="badge badge-neutral badge-xs"></div>
   {/if}

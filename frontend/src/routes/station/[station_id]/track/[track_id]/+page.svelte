@@ -1,77 +1,85 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import { listTrackPlays, type Track } from "$lib/api";
+  import type { Track } from "$lib/api";
+
+  import { listTrackPlays } from "$lib/api";
   import dayjs from "$lib/dayjs";
   import { toHourId } from "$lib/helpers";
 
   import Chart from "chart.js/auto";
   import { onDestroy, onMount } from "svelte";
 
-  export let data: PageData;
+  type Props = {
+    data: PageData;
+  };
 
-  $: track = data.trackData.track;
+  let { data }: Props = $props();
 
-  $: playsData = data.playsData;
-  $: plays = playsData.plays;
+  let track = $derived(data.trackData.track);
+  let playsData = $state(data.playsData);
+  let plays = $derived(playsData.plays);
 
   const numberFormat = new Intl.NumberFormat();
 
-  let chartCanvas: HTMLCanvasElement;
+  let chartCanvas: HTMLCanvasElement | undefined = $state();
 
-  let chart: Chart | null = null;
+  let chart: Chart | null = $state(null);
 
-  $: if (chart) {
-    const chartData: number[] = [];
-    if (plays.length > 0)
-      playsData.plays.reduce((prev, val) => {
-        const diff = dayjs(prev.played_at).diff(val.played_at);
-        chartData.push(diff / 1000 / 60 / 60);
+  $effect(() => {
+    if (chart) {
+      const chartData: number[] = [];
+      if (plays.length > 0)
+        playsData.plays.reduce((prev, val) => {
+          const diff = dayjs(prev.played_at).diff(val.played_at);
+          chartData.push(diff / 1000 / 60 / 60);
 
-        return val;
-      });
-    const chartLabels = chartData.map((_val, idx) => `${-1 * (idx + 1)} play`);
+          return val;
+        });
+      const chartLabels = chartData.map((_val, idx) => `${-1 * (idx + 1)} play`);
 
-    chart.data.labels = chartLabels;
-    chart.data.datasets[0].data = chartData;
-    chart.update();
-  }
+      chart.data.labels = chartLabels;
+      chart.data.datasets[0].data = chartData;
+      chart.update();
+    }
+  });
 
   onMount(() => {
-    chart = new Chart(chartCanvas, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: "Play gap in hours",
-            data: [],
-            tension: 0.1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function (value) {
-                if (typeof value === "string") return value;
+    if (chartCanvas)
+      chart = new Chart(chartCanvas, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Play gap in hours",
+              data: [],
+              tension: 0.1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function (value) {
+                  if (typeof value === "string") return value;
 
-                if (value >= 24) {
-                  const days = Math.floor(value / 24);
-                  const hours = value % 24;
+                  if (value >= 24) {
+                    const days = Math.floor(value / 24);
+                    const hours = value % 24;
 
-                  if (hours === 0) return days + "d";
-                  return `${days}d ${hours}h`;
-                }
+                    if (hours === 0) return days + "d";
+                    return `${days}d ${hours}h`;
+                  }
 
-                return value + "h";
+                  return value + "h";
+                },
               },
             },
           },
         },
-      },
-    });
+      });
   });
 
   onDestroy(() => {
@@ -106,7 +114,7 @@
 
 <div class="px-2 py-6 flex flex-wrap gap-4">
   <h2 class="font-bold text-2xl truncate">{data.station.name}</h2>
-  <button class="btn btn-sm" on:click={refresh}>Refresh</button>
+  <button class="btn btn-sm" onclick={refresh}>Refresh</button>
 </div>
 
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
@@ -190,7 +198,7 @@
       <canvas class="mb-4" bind:this={chartCanvas}></canvas>
 
       <div class="text-right">
-        <button class="btn btn-sm" disabled={!playsData.nextToken} on:click={loadMorePlays}>
+        <button class="btn btn-sm" disabled={!playsData.nextToken} onclick={loadMorePlays}>
           Load More
         </button>
       </div>
