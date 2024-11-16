@@ -3,12 +3,10 @@ use std::sync::Arc;
 use axum::extract::State;
 use radiojournal::crud::station::models::StationId;
 
-use crate::{
-    errors::APIError,
-    extractors::Path,
-    models::{APIJson, Station},
-    AppState,
-};
+use crate::errors::{APIError, APIErrorResponse};
+use crate::extractors::Path;
+use crate::models::{APIJson, Station};
+use crate::AppState;
 
 #[utoipa::path(
     get,
