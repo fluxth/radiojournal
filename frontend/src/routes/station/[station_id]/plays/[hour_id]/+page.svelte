@@ -8,7 +8,11 @@
 
   import windowsZones from "$lib/data/windowsZones.json";
 
-  export let data: PageData;
+  type Props = {
+    data: PageData;
+  };
+
+  let { data }: Props = $props();
 
   const TIMEZONE_LOCALSTORAGE_KEY = "timezone";
 
@@ -17,28 +21,33 @@
     return timezone;
   };
 
-  let currentTimezone: string | null = isValidTimezoneOrNull(
-    localStorage.getItem(TIMEZONE_LOCALSTORAGE_KEY),
+  let currentTimezone: string | null = $state(
+    isValidTimezoneOrNull(localStorage.getItem(TIMEZONE_LOCALSTORAGE_KEY)),
   );
 
-  $: currentPageHour = currentTimezone
-    ? data.pageHour.current.tz(currentTimezone)
-    : data.pageHour.current;
-  $: maxPageHour = currentTimezone ? data.pageHour.max.tz(currentTimezone) : data.pageHour.max;
+  let currentPageHour = $derived(
+    currentTimezone ? data.pageHour.current.tz(currentTimezone) : data.pageHour.current,
+  );
 
-  let timezoneModal: HTMLDialogElement;
+  let maxPageHour = $derived(
+    currentTimezone ? data.pageHour.max.tz(currentTimezone) : data.pageHour.max,
+  );
 
-  $: timezones = windowsZones
-    .map((zone, index) => {
-      const zoneHour = data.pageHour.current.tz(zone.id);
-      return {
-        ...zone,
-        index,
-        offset: zoneHour.utcOffset(),
-        offsetString: `UTC${zoneHour.format("Z")}`,
-      };
-    })
-    .sort((a, b) => a.offset - b.offset || a.index - b.index);
+  let timezoneModal: HTMLDialogElement | undefined = $state();
+
+  let timezones = $derived(
+    windowsZones
+      .map((zone, index) => {
+        const zoneHour = data.pageHour.current.tz(zone.id);
+        return {
+          ...zone,
+          index,
+          offset: zoneHour.utcOffset(),
+          offsetString: `UTC${zoneHour.format("Z")}`,
+        };
+      })
+      .sort((a, b) => a.offset - b.offset || a.index - b.index),
+  );
 
   const getHoursOfCurrentDay = (day: Dayjs) => {
     const endHour = day.endOf("day");
@@ -79,7 +88,7 @@
 
 <div class="px-2 py-6 flex flex-wrap gap-4">
   <h2 class="font-bold text-2xl truncate">{data.station.name}</h2>
-  <button class="btn btn-sm" on:click={refresh}>Refresh</button>
+  <button class="btn btn-sm" onclick={refresh}>Refresh</button>
 </div>
 
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
@@ -93,23 +102,23 @@
 <div class="my-4 flex flex-col items-center gap-1">
   <div class="flex justify-center">
     <div class="join">
-      <button class="join-item btn sm:text-lg" on:click={gotoYesterday}>‹</button>
+      <button class="join-item btn sm:text-lg" onclick={gotoYesterday}>‹</button>
       <button class="join-item btn sm:text-lg">{currentPageHour.format("dddd, LL")}</button>
       <button
         class="join-item btn sm:text-lg hidden lg:block"
-        on:click={() => timezoneModal.showModal()}
+        onclick={() => timezoneModal?.showModal()}
       >
         {currentPageHour.format("UTCZ")}
       </button>
       <button
         class="join-item btn sm:text-lg"
         disabled={currentPageHour.startOf("date").isSameOrAfter(maxPageHour.startOf("date"))}
-        on:click={gotoTomorrow}>›</button
+        onclick={gotoTomorrow}>›</button
       >
       <button
         class="join-item btn sm:text-lg"
         disabled={currentPageHour.startOf("hour").isSameOrAfter(dayjs().startOf("hour"))}
-        on:click={gotoNow}>»</button
+        onclick={gotoNow}>»</button
       >
     </div>
   </div>
@@ -118,7 +127,7 @@
     <div class="join">
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs"
-        on:click={() => goto(toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))))}
+        onclick={() => goto(toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))))}
         >‹</button
       >
       {#each getHoursOfCurrentDay(currentPageHour) as buttonHour}
@@ -127,7 +136,7 @@
           class:btn-active={currentPageHour.isSame(buttonHour)}
           disabled={currentPageHour.isSameOrAfter(maxPageHour.startOf("date")) &&
             buttonHour.isAfter(maxPageHour)}
-          on:click={() => goto(toHourId(buttonHour))}
+          onclick={() => goto(toHourId(buttonHour))}
         >
           {buttonHour.hour().toString().padStart(2, "0")}
         </button>
@@ -137,14 +146,14 @@
       </button>
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs block lg:hidden"
-        on:click={() => timezoneModal.showModal()}
+        onclick={() => timezoneModal?.showModal()}
       >
         {currentPageHour.format("UTCZ")}
       </button>
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs"
         disabled={currentPageHour.isSameOrAfter(maxPageHour)}
-        on:click={() => goto(toHourId(currentPageHour.add(dayjs.duration({ hours: 1 }))))}>›</button
+        onclick={() => goto(toHourId(currentPageHour.add(dayjs.duration({ hours: 1 }))))}>›</button
       >
     </div>
   </div>
@@ -157,7 +166,7 @@
         <th class="w-24">Timestamp</th>
         <th>Artist</th>
         <th>Title</th>
-        <th class="w-24" />
+        <th class="w-24"></th>
       </tr>
     </thead>
     <tbody>
@@ -185,7 +194,7 @@
           <td class="sm:text-right">
             <button
               class="btn btn-xs"
-              on:click={async () =>
+              onclick={async () =>
                 await navigator.clipboard.writeText(`${play.track.artist} ${play.track.title}`)}
             >
               Copy
@@ -207,7 +216,7 @@
       <select
         class="select select-bordered w-full"
         bind:value={currentTimezone}
-        on:change={() => saveTimezone(currentTimezone)}
+        onchange={() => saveTimezone(currentTimezone)}
       >
         {#if currentTimezone !== null && timezones.find((zone) => zone.id === currentTimezone) === undefined}
           <option disabled value={currentTimezone}>{currentTimezone}</option>

@@ -1,14 +1,18 @@
 <script lang="ts">
   import type { Station, Track } from "$lib/api";
+
   import { fade } from "svelte/transition";
   import dayjs from "$lib/dayjs";
 
   const numberFormat = new Intl.NumberFormat();
 
-  export let tracks: Track[];
-  export let station: Station;
+  type Props = {
+    tracks: Track[];
+    station: Station;
+    artistLink?: boolean;
+  };
 
-  export let artistLink: boolean = true;
+  let { tracks, station, artistLink = true }: Props = $props();
 </script>
 
 <div class="overflow-x-auto my-4">
