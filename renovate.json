@@ -3,7 +3,7 @@
   "extends": [
     "config:recommended",
     "helpers:pinGitHubActionDigests",
-    "regexManagers:githubActionsVersions",
+    "customManagers:githubActionsVersions",
     "npm:unpublishSafe",
     ":maintainLockFilesMonthly",
     ":pinVersions",
@@ -12,42 +12,74 @@
   "pre-commit": {
     "enabled": true
   },
-  "reviewers": ["fluxth"],
+  "reviewers": [
+    "fluxth"
+  ],
   "timezone": "Asia/Tokyo",
-  "schedule": ["before 7am"],
+  "schedule": [
+    "before 7am"
+  ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "packageRules": [
     {
       "description": "Auto-merge GitHub Actions patch and digest updates",
-      "matchUpdateTypes": ["patch", "digest"],
-      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
+      "matchManagers": [
+        "github-actions"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
     },
     {
       "description": "Auto-merge pre-commit patch and digest updates",
-      "matchUpdateTypes": ["patch", "digest"],
-      "matchManagers": ["pre-commit"],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
+      "matchManagers": [
+        "pre-commit"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
     },
     {
       "description": "Auto-merge testable NPM updates",
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchManagers": ["npm"],
-      "matchPackagePrefixes": ["eslint", "@typescript-eslint", "prettier", "@types/"],
-      "matchPackageNames": ["vitest", "svelte-check", "typescript", "tslib"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "vitest",
+        "svelte-check",
+        "typescript",
+        "tslib",
+        "eslint{/,}**",
+        "@typescript-eslint{/,}**",
+        "prettier{/,}**",
+        "@types/{/,}**"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
     },
     {
       "description": "Schedule NPM updates to once a week",
-      "matchManagers": ["npm"],
-      "schedule": ["before 7am every saturday"]
+      "matchManagers": [
+        "npm"
+      ],
+      "schedule": [
+        "before 7am on saturday"
+      ]
     }
   ]
 }
