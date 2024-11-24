@@ -1,6 +1,6 @@
 services:
   localstack:
-    image: localstack/localstack:4.0.0@sha256:fae7a9a2c3eb86fc102df0fdb78b0a8624617734052bc163cb14ebb64d70a047
+    image: localstack/localstack:4.0.2@sha256:d23394b09e476a9078c0a1d9340a01894804e238874fc5ff4264fca91491f8db
     environment:
       - EAGER_SERVICE_LOADING=1
       - SERVICES=dynamodb
