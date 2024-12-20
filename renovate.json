@@ -64,7 +64,7 @@
         "typescript",
         "tslib",
         "eslint{/,}**",
-        "@typescript-eslint{/,}**",
+        "typescript-eslint{/,}**",
         "prettier{/,}**",
         "@types/{/,}**"
       ],
