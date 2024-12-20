@@ -151,7 +151,7 @@ impl CRUDLogger {
 
         let now = Utc::now();
 
-        let (items, update_structs) = build_new_play_transaction(
+        let PreparedTransaction { items, callback } = build_new_play_transaction(
             self.provider.table_name(),
             station,
             &play,
@@ -162,7 +162,7 @@ impl CRUDLogger {
         // TODO handle errors
         self.provider.transact_write_items(items).await?;
 
-        update_structs(station, None);
+        callback(station, None);
 
         Ok(())
     }
@@ -187,7 +187,7 @@ impl CRUDLogger {
 
         let now = Utc::now();
 
-        let (items, update_structs) = build_new_track_and_play_transaction(
+        let PreparedTransaction { items, callback } = build_new_track_and_play_transaction(
             self.provider.table_name(),
             station,
             &track,
@@ -200,7 +200,7 @@ impl CRUDLogger {
         // TODO handle errors
         self.provider.transact_write_items(items).await?;
 
-        update_structs(station);
+        callback(station);
 
         Ok(())
     }
@@ -214,17 +214,19 @@ enum BuildTransactionError {
     SerializeError(#[from] serde_dynamo::Error),
 }
 
-fn build_new_play_transaction<'i, 'cb>(
+struct PreparedTransaction<CallbackFn> {
+    items: Vec<TransactWriteItem>,
+    callback: CallbackFn,
+}
+
+fn build_new_play_transaction<'i>(
     table_name: &'i str,
     station: &'i StationInDB,
     play: &'i PlayInDB,
     latest_play: LatestPlay,
     timestamp: DateTime<Utc>,
 ) -> Result<
-    (
-        Vec<TransactWriteItem>,
-        impl FnOnce(&'cb mut StationInDB, Option<&'cb mut TrackInDB>),
-    ),
+    PreparedTransaction<impl FnOnce(&mut StationInDB, Option<&mut TrackInDB>)>,
     BuildTransactionError,
 > {
     let play_put = build_put(table_name, serde_dynamo::to_item(play)?)?;
@@ -267,17 +269,17 @@ fn build_new_play_transaction<'i, 'cb>(
             }
         };
 
-    Ok((
-        vec![
+    Ok(PreparedTransaction {
+        items: vec![
             TransactWriteItem::Put(play_put),
             TransactWriteItem::Update(track_update),
             TransactWriteItem::Update(station_update),
         ],
-        update_structs_callback,
-    ))
+        callback: update_structs_callback,
+    })
 }
 
-fn build_new_track_and_play_transaction<'i, 'cb>(
+fn build_new_track_and_play_transaction<'i>(
     table_name: &'i str,
     station: &'i StationInDB,
     track: &'i TrackInDB,
@@ -285,7 +287,7 @@ fn build_new_track_and_play_transaction<'i, 'cb>(
     play: &'i PlayInDB,
     latest_play: LatestPlay,
     timestamp: DateTime<Utc>,
-) -> Result<(Vec<TransactWriteItem>, impl FnOnce(&'cb mut StationInDB)), BuildTransactionError> {
+) -> Result<PreparedTransaction<impl FnOnce(&mut StationInDB)>, BuildTransactionError> {
     let track_put = build_put(table_name, serde_dynamo::to_item(track)?)?;
     let track_metadata_put = build_put(table_name, serde_dynamo::to_item(track_metadata)?)?;
     let play_put = build_put(table_name, serde_dynamo::to_item(play)?)?;
@@ -318,15 +320,15 @@ fn build_new_track_and_play_transaction<'i, 'cb>(
         }
     };
 
-    Ok((
-        vec![
+    Ok(PreparedTransaction {
+        items: vec![
             TransactWriteItem::Put(track_put),
             TransactWriteItem::Put(track_metadata_put),
             TransactWriteItem::Put(play_put),
             TransactWriteItem::Update(station_update),
         ],
-        update_structs_callback,
-    ))
+        callback: update_structs_callback,
+    })
 }
 
 #[cfg(test)]
@@ -354,7 +356,7 @@ mod tests {
 
         let timestamp = DateTime::from_timestamp(1, 0).unwrap();
 
-        let (items, callback) = build_new_play_transaction(
+        let PreparedTransaction { items, callback } = build_new_play_transaction(
             "tablename",
             &mut station,
             &new_play,
