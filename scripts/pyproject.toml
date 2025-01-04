@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "radiojournal-scripts"
-version = "0.2.2"
+version = "0.2.3"
 description = "Scripts for radiojournal"
 authors = ["Thitat Auareesuksakul <flux@thitat.net>"]
 readme = "README.md"
