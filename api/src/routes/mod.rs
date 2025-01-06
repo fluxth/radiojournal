@@ -24,16 +24,16 @@ impl Modify for ServerAddon {
 
 pub(crate) fn get_router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/station/:station_id", get(station::get_station))
+        .route("/station/{station_id}", get(station::get_station))
         .route("/stations", get(station::list_stations))
-        .route("/station/:station_id/plays", get(play::list_plays))
+        .route("/station/{station_id}/plays", get(play::list_plays))
         .route(
-            "/station/:station_id/track/:track_id",
+            "/station/{station_id}/track/{track_id}",
             get(track::get_track),
         )
         .route(
-            "/station/:station_id/track/:track_id/plays",
+            "/station/{station_id}/track/{track_id}/plays",
             get(track::list_plays_of_track),
         )
-        .route("/station/:station_id/tracks", get(track::list_tracks))
+        .route("/station/{station_id}/tracks", get(track::list_tracks))
 }
