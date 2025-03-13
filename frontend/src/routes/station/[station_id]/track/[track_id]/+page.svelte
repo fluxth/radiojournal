@@ -207,7 +207,7 @@
 
   <div class="basis-1/3">
     <ul class="timeline timeline-vertical max-md:-ml-20">
-      {#each plays as play, i}
+      {#each plays as play, i (play.id)}
         <li>
           {#if i > 0}
             <hr />
