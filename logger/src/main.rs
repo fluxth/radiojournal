@@ -2,7 +2,7 @@ mod fetchers;
 
 use std::sync::Arc;
 
-use lambda_runtime::{service_fn, Error, LambdaEvent};
+use lambda_runtime::{Error, LambdaEvent, service_fn};
 use radiojournal::crud::logger::CRUDLogger;
 use serde::Serialize;
 use serde_json::Value;
@@ -12,8 +12,8 @@ use tracing::info;
 
 use fetchers::Fetcher;
 use radiojournal::crud::logger::models::AddPlayResult;
-use radiojournal::crud::station::models::{FetcherConfig, StationId, StationInDB};
 use radiojournal::crud::station::CRUDStation;
+use radiojournal::crud::station::models::{FetcherConfig, StationId, StationInDB};
 use radiojournal::init;
 
 #[derive(Debug)]
