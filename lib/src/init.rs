@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use aws_config::{meta::region::RegionProviderChain, BehaviorVersion};
+use aws_config::{BehaviorVersion, meta::region::RegionProviderChain};
 use aws_sdk_dynamodb::Client;
 
 use crate::crud::Context;
