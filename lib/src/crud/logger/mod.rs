@@ -225,7 +225,7 @@ fn build_new_play_transaction<'i>(
     latest_play: LatestPlay,
     timestamp: DateTime<Utc>,
 ) -> Result<
-    PreparedTransaction<impl FnOnce(&mut StationInDB, Option<&mut TrackInDB>)>,
+    PreparedTransaction<impl FnOnce(&mut StationInDB, Option<&mut TrackInDB>) + use<>>,
     BuildTransactionError,
 > {
     let play_put = build_put(table_name, serde_dynamo::to_item(play)?)?;
@@ -286,7 +286,7 @@ fn build_new_track_and_play_transaction<'i>(
     play: &'i PlayInDB,
     latest_play: LatestPlay,
     timestamp: DateTime<Utc>,
-) -> Result<PreparedTransaction<impl FnOnce(&mut StationInDB)>, BuildTransactionError> {
+) -> Result<PreparedTransaction<impl FnOnce(&mut StationInDB) + use<>>, BuildTransactionError> {
     let track_put = build_put(table_name, serde_dynamo::to_item(track)?)?;
     let track_metadata_put = build_put(table_name, serde_dynamo::to_item(track_metadata)?)?;
     let play_put = build_put(table_name, serde_dynamo::to_item(play)?)?;
