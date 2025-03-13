@@ -87,12 +87,13 @@ impl Fetcher for Atime {
 
         let metadata = {
             let cache_locked = self.cache.lock().await;
-            if let Some(metadata) = cache_locked.get(&0).await {
-                metadata
-            } else {
-                let metadata = Arc::new(self.fetch_metadata().await?);
-                cache_locked.insert(0, metadata.clone()).await;
-                metadata
+            match cache_locked.get(&0).await {
+                Some(metadata) => metadata,
+                _ => {
+                    let metadata = Arc::new(self.fetch_metadata().await?);
+                    cache_locked.insert(0, metadata.clone()).await;
+                    metadata
+                }
             }
         };
 

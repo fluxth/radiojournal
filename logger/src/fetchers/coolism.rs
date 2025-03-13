@@ -102,20 +102,21 @@ impl Coolism {
             }
         }
 
-        if let Some(token) = token_locked.as_ref() {
-            Ok(token.token.clone())
-        } else {
-            let (token, maybe_expiry) = self.fetch_token().await?;
-            if let Some(expiry) = maybe_expiry {
-                *token_locked = Some(CoolismToken {
-                    token: token.clone(),
-                    expiry,
-                });
+        match token_locked.as_ref() {
+            Some(token) => Ok(token.token.clone()),
+            _ => {
+                let (token, maybe_expiry) = self.fetch_token().await?;
+                if let Some(expiry) = maybe_expiry {
+                    *token_locked = Some(CoolismToken {
+                        token: token.clone(),
+                        expiry,
+                    });
 
-                Ok(token)
-            } else {
-                warn!("No expiry detected, will not save token");
-                Ok(token)
+                    Ok(token)
+                } else {
+                    warn!("No expiry detected, will not save token");
+                    Ok(token)
+                }
             }
         }
     }
