@@ -109,6 +109,7 @@ export const getTrack = async ({
 };
 
 export type TrackPlay = {
+  id: string;
   played_at: string;
 };
 

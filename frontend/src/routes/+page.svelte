@@ -28,7 +28,7 @@
 </div>
 
 <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-  {#each data.stations as station}
+  {#each data.stations as station (station.id)}
     <div class="card bg-base-200 shadow-lg">
       <div class="card-body">
         <div>

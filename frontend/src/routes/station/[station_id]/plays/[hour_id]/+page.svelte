@@ -130,7 +130,7 @@
         onclick={() => goto(toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))))}
         >‹</button
       >
-      {#each getHoursOfCurrentDay(currentPageHour) as buttonHour}
+      {#each getHoursOfCurrentDay(currentPageHour) as buttonHour (buttonHour.hour())}
         <button
           class="join-item btn btn-sm lg:max-xl:btn-xs hidden lg:block"
           class:btn-active={currentPageHour.isSame(buttonHour)}
@@ -170,7 +170,7 @@
       </tr>
     </thead>
     <tbody>
-      {#each data.content.plays as play}
+      {#each data.content.plays as play (play.id)}
         <tr class={play.track.is_song ? "" : "italic text-neutral-300 dark:text-neutral-600"}>
           <td class="max-sm:font-bold">
             {(currentTimezone
@@ -222,7 +222,7 @@
           <option disabled value={currentTimezone}>{currentTimezone}</option>
         {/if}
         <option value={null}>System Default</option>
-        {#each timezones as timezone}
+        {#each timezones as timezone (timezone.id)}
           <option value={timezone.id}>
             ({timezone.offsetString}) {timezone.label}
           </option>

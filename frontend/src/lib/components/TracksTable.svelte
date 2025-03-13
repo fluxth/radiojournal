@@ -27,7 +27,7 @@
       </tr>
     </thead>
     <tbody>
-      {#each tracks as track}
+      {#each tracks as track (track.id)}
         <tr transition:fade>
           <td class="max-sm:font-bold">
             {dayjs(track.created_at).format("MMM DD, YYYY [at] HH:mm")}
