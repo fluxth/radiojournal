@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@reference "./app.css";
 
 .table-responsive tr {
   @apply max-sm:flex max-sm:flex-col max-sm:py-1;

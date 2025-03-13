@@ -2,6 +2,7 @@
   import type { Snippet } from "svelte";
 
   import "nprogress/nprogress.css";
+  import "../app.css";
   import "../app.scss";
 
   import NProgress from "nprogress";
