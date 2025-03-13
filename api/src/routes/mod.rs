@@ -4,8 +4,8 @@ pub(crate) mod track;
 
 use std::sync::Arc;
 
-use axum::{routing::get, Router};
-use utoipa::{openapi::Server, Modify, OpenApi};
+use axum::{Router, routing::get};
+use utoipa::{Modify, OpenApi, openapi::Server};
 use utoipauto::utoipauto;
 
 use crate::AppState;

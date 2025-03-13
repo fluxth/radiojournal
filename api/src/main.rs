@@ -6,14 +6,14 @@ mod routes;
 use std::{sync::Arc, time::Duration};
 
 use axum::{
+    Router,
     http::Request,
     response::{IntoResponse, Response},
-    Router,
 };
 use errors::APIError;
-use lambda_http::{request::RequestContext, run, Error, RequestExt};
+use lambda_http::{Error, RequestExt, request::RequestContext, run};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
-use tracing::{info, info_span, Span};
+use tracing::{Span, info, info_span};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
