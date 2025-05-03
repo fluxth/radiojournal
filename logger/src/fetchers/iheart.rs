@@ -6,7 +6,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use serde_json::json;
 
-use super::{Fetcher, Play};
+use super::{DEFAULT_USER_AGENT, Fetcher, Play};
 use radiojournal::crud::station::models::FetcherConfig;
 
 #[derive(Debug)]
@@ -18,10 +18,7 @@ impl Iheart {
     pub(crate) fn new() -> Self {
         let mut default_headers = HeaderMap::new();
 
-        default_headers.insert(
-            "User-Agent",
-            HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.3")
-        );
+        default_headers.insert("User-Agent", HeaderValue::from_static(DEFAULT_USER_AGENT));
 
         Self {
             client: reqwest::Client::builder()

@@ -8,6 +8,8 @@ use async_trait::async_trait;
 use radiojournal::crud::logger::models::Play as PlayTrait;
 use radiojournal::crud::station::models::FetcherConfig;
 
+pub(crate) const DEFAULT_USER_AGENT: &str = include_str!("./default_user_agent.txt");
+
 #[derive(Debug)]
 pub(crate) struct Play {
     pub(crate) title: String,
@@ -31,4 +33,15 @@ impl PlayTrait for Play {
 #[async_trait]
 pub(crate) trait Fetcher {
     async fn fetch_play(&self, config: &FetcherConfig) -> Result<Play>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_user_agent_trimmed() {
+        assert_eq!(DEFAULT_USER_AGENT, DEFAULT_USER_AGENT.trim());
+        assert!(DEFAULT_USER_AGENT.len() > 0);
+    }
 }
