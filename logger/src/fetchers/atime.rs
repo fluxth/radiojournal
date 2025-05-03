@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tokio::sync::Mutex;
 use tracing::info;
 
-use super::{Fetcher, Play};
+use super::{DEFAULT_USER_AGENT, Fetcher, Play};
 use radiojournal::crud::station::models::{AtimeStation, FetcherConfig};
 
 #[derive(Debug)]
@@ -21,10 +21,7 @@ impl Atime {
     pub(crate) fn new() -> Self {
         let mut default_headers = HeaderMap::new();
 
-        default_headers.insert(
-            "User-Agent",
-            HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.3")
-        );
+        default_headers.insert("User-Agent", HeaderValue::from_static(DEFAULT_USER_AGENT));
 
         default_headers.insert("Origin", HeaderValue::from_static("https://atime.live"));
 
