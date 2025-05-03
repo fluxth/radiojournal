@@ -1,0 +1,30 @@
+name: Auto update logger user-agent
+
+on:
+  workflow_dispatch:
+  schedule:
+    # run every sunday at 0:00 UTC
+    - cron: '0 0 * * sun'
+
+jobs:
+  update:
+    name: Update logger user-agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Update user-agent
+        run: |
+          curl 'https://cdn.jsdelivr.net/gh/microlinkhq/top-user-agents@master/src/index.json' | jq -rj '.[0]' > 'logger/src/fetchers/default_user_agent.txt'
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          commit-message: 'fix(logger): update logger user-agent'
+          title: 'fix(logger): update logger user-agent'
+          body: 'Update radiojournal logger user-agent to latest most popular'
+          branch: logger-user-agent
+          reviewers: |
+            fluxth
