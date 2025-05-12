@@ -13,6 +13,7 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@eslint/js": "9.26.0",
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "2.20.7",
     "@sveltejs/vite-plugin-svelte": "5.0.3",
@@ -37,7 +38,7 @@
     "vite": "6.3.4",
     "vitest": "3.1.2"
   },
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "pnpm@10.10.0",
   "type": "module",
   "dependencies": {
     "chart.js": "4.4.9",
