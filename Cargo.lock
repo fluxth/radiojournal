@@ -2143,7 +2143,7 @@ checksum = "74765f6d916ee2faa39bc8e68e4f3ed8949b48cccdac59983d287a7cb71ce9c5"
 
 [[package]]
 name = "radiojournal"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "anyhow",
  "aws-config",
@@ -2161,7 +2161,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal-api"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "axum",
  "chrono",
@@ -2180,7 +2180,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal-cli"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "anyhow",
  "radiojournal",
@@ -2191,7 +2191,7 @@ dependencies = [
 
 [[package]]
 name = "radiojournal-logger"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "anyhow",
  "async-trait",
