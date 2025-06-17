@@ -17,7 +17,7 @@ serde_dynamo = { version = "=4.2.14", features = ["aws-sdk-dynamodb+1"] }
 thiserror = "=2.0.12"
 tracing = "=0.1.41"
 ulid = { version = "=1.2.1", features = ["serde"] }
-utoipa = "=5.3.1"
+utoipa = "=5.4.0"
 
 [dev-dependencies]
 rstest = "=0.25.0"
