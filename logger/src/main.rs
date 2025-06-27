@@ -134,7 +134,7 @@ async fn invoke(
     }
 
     if let Some(error) = errors.into_iter().next() {
-        panic!("{:?}", error);
+        panic!("{error:?}");
     }
 
     Ok(InvokeOutput { stations })

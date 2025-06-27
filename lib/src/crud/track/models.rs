@@ -117,7 +117,7 @@ pub(crate) trait TrackMetadataKeys {
     }
 
     fn get_sk(title: &str) -> String {
-        format!("TITLE#{}", title)
+        format!("TITLE#{title}")
     }
 
     fn get_sk_prefix() -> String {
