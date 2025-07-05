@@ -6,6 +6,6 @@ edition = "2024"
 [dependencies]
 radiojournal = { path = "../lib", features = ["local"] }
 anyhow = "=1.0.98"
-tokio = { version = "=1.46.0", features = ["full"] }
+tokio = { version = "=1.46.1", features = ["full"] }
 tracing = "=0.1.41"
 tracing-subscriber = "=0.3.19"
