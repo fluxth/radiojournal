@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 10
     env:
       # renovate: datasource=github-releases depName=terraform-linters/tflint
-      TFLINT_VERSION: 'v0.58.0'
+      TFLINT_VERSION: 'v0.58.1'
       # renovate: datasource=github-releases depName=hashicorp/terraform
       TERRAFORM_VERSION: 'v1.12.2'
     steps:
