@@ -20,4 +20,4 @@ ulid = { version = "=1.2.1", features = ["serde"] }
 utoipa = "=5.4.0"
 
 [dev-dependencies]
-rstest = "=0.26.0"
+rstest = "=0.26.1"
