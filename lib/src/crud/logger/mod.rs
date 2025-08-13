@@ -91,13 +91,14 @@ impl CRUDLogger {
         artist: &str,
         title: &str,
     ) -> Result<AddPlayTypeInternal> {
-        if let Some(latest_play) = &station.latest_play {
-            if latest_play.artist == artist && latest_play.title == title {
-                return Ok(AddPlayTypeInternal::ExistingPlay {
-                    track_id: latest_play.track_id,
-                    play_id: latest_play.id,
-                });
-            }
+        if let Some(latest_play) = &station.latest_play
+            && latest_play.artist == artist
+            && latest_play.title == title
+        {
+            return Ok(AddPlayTypeInternal::ExistingPlay {
+                track_id: latest_play.track_id,
+                play_id: latest_play.id,
+            });
         }
 
         if let Some(track_metadata) = self
