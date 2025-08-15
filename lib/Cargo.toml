@@ -9,7 +9,7 @@ local = []
 [dependencies]
 anyhow = "=1.0.99"
 aws-config = "=1.8.5"
-aws-sdk-dynamodb = "=1.88.0"
+aws-sdk-dynamodb = "=1.89.0"
 aws-smithy-runtime-api = "=1.8.7"
 chrono = { version = "=0.4.41", features = ["serde"] }
 serde = { version = "=1.0.219", features = ["derive"] }
