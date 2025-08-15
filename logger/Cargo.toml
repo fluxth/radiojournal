@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 radiojournal = { path = "../lib" }
 anyhow = "=1.0.99"
-async-trait = "=0.1.88"
+async-trait = "=0.1.89"
 chrono = { version = "=0.4.41", features = ["serde"] }
 lambda_runtime = "=0.14.3"
 moka = { version = "=0.12.10", features = ["future"] }
