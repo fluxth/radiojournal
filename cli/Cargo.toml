@@ -8,4 +8,4 @@ radiojournal = { path = "../lib", features = ["local"] }
 anyhow = "=1.0.99"
 tokio = { version = "=1.47.1", features = ["full"] }
 tracing = "=0.1.41"
-tracing-subscriber = "=0.3.19"
+tracing-subscriber = "=0.3.20"
