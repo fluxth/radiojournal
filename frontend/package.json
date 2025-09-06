@@ -20,7 +20,7 @@
     "@tailwindcss/postcss": "4.1.12",
     "@types/eslint": "9.6.1",
     "@types/nprogress": "0.2.3",
-    "daisyui": "5.0.50",
+    "daisyui": "5.1.6",
     "eslint": "9.34.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-svelte": "3.11.0",
