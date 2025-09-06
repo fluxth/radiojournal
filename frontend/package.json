@@ -13,7 +13,7 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@eslint/js": "9.33.0",
+    "@eslint/js": "9.34.0",
     "@sveltejs/adapter-static": "3.0.9",
     "@sveltejs/kit": "2.37.0",
     "@sveltejs/vite-plugin-svelte": "6.1.4",
@@ -21,7 +21,7 @@
     "@types/eslint": "9.6.1",
     "@types/nprogress": "0.2.3",
     "daisyui": "5.0.50",
-    "eslint": "9.33.0",
+    "eslint": "9.34.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-svelte": "3.11.0",
     "globals": "16.3.0",
