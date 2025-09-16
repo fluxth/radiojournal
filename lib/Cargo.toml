@@ -13,7 +13,7 @@ aws-sdk-dynamodb = "=1.92.0"
 aws-smithy-runtime-api = "=1.9.0"
 chrono = { version = "=0.4.42", features = ["serde"] }
 serde = { version = "=1.0.221", features = ["derive"] }
-serde_dynamo = { version = "=4.2.14", features = ["aws-sdk-dynamodb+1"] }
+serde_dynamo = { version = "=4.3.0", features = ["aws-sdk-dynamodb+1"] }
 thiserror = "=2.0.16"
 tracing = "=0.1.41"
 ulid = { version = "=1.2.1", features = ["serde"] }
