@@ -3,6 +3,7 @@
 
   import TracksTable from "$lib/components/TracksTable.svelte";
   import { listTracks } from "$lib/api";
+  import { resolve } from "$app/paths";
 
   const numberFormat = new Intl.NumberFormat();
 
@@ -43,9 +44,15 @@
 
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
   <ul>
-    <li><a href="/">Stations</a></li>
-    <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
-    <li><a href={`/station/${data.station.id}/tracks`}>Tracks</a></li>
+    <li><a href={resolve("/")}>Stations</a></li>
+    <li>
+      <a href={resolve("/station/[station_id]/plays", { station_id: data.station.id })}
+        >{data.station.name}</a
+      >
+    </li>
+    <li>
+      <a href={resolve("/station/[station_id]/tracks", { station_id: data.station.id })}>Tracks</a>
+    </li>
     <li>{data.artist.name}</li>
   </ul>
 </div>

@@ -2,6 +2,7 @@
   import type { PageData } from "./$types";
 
   import { invalidateAll } from "$app/navigation";
+  import { resolve } from "$app/paths";
 
   type Props = {
     data: PageData;
@@ -42,8 +43,15 @@
           {numberFormat.format(station.track_count)} tracks
         </p>
         <div class="card-actions justify-end mt-2">
-          <a class="btn btn-neutral" href={`/station/${station.id}/tracks`}>Track List</a>
-          <a class="btn btn-primary" href={`/station/${station.id}/plays`}>Play History</a>
+          <a
+            class="btn btn-neutral"
+            href={resolve("/station/[station_id]/tracks", { station_id: station.id })}>Track List</a
+          >
+          <a
+            class="btn btn-primary"
+            href={resolve("/station/[station_id]/plays", { station_id: station.id })}
+            >Play History</a
+          >
         </div>
       </div>
     </div>

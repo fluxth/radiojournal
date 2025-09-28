@@ -5,6 +5,7 @@
   import { listTrackPlays } from "$lib/api";
   import dayjs from "$lib/dayjs";
   import { toHourId } from "$lib/helpers";
+  import { resolve } from "$app/paths";
 
   import Chart from "chart.js/auto";
   import { onDestroy, onMount } from "svelte";
@@ -119,11 +120,22 @@
 
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
   <ul>
-    <li><a href="/">Stations</a></li>
-    <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
-    <li><a href={`/station/${data.station.id}/tracks`}>Tracks</a></li>
+    <li><a href={resolve("/")}>Stations</a></li>
     <li>
-      <a href={`/station/${data.station.id}/artist/${encodeURIComponent(track.artist)}`}>
+      <a href={resolve("/station/[station_id]/plays", { station_id: data.station.id })}
+        >{data.station.name}</a
+      >
+    </li>
+    <li>
+      <a href={resolve("/station/[station_id]/tracks", { station_id: data.station.id })}>Tracks</a>
+    </li>
+    <li>
+      <a
+        href={resolve("/station/[station_id]/artist/[artist_name]", {
+          station_id: data.station.id,
+          artist_name: encodeURIComponent(track.artist),
+        })}
+      >
         {track.artist}
       </a>
     </li>
@@ -173,7 +185,10 @@
               <td>
                 <a
                   class="link"
-                  href={`/station/${data.station.id}/artist/${encodeURIComponent(track.artist)}`}
+                  href={resolve("/station/[station_id]/artist/[artist_name]", {
+                    station_id: data.station.id,
+                    artist_name: encodeURIComponent(track.artist),
+                  })}
                 >
                   {track.artist}
                 </a>
@@ -238,7 +253,10 @@
           </div>
           <div class="timeline-end timeline-box">
             <a
-              href={`/station/${data.station.id}/plays/${toHourId(dayjs(play.played_at))}`}
+              href={resolve("/station/[station_id]/plays/[hour_id]", {
+                station_id: data.station.id,
+                hour_id: toHourId(dayjs(play.played_at)),
+              })}
               class="link"
             >
               {dayjs(play.played_at).format("ddd MMM DD, YYYY [at] HH:mm")}

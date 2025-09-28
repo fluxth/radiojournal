@@ -3,6 +3,7 @@
 
   import { fade } from "svelte/transition";
   import dayjs from "$lib/dayjs";
+  import { resolve } from "$app/paths";
 
   const numberFormat = new Intl.NumberFormat();
 
@@ -36,7 +37,10 @@
             {#if artistLink}
               <a
                 class="link"
-                href={`/station/${station.id}/artist/${encodeURIComponent(track.artist)}`}
+                href={resolve("/station/[station_id]/artist/[artist_name]", {
+                  station_id: station.id,
+                  artist_name: encodeURIComponent(track.artist),
+                })}
               >
                 {track.artist}
               </a>
@@ -45,7 +49,13 @@
             {/if}
           </td>
           <td>
-            <a class="link" href={`/station/${station.id}/track/${track.id}`}>{track.title}</a>
+            <a
+              class="link"
+              href={resolve("/station/[station_id]/track/[track_id]", {
+                station_id: station.id,
+                track_id: track.id,
+              })}>{track.title}</a
+            >
           </td>
           <td class="sm:text-right">
             {numberFormat.format(track.play_count)} <span class="inline sm:hidden">plays</span>

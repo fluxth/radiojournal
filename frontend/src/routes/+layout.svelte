@@ -7,6 +7,7 @@
 
   import NProgress from "nprogress";
   import { navigating } from "$app/stores";
+  import { resolve } from "$app/paths";
 
   type Props = {
     children?: Snippet;
@@ -24,7 +25,7 @@
 
 <div class="navbar bg-base-100 shadow-lg">
   <div class="container mx-auto px-4">
-    <a class="btn btn-ghost text-xl" href="/">radiojournal</a>
+    <a class="btn btn-ghost text-xl" href={resolve("/")}>radiojournal</a>
   </div>
 </div>
 

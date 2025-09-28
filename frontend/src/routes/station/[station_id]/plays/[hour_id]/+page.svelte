@@ -3,6 +3,7 @@
   import type { Dayjs } from "dayjs";
 
   import { goto } from "$app/navigation";
+  import { resolve } from "$app/paths";
   import { toHourId } from "$lib/helpers";
   import dayjs from "$lib/dayjs";
 
@@ -72,14 +73,30 @@
   };
 
   const gotoYesterday = async () =>
-    await goto(toHourId(currentPageHour.subtract(dayjs.duration({ days: 1 }))));
+    await goto(
+      resolve("/station/[station_id]/plays/[hour_id]", {
+        station_id: data.station.id,
+        hour_id: toHourId(currentPageHour.subtract(dayjs.duration({ days: 1 }))),
+      }),
+    );
 
   const gotoTomorrow = async () =>
     await goto(
-      toHourId(dayjs.min(currentPageHour.add(dayjs.duration({ days: 1 })), maxPageHour) as Dayjs),
+      resolve("/station/[station_id]/plays/[hour_id]", {
+        station_id: data.station.id,
+        hour_id: toHourId(
+          dayjs.min(currentPageHour.add(dayjs.duration({ days: 1 })), maxPageHour) as Dayjs,
+        ),
+      }),
     );
 
-  const gotoNow = async () => await goto(toHourId(dayjs()));
+  const gotoNow = async () =>
+    await goto(
+      resolve("/station/[station_id]/plays/[hour_id]", {
+        station_id: data.station.id,
+        hour_id: toHourId(dayjs()),
+      }),
+    );
 </script>
 
 <svelte:head>
@@ -93,8 +110,12 @@
 
 <div class="text-sm breadcrumbs px-4 bg-base-200 rounded-md">
   <ul>
-    <li><a href="/">Stations</a></li>
-    <li><a href={`/station/${data.station.id}/plays`}>{data.station.name}</a></li>
+    <li><a href={resolve("/")}>Stations</a></li>
+    <li>
+      <a href={resolve("/station/[station_id]/plays", { station_id: data.station.id })}
+        >{data.station.name}</a
+      >
+    </li>
     <li>Play History</li>
   </ul>
 </div>
@@ -127,8 +148,13 @@
     <div class="join">
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs"
-        onclick={() => goto(toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))))}
-        >‹</button
+        onclick={() =>
+          goto(
+            resolve("/station/[station_id]/plays/[hour_id]", {
+              station_id: data.station.id,
+              hour_id: toHourId(currentPageHour.subtract(dayjs.duration({ hours: 1 }))),
+            }),
+          )}>‹</button
       >
       {#each getHoursOfCurrentDay(currentPageHour) as buttonHour (buttonHour.hour())}
         <button
@@ -136,7 +162,13 @@
           class:btn-active={currentPageHour.isSame(buttonHour)}
           disabled={currentPageHour.isSameOrAfter(maxPageHour.startOf("date")) &&
             buttonHour.isAfter(maxPageHour)}
-          onclick={() => goto(toHourId(buttonHour))}
+          onclick={() =>
+            goto(
+              resolve("/station/[station_id]/plays/[hour_id]", {
+                station_id: data.station.id,
+                hour_id: toHourId(buttonHour),
+              }),
+            )}
         >
           {buttonHour.hour().toString().padStart(2, "0")}
         </button>
@@ -153,7 +185,13 @@
       <button
         class="join-item btn btn-sm lg:max-xl:btn-xs"
         disabled={currentPageHour.isSameOrAfter(maxPageHour)}
-        onclick={() => goto(toHourId(currentPageHour.add(dayjs.duration({ hours: 1 }))))}>›</button
+        onclick={() =>
+          goto(
+            resolve("/station/[station_id]/plays/[hour_id]", {
+              station_id: data.station.id,
+              hour_id: toHourId(currentPageHour.add(dayjs.duration({ hours: 1 }))),
+            }),
+          )}>›</button
       >
     </div>
   </div>
@@ -181,13 +219,22 @@
           <td>
             <a
               class="link"
-              href={`/station/${data.station.id}/artist/${encodeURIComponent(play.track.artist)}`}
+              href={resolve("/station/[station_id]/artist/[artist_name]", {
+                station_id: data.station.id,
+                artist_name: encodeURIComponent(play.track.artist),
+              })}
             >
               {play.track.artist}
             </a>
           </td>
           <td>
-            <a class="link" href="/station/{data.station.id}/track/{play.track.id}">
+            <a
+              class="link"
+              href={resolve("/station/[station_id]/track/[track_id]", {
+                station_id: data.station.id,
+                track_id: play.track.id,
+              })}
+            >
               {play.track.title}
             </a>
           </td>
