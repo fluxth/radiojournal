@@ -53,9 +53,9 @@
       "automergeStrategy": "squash"
     },
     {
-      "description": "Schedule NPM updates to once every 2 weeks on Saturday",
+      "description": "Schedule NPM updates to first Saturday of each month",
       "matchManagers": ["npm"],
-      "schedule": ["* 0-7 1-7 * sat", "* 0-7 15-21 * sat"]
+      "schedule": ["* 0-7 1-7 * sat"]
     },
     {
       "description": "Update terraform module versions without pinning",
