@@ -7,7 +7,7 @@ edition = "2024"
 radiojournal = { path = "../lib" }
 axum = { version = "=0.8.7", features = ["macros"] }
 chrono = { version = "=0.4.42", features = ["serde"] }
-lambda_http = "=0.17.0"
+lambda_http = "=1.0.1"
 serde = { version = "=1.0.228", features = ["derive"] }
 tokio = { version = "=1.48.0", features = ["full"] }
 tower-http = { version = "=0.6.6", features = ["compression-full", "trace"] }
