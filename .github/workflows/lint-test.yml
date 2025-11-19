@@ -14,7 +14,7 @@ jobs:
       # renovate: datasource=github-releases depName=terraform-linters/tflint
       TFLINT_VERSION: 'v0.60.0'
       # renovate: datasource=github-releases depName=hashicorp/terraform
-      TERRAFORM_VERSION: 'v1.13.5'
+      TERRAFORM_VERSION: 'v1.14.0'
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
