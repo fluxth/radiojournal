@@ -4,7 +4,7 @@
     "config:recommended",
     "helpers:pinGitHubActionDigests",
     "customManagers:githubActionsVersions",
-    "npm:unpublishSafe",
+    "security:minimumReleaseAgeNpm",
     ":maintainLockFilesMonthly",
     ":pinVersions",
     "github>Turbo87/renovate-config//rust/updateToolchain"
@@ -12,32 +12,52 @@
   "pre-commit": {
     "enabled": true
   },
-  "reviewers": ["fluxth"],
+  "reviewers": [
+    "fluxth"
+  ],
   "timezone": "Asia/Tokyo",
-  "schedule": ["* 0-7 * * *"],
+  "schedule": [
+    "* 0-7 * * *"
+  ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "packageRules": [
     {
       "description": "Auto-merge GitHub Actions patch and digest updates",
-      "matchUpdateTypes": ["patch", "digest"],
-      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
+      "matchManagers": [
+        "github-actions"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
     },
     {
       "description": "Auto-merge pre-commit patch and digest updates",
-      "matchUpdateTypes": ["patch", "digest"],
-      "matchManagers": ["pre-commit"],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
+      "matchManagers": [
+        "pre-commit"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
     },
     {
       "description": "Auto-merge testable NPM updates",
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchManagers": ["npm"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ],
+      "matchManagers": [
+        "npm"
+      ],
       "matchPackageNames": [
         "vitest",
         "svelte-check",
@@ -54,13 +74,21 @@
     },
     {
       "description": "Schedule NPM updates to first Saturday of each month",
-      "matchManagers": ["npm"],
-      "schedule": ["* 0-7 1-7 * sat"]
+      "matchManagers": [
+        "npm"
+      ],
+      "schedule": [
+        "* 0-7 1-7 * sat"
+      ]
     },
     {
       "description": "Update terraform module versions without pinning",
-      "matchManagers": ["terraform"],
-      "matchFileNames": ["terraform/**"],
+      "matchManagers": [
+        "terraform"
+      ],
+      "matchFileNames": [
+        "terraform/**"
+      ],
       "rangeStrategy": "replace"
     }
   ]
