@@ -9,7 +9,7 @@ anyhow = "=1.0.100"
 async-trait = "=0.1.89"
 chrono = { version = "=0.4.43", features = ["serde"] }
 lambda_runtime = "=1.0.2"
-moka = { version = "=0.12.12", features = ["future"] }
+moka = { version = "=0.12.13", features = ["future"] }
 reqwest = { version = "=0.13.1", features = ["json", "query"] }
 serde = { version = "=1.0.228", features = ["derive"] }
 serde_json = "=1.0.149"
