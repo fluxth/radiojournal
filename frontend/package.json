@@ -38,7 +38,7 @@
     "vite": "7.3.0",
     "vitest": "4.0.18"
   },
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.28.2",
   "type": "module",
   "dependencies": {
     "chart.js": "4.5.1",
