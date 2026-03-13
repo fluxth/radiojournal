@@ -12,7 +12,7 @@ serde = { version = "=1.0.228", features = ["derive"] }
 tokio = { version = "=1.50.0", features = ["full"] }
 tower-http = { version = "=0.6.8", features = ["compression-full", "trace"] }
 tracing = "=0.1.44"
-tracing-subscriber = { version = "=0.3.22", features = ["json"] }
+tracing-subscriber = { version = "=0.3.23", features = ["json"] }
 ulid = { version = "=1.2.1", features = ["serde"] }
 utoipa = { version = "=5.4.0", features = ["ulid", "chrono", "axum_extras"] }
 utoipa-swagger-ui = { version = "=9.0.2", features = ["axum"] }
