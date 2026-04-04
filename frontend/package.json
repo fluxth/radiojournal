@@ -42,7 +42,7 @@
   "type": "module",
   "dependencies": {
     "chart.js": "4.5.1",
-    "dayjs": "1.11.19",
+    "dayjs": "1.11.20",
     "nprogress": "0.2.0"
   }
 }
