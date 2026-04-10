@@ -12,7 +12,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   dynamodb-admin:
-    image: aaronshaf/dynamodb-admin:5.1.3@sha256:46d9c7f5234688481a807987113ab068acaa11fd7057c9bb84ef181f492a0194
+    image: aaronshaf/dynamodb-admin:5.2.0@sha256:c04d44b431d4035fc5ddb2f6e8f342a8389327a8625ff834b824ffe86af62097
     environment:
       - AWS_REGION=ap-southeast-1
       - DYNAMO_ENDPOINT=http://localstack:4566
