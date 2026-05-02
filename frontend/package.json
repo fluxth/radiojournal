@@ -21,7 +21,7 @@
     "@types/eslint": "9.6.1",
     "@types/nprogress": "0.2.3",
     "daisyui": "5.5.19",
-    "eslint": "10.1.0",
+    "eslint": "10.2.1",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-svelte": "3.17.1",
     "globals": "17.4.0",
