@@ -27,6 +27,13 @@ resource "aws_lambda_function" "this" {
     # https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsARM.html
     "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:31"
   ]
+
+  lifecycle {
+    ignore_changes = [
+      filename,
+      source_code_hash,
+    ]
+  }
 }
 
 resource "aws_lambda_function_url" "this" {
