@@ -43,6 +43,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
       "lambda:UpdateFunctionCode",
       "lambda:GetFunctionConfiguration",
       "lambda:PublishVersion",
+      "lambda:UpdateAlias",
     ]
     resources = [
       var.api_function_arn,
@@ -54,7 +55,6 @@ data "aws_iam_policy_document" "lambda_permissions" {
     effect = "Allow"
     actions = [
       "lambda:InvokeFunction",
-      "lambda:UpdateAlias",
     ]
     resources = [
       "${var.api_function_arn}:*",
