@@ -12,9 +12,9 @@ jobs:
     timeout-minutes: 10
     env:
       # renovate: datasource=github-releases depName=terraform-linters/tflint
-      TFLINT_VERSION: 'v0.62.0'
+      TFLINT_VERSION: "v0.62.0"
       # renovate: datasource=github-releases depName=hashicorp/terraform
-      TERRAFORM_VERSION: 'v1.15.1'
+      TERRAFORM_VERSION: "v1.15.1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -22,8 +22,8 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version-file: '.python-version'
-          cache: 'pip'
+          python-version-file: ".python-version"
+          cache: "pip"
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         name: Cache tflint plugin dir
