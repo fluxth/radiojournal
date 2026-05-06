@@ -33,6 +33,8 @@ jobs:
 
       - name: Build radiojournal frontend
         working-directory: frontend
+        env:
+          PUBLIC_API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: pnpm build
 
       - name: Upload artifacts

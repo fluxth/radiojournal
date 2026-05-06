@@ -11,7 +11,7 @@ resource "aws_scheduler_schedule" "scheduler" {
   }
 
   target {
-    arn      = aws_lambda_function.this.arn
+    arn      = aws_lambda_alias.live.arn
     role_arn = aws_iam_role.scheduler.arn
 
     input = jsonencode({})

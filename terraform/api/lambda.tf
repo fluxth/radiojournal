@@ -36,8 +36,19 @@ resource "aws_lambda_function" "this" {
   }
 }
 
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  function_name    = aws_lambda_function.this.function_name
+  function_version = "$LATEST"
+
+  lifecycle {
+    ignore_changes = [function_version]
+  }
+}
+
 resource "aws_lambda_function_url" "this" {
   function_name      = aws_lambda_function.this.function_name
+  qualifier          = aws_lambda_alias.live.name
   authorization_type = "NONE"
 
   cors {

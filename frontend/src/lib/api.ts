@@ -1,7 +1,8 @@
 import { invalidate } from "$app/navigation";
+import { PUBLIC_API_BASE_URL } from "$env/static/public";
 import type { Dayjs } from "dayjs";
 
-const API_BASE_URL = "https://nna6sr3v62fsk5oauz37tnzuvm0lvtfl.lambda-url.ap-southeast-1.on.aws";
+const API_BASE_URL = PUBLIC_API_BASE_URL;
 
 // TODO import from openapi
 export type Station = {

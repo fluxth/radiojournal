@@ -36,8 +36,19 @@ resource "aws_lambda_function" "this" {
   }
 }
 
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  function_name    = aws_lambda_function.this.function_name
+  function_version = "$LATEST"
+
+  lifecycle {
+    ignore_changes = [function_version]
+  }
+}
+
 resource "aws_lambda_function_event_invoke_config" "this" {
   function_name                = aws_lambda_function.this.function_name
+  qualifier                    = aws_lambda_alias.live.name
   maximum_event_age_in_seconds = 60
   maximum_retry_attempts       = 2
 }

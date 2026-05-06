@@ -90,20 +90,40 @@ jobs:
         run: |
           cd target/lambda/radiojournal-api
           zip bootstrap.zip bootstrap
+
+          echo "Uploading code..."
           aws lambda update-function-code \
             --function-name ${{ vars.API_FUNCTION_NAME }} \
             --zip-file fileb://bootstrap.zip \
             > /dev/null
+
+          echo "Waiting for update..."
           aws lambda wait function-updated-v2 \
             --function-name ${{ vars.API_FUNCTION_NAME }}
+
+          echo "Publishing version..."
+          VERSION=$(aws lambda publish-version \
+            --function-name ${{ vars.API_FUNCTION_NAME }} \
+            --description "${{ github.ref_name }}" \
+            --query 'Version' --output text)
+
+          echo "Promoting alias to version $VERSION..."
+          aws lambda update-alias \
+            --function-name ${{ vars.API_FUNCTION_NAME }} \
+            --name live \
+            --function-version "$VERSION" \
+            > /dev/null
 
       - name: Deploy frontend
         env:
           FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
         run: |
+          echo "Syncing immutable assets..."
           aws s3 sync frontend/build/_app/immutable/ "s3://$FRONTEND_BUCKET/_app/immutable/" \
             --cache-control "public, max-age=31536000, immutable" \
             --delete
+
+          echo "Syncing remaining files..."
           aws s3 sync frontend/build/ "s3://$FRONTEND_BUCKET/" \
             --exclude "_app/immutable/*" \
             --cache-control "no-cache, must-revalidate" \
@@ -111,18 +131,18 @@ jobs:
 
       - name: Sanity check - station list
         run: |
-          STATIONS=$(curl -sf "${{ vars.API_URL }}/v1/stations")
+          STATIONS=$(curl -sf "${{ vars.API_BASE_URL }}/v1/stations")
           echo "$STATIONS" | jq -e 'length > 0'
           echo "STATION_ID=$(echo "$STATIONS" | jq -r '.[0].id')" >> "$GITHUB_ENV"
 
       - name: Sanity check - station tracks
-        run: curl -sf "${{ vars.API_URL }}/v1/station/$STATION_ID/tracks" | jq -e '.'
+        run: curl -sf "${{ vars.API_BASE_URL }}/v1/station/$STATION_ID/tracks" | jq -e '.'
 
       - name: Sanity check - station plays
         run: |
           END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           START=$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ)
-          curl -sf "${{ vars.API_URL }}/v1/station/$STATION_ID/plays?start=$START&end=$END" | jq -e '.'
+          curl -sf "${{ vars.API_BASE_URL }}/v1/station/$STATION_ID/plays?start=$START&end=$END" | jq -e '.'
 
   deploy-logger:
     needs: [check-artifacts, deploy-api-frontend]
@@ -152,17 +172,41 @@ jobs:
         run: |
           cd target/lambda/radiojournal-logger
           zip bootstrap.zip bootstrap
+
+          echo "Uploading code..."
           aws lambda update-function-code \
             --function-name ${{ vars.LOGGER_FUNCTION_NAME }} \
             --zip-file fileb://bootstrap.zip \
             > /dev/null
+
+          echo "Waiting for update..."
           aws lambda wait function-updated-v2 \
             --function-name ${{ vars.LOGGER_FUNCTION_NAME }}
+
+          echo "Publishing version..."
+          VERSION=$(aws lambda publish-version \
+            --function-name ${{ vars.LOGGER_FUNCTION_NAME }} \
+            --description "${{ github.ref_name }}" \
+            --query 'Version' --output text)
+
+          echo "Testing version $VERSION before promoting..."
+          RESULT=$(aws lambda invoke \
+            --function-name "${{ vars.LOGGER_FUNCTION_NAME }}:$VERSION" \
+            --cli-binary-format raw-in-base64-out \
+            /tmp/logger-precheck.json)
+          echo "$RESULT" | jq -e 'has("FunctionError") | not'
+
+          echo "Promoting alias to version $VERSION..."
+          aws lambda update-alias \
+            --function-name ${{ vars.LOGGER_FUNCTION_NAME }} \
+            --name live \
+            --function-version "$VERSION" \
+            > /dev/null
 
       - name: Sanity check - logger invoke
         run: |
           RESULT=$(aws lambda invoke \
-            --function-name ${{ vars.LOGGER_FUNCTION_NAME }} \
+            --function-name ${{ vars.LOGGER_FUNCTION_NAME }}:live \
             --cli-binary-format raw-in-base64-out \
             /tmp/logger-response.json)
           echo "$RESULT"
