@@ -92,7 +92,8 @@ jobs:
           zip bootstrap.zip bootstrap
           aws lambda update-function-code \
             --function-name ${{ vars.API_FUNCTION_NAME }} \
-            --zip-file fileb://bootstrap.zip
+            --zip-file fileb://bootstrap.zip \
+            > /dev/null
           aws lambda wait function-updated-v2 \
             --function-name ${{ vars.API_FUNCTION_NAME }}
 
@@ -153,7 +154,8 @@ jobs:
           zip bootstrap.zip bootstrap
           aws lambda update-function-code \
             --function-name ${{ vars.LOGGER_FUNCTION_NAME }} \
-            --zip-file fileb://bootstrap.zip
+            --zip-file fileb://bootstrap.zip \
+            > /dev/null
           aws lambda wait function-updated-v2 \
             --function-name ${{ vars.LOGGER_FUNCTION_NAME }}
 
