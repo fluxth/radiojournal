@@ -39,6 +39,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
   statement {
     effect = "Allow"
     actions = [
+      "lambda:GetFunction",
       "lambda:UpdateFunctionCode",
       "lambda:GetFunctionConfiguration",
     ]
