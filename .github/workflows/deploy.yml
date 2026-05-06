@@ -37,22 +37,24 @@ jobs:
           frontend_run=$(find_artifact_run "build-frontend.yml" "frontend")
 
           if [[ -n $lambda_run ]]; then
+            echo "Lambda build found: run_id=$lambda_run"
             echo "lambda-run-id=$lambda_run" >> "$GITHUB_OUTPUT"
           fi
 
           if [[ -n $frontend_run ]]; then
+            echo "Frontend build found: run_id=$frontend_run"
             echo "frontend-run-id=$frontend_run" >> "$GITHUB_OUTPUT"
           fi
-
-  build-lambda:
-    needs: check-artifacts
-    if: needs.check-artifacts.outputs.lambda-run-id == ''
-    uses: ./.github/workflows/build-lambda.yml
 
   build-frontend:
     needs: check-artifacts
     if: needs.check-artifacts.outputs.frontend-run-id == ''
     uses: ./.github/workflows/build-frontend.yml
+
+  build-lambda:
+    needs: check-artifacts
+    if: needs.check-artifacts.outputs.lambda-run-id == ''
+    uses: ./.github/workflows/build-lambda.yml
 
   deploy-api-frontend:
     needs: [check-artifacts, build-lambda, build-frontend]
@@ -86,6 +88,21 @@ jobs:
           run-id: ${{ needs.check-artifacts.outputs.frontend-run-id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Deploy frontend
+        env:
+          FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
+        run: |
+          echo "Syncing immutable assets..."
+          aws s3 sync frontend/build/_app/immutable/ "s3://$FRONTEND_BUCKET/_app/immutable/" \
+            --cache-control "public, max-age=31536000, immutable" \
+            --delete
+
+          echo "Syncing remaining files..."
+          aws s3 sync frontend/build/ "s3://$FRONTEND_BUCKET/" \
+            --exclude "_app/immutable/*" \
+            --cache-control "no-cache, must-revalidate" \
+            --delete
+
       - name: Deploy API lambda
         run: |
           cd target/lambda/radiojournal-api
@@ -113,21 +130,6 @@ jobs:
             --name live \
             --function-version "$VERSION" \
             > /dev/null
-
-      - name: Deploy frontend
-        env:
-          FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
-        run: |
-          echo "Syncing immutable assets..."
-          aws s3 sync frontend/build/_app/immutable/ "s3://$FRONTEND_BUCKET/_app/immutable/" \
-            --cache-control "public, max-age=31536000, immutable" \
-            --delete
-
-          echo "Syncing remaining files..."
-          aws s3 sync frontend/build/ "s3://$FRONTEND_BUCKET/" \
-            --exclude "_app/immutable/*" \
-            --cache-control "no-cache, must-revalidate" \
-            --delete
 
       - name: Sanity check - station list
         run: |
