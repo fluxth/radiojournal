@@ -12,7 +12,7 @@
   };
 
   let { data }: Props = $props();
-  let tracksData = $state(data.tracksData);
+  let tracksData = $derived(data.tracksData);
 
   let isLoading: boolean = $state(false);
 

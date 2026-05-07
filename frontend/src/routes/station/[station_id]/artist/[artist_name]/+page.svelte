@@ -12,7 +12,8 @@
   };
 
   let { data }: Props = $props();
-  let tracksData = $state(data.tracksData);
+  let tracksData = $derived(data.tracksData);
+
   let isLoading = $state(false);
 
   const loadMore = async (event: MouseEvent) => {

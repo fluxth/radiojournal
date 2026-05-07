@@ -17,7 +17,7 @@
   let { data }: Props = $props();
 
   let track = $derived(data.trackData.track);
-  let playsData = $state(data.playsData);
+  let playsData = $derived(data.playsData);
   let plays = $derived(playsData.plays);
 
   const numberFormat = new Intl.NumberFormat();
