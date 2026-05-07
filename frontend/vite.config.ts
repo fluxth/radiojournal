@@ -1,7 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
-import { loadEnv } from "vite";
-import { defineConfig } from "vitest/config";
+import { loadEnv, defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
@@ -11,8 +10,5 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [tailwindcss(), sveltekit()],
-    test: {
-      include: ["src/**/*.{test,spec}.{js,ts}"],
-    },
   };
 });
