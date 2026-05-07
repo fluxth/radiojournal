@@ -89,7 +89,8 @@
       "matchFileNames": [
         "terraform/**"
       ],
-      "rangeStrategy": "replace"
+      "rangeStrategy": "replace",
+      "schedule": null
     }
   ]
 }
