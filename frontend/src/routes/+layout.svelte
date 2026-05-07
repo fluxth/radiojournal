@@ -3,7 +3,6 @@
 
   import "nprogress/nprogress.css";
   import "../app.css";
-  import "../app.scss";
 
   import NProgress from "nprogress";
   import { navigating } from "$app/stores";

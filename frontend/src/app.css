@@ -1,2 +1,21 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui/index.js";
+
+.table-responsive tr {
+  @apply max-sm:flex max-sm:flex-col max-sm:py-1;
+
+  td,
+  th {
+    @apply max-sm:py-0.5;
+  }
+}
+
+#nprogress {
+  .bar {
+    @apply bg-primary;
+  }
+
+  .peg {
+    @apply shadow-md shadow-primary;
+  }
+}
