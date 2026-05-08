@@ -91,6 +91,21 @@
       ],
       "rangeStrategy": "replace",
       "schedule": null
+    },
+    {
+      "description": "Keep terraform lockfile maintenance on monthly schedule",
+      "matchManagers": [
+        "terraform"
+      ],
+      "matchFileNames": [
+        "terraform/**"
+      ],
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "schedule": [
+        "* 0-7 1 * *"
+      ]
     }
   ]
 }
