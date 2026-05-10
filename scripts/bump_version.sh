@@ -35,7 +35,7 @@ esac
   NEXT_VERSION="$(poetry version -s "$version")"
 
   find .. -name Cargo.toml -exec  "$sedcmd" -i 's/^version = .*/version = "'"$NEXT_VERSION"'"/' {} \;
-  cargo update -w --offline
+  cargo update -w
 
   cd ../frontend
   pnpm version --no-commit-hooks "$version"
