@@ -61,6 +61,12 @@
       "groupName": "svelte"
     },
     {
+      "description": "Group eslint ecosystem",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["eslint", "@eslint/js", "typescript-eslint"],
+      "groupName": "eslint"
+    },
+    {
       "description": "Auto-merge testable NPM updates",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchManagers": ["npm"],
