@@ -35,6 +35,32 @@
       "automergeStrategy": "squash"
     },
     {
+      "description": "Group aws lambda rust crates",
+      "matchManagers": ["cargo"],
+      "matchPackageNames": ["lambda_http", "lambda_runtime"],
+      "groupName": "aws lambda rust"
+    },
+    {
+      "description": "Group tracing crates",
+      "matchManagers": ["cargo"],
+      "matchPackageNames": ["tracing", "tracing-subscriber"],
+      "groupName": "tracing"
+    },
+    {
+      "description": "Group svelte ecosystem",
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "svelte",
+        "@sveltejs/kit",
+        "@sveltejs/adapter-static",
+        "@sveltejs/vite-plugin-svelte",
+        "eslint-plugin-svelte",
+        "prettier-plugin-svelte",
+        "svelte-check"
+      ],
+      "groupName": "svelte"
+    },
+    {
       "description": "Auto-merge testable NPM updates",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchManagers": ["npm"],
