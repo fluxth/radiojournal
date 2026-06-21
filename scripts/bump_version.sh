@@ -38,7 +38,7 @@ esac
   cargo update -w
 
   cd ../frontend
-  pnpm version --no-commit-hooks "$version"
+  pnpm version --no-git-checks --no-commit-hooks --no-git-tag-version "$version"
 
   if [ -n "$GITHUB_ENV" ] ; then
     printf 'NEXT_VERSION=%s\n' "$NEXT_VERSION" >> "$GITHUB_ENV"
