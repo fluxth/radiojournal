@@ -12,7 +12,7 @@ aws-config = "=1.9.0"
 aws-sdk-dynamodb = "=1.117.0"
 aws-smithy-runtime-api = "=1.13.0"
 chrono = { version = "=0.4.45", features = ["serde"] }
-serde = { version = "=1.0.228", features = ["derive"] }
+serde = { version = "=1.0.229", features = ["derive"] }
 serde_dynamo = { version = "=4.3.0", features = ["aws-sdk-dynamodb+1"] }
 thiserror = "=2.0.18"
 tracing = "=0.1.44"
