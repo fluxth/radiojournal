@@ -76,7 +76,7 @@ impl PlayInDB {
 
     pub fn new(station_id: StationId, track_id: TrackId) -> Self {
         let now = Utc::now();
-        let play_id = Ulid::new().into();
+        let play_id = Ulid::generate().into();
 
         PlayInDB {
             pk: Self::get_pk(station_id, &now),
