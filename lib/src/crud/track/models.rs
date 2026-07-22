@@ -71,7 +71,7 @@ impl TrackInDB {
         is_song: bool,
     ) -> Self {
         let now = Utc::now();
-        let track_id = Ulid::new().into();
+        let track_id = Ulid::generate().into();
 
         let title = title.into();
         let artist = artist.into();
