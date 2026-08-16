@@ -3311,34 +3311,34 @@ dependencies = [
 
 [[package]]
 name = "utoipauto"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d92372d35a311d022e5c9ba1a44f4e28f906dab9c7b31950102c6bc3c082f711"
+checksum = "3481a79e9008eb926488cc7c1070bd6b2ce9e1aca2e22289f97ad1a9d02e9d5b"
 dependencies = [
  "utoipauto-macro",
 ]
 
 [[package]]
 name = "utoipauto-core"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aebbd9522cb1a6f4496d605c019038b756f9fe8f5dcb0b50f4fb92cfb883dbb1"
+checksum = "b76b1edb901c962b214a33cab391a9ddfde08ba0559026795c36a7eaf49370ba"
 dependencies = [
  "globset",
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.3",
 ]
 
 [[package]]
 name = "utoipauto-macro"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "139349d3787723c01e59c31b8f47b734d8d2d509ea8e9c0b88b2c58720b4c68b"
+checksum = "980dad8f4b52e89b3eb7b7de101c0c0c5162e4a21a524e40e31848e552d27348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.3",
  "utoipauto-core",
 ]
 
