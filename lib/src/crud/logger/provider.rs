@@ -43,7 +43,7 @@ impl DynamoDBProvider {
     pub async fn update_play(
         &self,
         input: UpdatePlayInput,
-    ) -> Result<UpdateItemOutput, SdkError<UpdateItemError, HttpResponse>> {
+    ) -> Result<UpdateItemOutput, Box<SdkError<UpdateItemError, HttpResponse>>> {
         self.context
             .db_client
             .update_item()
@@ -57,12 +57,14 @@ impl DynamoDBProvider {
             .expression_attribute_values(":ts", AttributeValue::S(input.update_timestamp))
             .send()
             .await
+            .map_err(Box::new)
     }
 
     pub async fn transact_write_items(
         &self,
         items: impl IntoIterator<Item = TransactWriteItem>,
-    ) -> Result<TransactWriteItemsOutput, SdkError<TransactWriteItemsError, HttpResponse>> {
+    ) -> Result<TransactWriteItemsOutput, Box<SdkError<TransactWriteItemsError, HttpResponse>>>
+    {
         let mut transaction = self.context.db_client.transact_write_items();
 
         for item in items.into_iter() {
@@ -74,7 +76,7 @@ impl DynamoDBProvider {
             });
         }
 
-        transaction.send().await
+        transaction.send().await.map_err(Box::new)
     }
 }
 

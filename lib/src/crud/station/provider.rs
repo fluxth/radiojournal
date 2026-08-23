@@ -40,7 +40,7 @@ impl DynamoDBProvider {
     pub async fn get_item(
         &self,
         input: GetItemInput,
-    ) -> Result<GetItemOutput, SdkError<GetItemError, HttpResponse>> {
+    ) -> Result<GetItemOutput, Box<SdkError<GetItemError, HttpResponse>>> {
         self.context
             .db_client
             .get_item()
@@ -49,12 +49,13 @@ impl DynamoDBProvider {
             .key("sk", AttributeValue::S(input.sk))
             .send()
             .await
+            .map_err(Box::new)
     }
 
     pub async fn put_item(
         &self,
         input: PutItemInput,
-    ) -> Result<PutItemOutput, SdkError<PutItemError, HttpResponse>> {
+    ) -> Result<PutItemOutput, Box<SdkError<PutItemError, HttpResponse>>> {
         self.context
             .db_client
             .put_item()
@@ -62,13 +63,14 @@ impl DynamoDBProvider {
             .set_item(Some(input.item))
             .send()
             .await
+            .map_err(Box::new)
     }
 
     pub async fn query_prefix(
         &self,
         input: QueryPrefixInput,
         config: QueryPrefixConfig,
-    ) -> Result<QueryOutput, SdkError<QueryError, HttpResponse>> {
+    ) -> Result<QueryOutput, Box<SdkError<QueryError, HttpResponse>>> {
         self.context
             .db_client
             .query()
@@ -79,5 +81,6 @@ impl DynamoDBProvider {
             .limit(config.limit)
             .send()
             .await
+            .map_err(Box::new)
     }
 }
