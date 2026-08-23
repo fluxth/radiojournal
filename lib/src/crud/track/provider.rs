@@ -93,7 +93,7 @@ impl DynamoDBProvider {
         &self,
         input: GetItemInput,
         config: GetItemConfig,
-    ) -> Result<GetItemOutput, SdkError<GetItemError, HttpResponse>> {
+    ) -> Result<GetItemOutput, Box<SdkError<GetItemError, HttpResponse>>> {
         let mut get_item = self
             .context
             .db_client
@@ -107,14 +107,14 @@ impl DynamoDBProvider {
             get_item = get_item.projection_expression(projected_fields.join(", "));
         }
 
-        get_item.send().await
+        get_item.send().await.map_err(Box::new)
     }
 
     pub async fn query_prefix(
         &self,
         input: QueryPrefixInput,
         config: QueryPrefixConfig,
-    ) -> Result<QueryOutput, SdkError<QueryError, HttpResponse>> {
+    ) -> Result<QueryOutput, Box<SdkError<QueryError, HttpResponse>>> {
         let mut query = self
             .context
             .db_client
@@ -139,14 +139,14 @@ impl DynamoDBProvider {
                 .exclusive_start_key("sk", AttributeValue::S(exclusive_start_key.sk));
         }
 
-        query.send().await
+        query.send().await.map_err(Box::new)
     }
 
     pub async fn query_prefix_gsi1(
         &self,
         input: QueryPrefixGsi1Input,
         config: QueryPrefixGsi1Config,
-    ) -> Result<QueryOutput, SdkError<QueryError, HttpResponse>> {
+    ) -> Result<QueryOutput, Box<SdkError<QueryError, HttpResponse>>> {
         let mut query = self
             .context
             .db_client
@@ -172,14 +172,14 @@ impl DynamoDBProvider {
                 .exclusive_start_key("pk", AttributeValue::S(exclusive_start_key.pk));
         }
 
-        query.send().await
+        query.send().await.map_err(Box::new)
     }
 
     pub async fn batch_get_item<I>(
         &self,
         input: BatchGetItemInput<I>,
         config: BatchGetItemConfig,
-    ) -> Result<BatchGetItemOutput, SdkError<BatchGetItemError, HttpResponse>>
+    ) -> Result<BatchGetItemOutput, Box<SdkError<BatchGetItemError, HttpResponse>>>
     where
         I: Iterator<Item = BatchGetItemKey>,
     {
@@ -197,11 +197,17 @@ impl DynamoDBProvider {
             ]))
         }
 
+        let request_keys = match request_keys.build() {
+            Ok(val) => val,
+            Err(err) => return Err(Box::new(err.into())),
+        };
+
         self.context
             .db_client
             .batch_get_item()
-            .request_items(&self.context.db_table, request_keys.build()?)
+            .request_items(&self.context.db_table, request_keys)
             .send()
             .await
+            .map_err(Box::new)
     }
 }

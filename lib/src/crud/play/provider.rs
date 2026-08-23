@@ -36,7 +36,7 @@ impl DynamoDBProvider {
         &self,
         input: QueryRangeInput,
         config: QueryRangeConfig,
-    ) -> Result<QueryOutput, SdkError<QueryError, HttpResponse>> {
+    ) -> Result<QueryOutput, Box<SdkError<QueryError, HttpResponse>>> {
         let mut query = self
             .context
             .db_client
@@ -55,6 +55,6 @@ impl DynamoDBProvider {
                 .exclusive_start_key("sk", AttributeValue::S(exclusive_start_key.sk));
         }
 
-        query.send().await
+        query.send().await.map_err(Box::new)
     }
 }
