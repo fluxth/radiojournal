@@ -25,7 +25,7 @@ jobs:
       pull-requests: write
     env:
       # renovate: datasource=github-releases depName=python-poetry/poetry
-      POETRY_VERSION: "2.4.2"
+      POETRY_VERSION: "2.4.3"
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
