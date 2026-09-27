@@ -14,6 +14,6 @@ tower-http = { version = "=0.7.1", features = ["compression-full", "trace"] }
 tracing = "=0.1.44"
 tracing-subscriber = { version = "=0.3.23", features = ["json"] }
 ulid = { version = "=3.0.0", features = ["serde"] }
-utoipa = { version = "=5.5.0", features = ["ulid", "chrono", "axum_extras"] }
-utoipa-swagger-ui = { version = "=9.0.2", features = ["axum"] }
+utoipa = { version = "=6.0.0", features = ["ulid", "chrono", "axum_extras"] }
+utoipa-swagger-ui = { version = "=10.0.1", features = ["axum"] }
 utoipauto = "=0.3.1"
