@@ -6,6 +6,7 @@ repos:
       - id: end-of-file-fixer
         exclude: "default_user_agent.txt"
       - id: check-yaml
+        exclude: "pnpm-lock.yaml"
       - id: check-json
         exclude: "tsconfig.json"
       - id: check-toml
