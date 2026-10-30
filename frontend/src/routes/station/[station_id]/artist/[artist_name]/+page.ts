@@ -1,4 +1,4 @@
-import { listTracks } from "$lib/api";
+import { listTracks } from "#lib/api.js";
 import type { PageLoad } from "./$types";
 import { error } from "@sveltejs/kit";
 

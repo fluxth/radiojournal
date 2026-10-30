@@ -1,6 +1,6 @@
 import type { PageLoad } from "./$types";
-import dayjs from "$lib/dayjs";
-import { toHourId } from "$lib/helpers";
+import dayjs from "#lib/dayjs.js";
+import { toHourId } from "#lib/helpers.js";
 import { redirect } from "@sveltejs/kit";
 
 export const load: PageLoad = async ({ params }) => {

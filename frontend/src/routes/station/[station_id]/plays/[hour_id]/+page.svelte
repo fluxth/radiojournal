@@ -4,10 +4,10 @@
 
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
-  import { toHourId } from "$lib/helpers";
-  import dayjs from "$lib/dayjs";
+  import { toHourId } from "#lib/helpers.js";
+  import dayjs from "#lib/dayjs.js";
 
-  import windowsZones from "$lib/data/windowsZones.json";
+  import windowsZones from "#lib/data/windowsZones.json";
 
   type Props = {
     data: PageData;

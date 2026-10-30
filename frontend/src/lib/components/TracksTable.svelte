@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { Station, Track } from "$lib/api";
+  import type { Station, Track } from "#lib/api.js";
 
   import { fade } from "svelte/transition";
-  import dayjs from "$lib/dayjs";
+  import dayjs from "#lib/dayjs.js";
   import { resolve } from "$app/paths";
 
   const numberFormat = new Intl.NumberFormat();

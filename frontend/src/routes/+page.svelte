@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { PageData } from "./$types";
 
-  import { invalidateAll } from "$app/navigation";
+  import { refreshAll } from "$app/navigation";
   import { resolve } from "$app/paths";
 
   type Props = {
@@ -15,7 +15,7 @@
   const refresh = async (event: MouseEvent) => {
     event.preventDefault();
 
-    await invalidateAll();
+    await refreshAll();
   };
 </script>
 

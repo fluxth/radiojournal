@@ -5,7 +5,7 @@
   import "../app.css";
 
   import NProgress from "nprogress";
-  import { navigating } from "$app/stores";
+  import { navigating } from "$app/state";
   import { resolve } from "$app/paths";
 
   type Props = {
@@ -17,7 +17,7 @@
   NProgress.configure({ minimum: 0.16, showSpinner: false });
 
   $effect(() => {
-    if ($navigating) NProgress.start();
+    if (navigating.to) NProgress.start();
     else NProgress.done();
   });
 </script>

@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import type { Track } from "$lib/api";
+  import type { Track } from "#lib/api.js";
 
-  import { listTrackPlays } from "$lib/api";
-  import dayjs from "$lib/dayjs";
-  import { toHourId } from "$lib/helpers";
+  import { listTrackPlays } from "#lib/api.js";
+  import dayjs from "#lib/dayjs.js";
+  import { toHourId } from "#lib/helpers.js";
   import { resolve } from "$app/paths";
 
   import Chart from "chart.js/auto";
