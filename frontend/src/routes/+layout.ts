@@ -1,5 +1,5 @@
 import type { LayoutLoad } from "./$types";
-import { listStations } from "$lib/api";
+import { listStations } from "#lib/api.js";
 
 export const ssr = false;
 

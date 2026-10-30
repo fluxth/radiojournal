@@ -1,7 +1,7 @@
 import type { PageLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import { listPlays } from "$lib/api";
-import dayjs from "$lib/dayjs";
+import { listPlays } from "#lib/api.js";
+import dayjs from "#lib/dayjs.js";
 
 export const load: PageLoad = async ({ fetch, params, parent }) => {
   const hourId = params.hour_id;

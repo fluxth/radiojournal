@@ -1,5 +1,5 @@
 import { invalidate } from "$app/navigation";
-import { PUBLIC_API_BASE_URL } from "$env/static/public";
+import { PUBLIC_API_BASE_URL } from "$app/env/public";
 import type { Dayjs } from "dayjs";
 
 const API_BASE_URL = PUBLIC_API_BASE_URL;
@@ -31,24 +31,10 @@ export type PlayResponse = {
   invalidate: () => Promise<void>;
 };
 
-export type Play = {
-  id: string;
-  played_at: string;
-  track: TrackMinimal;
-};
+export type Play = { id: string; played_at: string; track: TrackMinimal };
+export type TrackMinimal = { id: string; artist: string; title: string; is_song: string };
 
-export type TrackMinimal = {
-  id: string;
-  artist: string;
-  title: string;
-  is_song: string;
-};
-
-export type Track = TrackMinimal & {
-  play_count: number;
-  created_at: string;
-  updated_at: string;
-};
+export type Track = TrackMinimal & { play_count: number; created_at: string; updated_at: string };
 
 export const listPlays = async ({
   fetch,
@@ -103,16 +89,11 @@ export const getTrack = async ({
   const res = await fetch(url);
 
   const track: Track = await res.json();
-  return {
-    track,
-    invalidate: async () => await invalidate(url),
-  };
+
+  return { track, invalidate: async () => await invalidate(url) };
 };
 
-export type TrackPlay = {
-  id: string;
-  played_at: string;
-};
+export type TrackPlay = { id: string; played_at: string };
 
 export type TrackPlayResponse = {
   plays: TrackPlay[];

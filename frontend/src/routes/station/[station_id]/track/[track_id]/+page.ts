@@ -1,6 +1,6 @@
 import type { PageLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import { getTrack, listTrackPlays } from "$lib/api";
+import { getTrack, listTrackPlays } from "#lib/api.js";
 
 export const load: PageLoad = async ({ fetch, params, parent }) => {
   const { station_id: stationId, track_id: trackId } = params;

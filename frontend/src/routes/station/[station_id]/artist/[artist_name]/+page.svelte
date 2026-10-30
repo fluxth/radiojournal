@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { PageData } from "./$types";
 
-  import TracksTable from "$lib/components/TracksTable.svelte";
-  import { listTracks } from "$lib/api";
+  import TracksTable from "#lib/components/TracksTable.svelte";
+  import { listTracks } from "#lib/api.js";
   import { resolve } from "$app/paths";
 
   const numberFormat = new Intl.NumberFormat();
